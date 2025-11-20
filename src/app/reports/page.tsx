@@ -7,12 +7,12 @@ export default function ReportsPage() {
   const stats = [
     { label: 'Total Schedules', value: '156', icon: Calendar, color: 'bg-blue-600' },
     { label: 'Active Drivers', value: '24', icon: Users, color: 'bg-green-600' },
-    { label: 'Available Vehicles', value: '18', icon: Car, color: 'bg-orange-600' },
+    { label: 'Available Vehicles', value: '18', icon: Car, color: 'bg-blue-600' },
     { label: 'Messages Sent', value: '342', icon: MessageSquare, color: 'bg-purple-600' },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
@@ -68,7 +68,7 @@ export default function ReportsPage() {
 
           <Card className="p-6 bg-white">
             <div className="flex items-center gap-2 mb-4">
-              <BarChart3 className="h-5 w-5 text-orange-700" />
+              <BarChart3 className="h-5 w-5 text-blue-700" />
               <h3 className="font-bold text-lg text-gray-900">Vehicle Utilization</h3>
             </div>
             <div className="space-y-4">

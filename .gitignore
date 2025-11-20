@@ -40,12 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Tempo
-
-node_modules/
-**/tempobook/dynamic/
-**/tempobook/storyboards/
-
 # remove git history
 .git
 

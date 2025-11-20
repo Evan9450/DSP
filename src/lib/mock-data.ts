@@ -1,20 +1,178 @@
-import { Vehicle, Driver, Schedule, SMSHistory } from '@/types/schedule';
+import {
+  Vehicle,
+  Driver,
+  Schedule,
+  SMSHistory,
+  DriverDocument,
+  DriverKPI,
+  Asset,
+  AssetBorrowRecord,
+  AssetPurchase,
+  VehicleInspection,
+  VehicleMaintenance,
+  SystemSettings,
+  SystemUser,
+  Reminder
+} from '@/types/schedule';
 
+// Vehicle Mock Data
 export const mockVehicles: Vehicle[] = [
-  { id: 'v1', vehicleNumber: 'VAN-001', status: 'available' },
-  { id: 'v2', vehicleNumber: 'VAN-002', status: 'available' },
-  { id: 'v3', vehicleNumber: 'VAN-003', status: 'in-use' },
-  { id: 'v4', vehicleNumber: 'VAN-004', status: 'available' },
-  { id: 'v5', vehicleNumber: 'VAN-005', status: 'maintenance' },
-  { id: 'v6', vehicleNumber: 'VAN-006', status: 'available' },
+  {
+    id: 'v1',
+    rego: 'ABC123',
+    vehicleNumber: 'VAN-001',
+    brand: 'Mercedes',
+    model: 'Sprinter 2022',
+    status: 'available',
+    condition: 'green',
+    maintenanceCycle: 90, // days
+    maintenanceLocation: 'City Auto Service',
+    garageEmail: 'service@cityauto.com',
+    lastMaintenanceDate: new Date(2024, 0, 10),
+    nextMaintenanceDate: new Date(2024, 3, 10),
+    mileage: 45230
+  },
+  {
+    id: 'v2',
+    rego: 'DEF456',
+    vehicleNumber: 'VAN-002',
+    brand: 'Mercedes',
+    model: 'Sprinter 2022',
+    status: 'available',
+    condition: 'green',
+    maintenanceCycle: 90,
+    maintenanceLocation: 'City Auto Service',
+    garageEmail: 'service@cityauto.com',
+    lastMaintenanceDate: new Date(2024, 0, 5),
+    nextMaintenanceDate: new Date(2024, 3, 5),
+    mileage: 38920
+  },
+  {
+    id: 'v3',
+    rego: 'GHI789',
+    vehicleNumber: 'VAN-003',
+    brand: 'Ford',
+    model: 'Transit 2021',
+    status: 'in-use',
+    condition: 'yellow',
+    maintenanceCycle: 90,
+    maintenanceLocation: 'Quick Fix Garage',
+    garageEmail: 'info@quickfix.com',
+    lastMaintenanceDate: new Date(2023, 11, 20),
+    nextMaintenanceDate: new Date(2024, 2, 20),
+    mileage: 52100,
+    notes: 'Minor brake noise reported - needs inspection'
+  },
+  {
+    id: 'v4',
+    rego: 'JKL012',
+    vehicleNumber: 'VAN-004',
+    brand: 'Mercedes',
+    model: 'Sprinter 2023',
+    status: 'available',
+    condition: 'green',
+    maintenanceCycle: 90,
+    maintenanceLocation: 'City Auto Service',
+    garageEmail: 'service@cityauto.com',
+    lastMaintenanceDate: new Date(2024, 0, 15),
+    nextMaintenanceDate: new Date(2024, 3, 15),
+    mileage: 41200
+  },
+  {
+    id: 'v5',
+    rego: 'MNO345',
+    vehicleNumber: 'VAN-005',
+    brand: 'Ford',
+    model: 'Transit 2020',
+    status: 'maintenance',
+    condition: 'red',
+    maintenanceCycle: 90,
+    maintenanceLocation: 'City Auto Service',
+    garageEmail: 'service@cityauto.com',
+    lastMaintenanceDate: new Date(2023, 10, 25),
+    nextMaintenanceDate: new Date(2024, 1, 25),
+    mileage: 58900,
+    notes: 'Engine overheating - under repair'
+  },
+  {
+    id: 'v6',
+    rego: 'PQR678',
+    vehicleNumber: 'VAN-006',
+    brand: 'Mercedes',
+    model: 'Sprinter 2022',
+    status: 'available',
+    condition: 'green',
+    maintenanceCycle: 90,
+    maintenanceLocation: 'Quick Fix Garage',
+    garageEmail: 'info@quickfix.com',
+    lastMaintenanceDate: new Date(2024, 0, 8),
+    nextMaintenanceDate: new Date(2024, 3, 8),
+    mileage: 36450
+  },
 ];
 
+// Driver Mock Data
 export const mockDrivers: Driver[] = [
-  { id: 'd1', name: 'John Smith', amazonId: 'AMZ-1001', phone: '+1234567890' },
-  { id: 'd2', name: 'Maria Garcia', amazonId: 'AMZ-1002', phone: '+1234567891' },
-  { id: 'd3', name: 'David Chen', amazonId: 'AMZ-1003', phone: '+1234567892' },
-  { id: 'd4', name: 'Sarah Johnson', amazonId: 'AMZ-1004', phone: '+1234567893' },
-  { id: 'd5', name: 'Michael Brown', amazonId: 'AMZ-1005', phone: '+1234567894' },
+  {
+    id: 'd1',
+    name: 'John Smith',
+    amazonId: 'AMZ-1001',
+    amazonPassword: 'encrypted_password_1', // In production, this would be properly encrypted
+    phone: '+1234567890',
+    email: 'john.smith@email.com',
+    address: '123 Main St, Sydney NSW 2000',
+    deputyId: 'DEP-001',
+    createdAt: new Date(2023, 8, 1),
+    updatedAt: new Date(2024, 0, 15)
+  },
+  {
+    id: 'd2',
+    name: 'Maria Garcia',
+    amazonId: 'AMZ-1002',
+    amazonPassword: 'encrypted_password_2',
+    phone: '+1234567891',
+    email: 'maria.garcia@email.com',
+    address: '456 Park Ave, Sydney NSW 2000',
+    deputyId: 'DEP-002',
+    createdAt: new Date(2023, 7, 15),
+    updatedAt: new Date(2024, 0, 10)
+  },
+  {
+    id: 'd3',
+    name: 'David Chen',
+    amazonId: 'AMZ-1003',
+    amazonPassword: 'encrypted_password_3',
+    phone: '+1234567892',
+    email: 'david.chen@email.com',
+    address: '789 Oak Rd, Melbourne VIC 3000',
+    deputyId: 'DEP-003',
+    createdAt: new Date(2023, 6, 20),
+    updatedAt: new Date(2024, 0, 8)
+  },
+  {
+    id: 'd4',
+    name: 'Sarah Johnson',
+    amazonId: 'AMZ-1004',
+    amazonPassword: 'encrypted_password_4',
+    phone: '+1234567893',
+    email: 'sarah.johnson@email.com',
+    address: '321 Elm St, Brisbane QLD 4000',
+    deputyId: 'DEP-004',
+    createdAt: new Date(2023, 9, 5),
+    updatedAt: new Date(2024, 0, 12)
+  },
+  {
+    id: 'd5',
+    name: 'Michael Brown',
+    amazonId: 'AMZ-1005',
+    amazonPassword: 'encrypted_password_5',
+    phone: '+1234567894',
+    email: 'michael.brown@email.com',
+    address: '654 Pine Ave, Perth WA 6000',
+    deputyId: 'DEP-005',
+    createdAt: new Date(2023, 10, 1),
+    updatedAt: new Date(2024, 0, 14)
+  },
 ];
 
 export const mockSchedules: Schedule[] = [
@@ -78,5 +236,369 @@ export const mockSMSHistory: SMSHistory[] = [
     message: 'Your shift on Jan 15 from 9:00 AM to 5:00 PM is pending confirmation.',
     sentAt: new Date(2024, 0, 14, 11, 0),
     deliveryStatus: 'delivered',
+  },
+];
+
+export const mockDriverDocuments: DriverDocument[] = [
+  {
+    id: 'doc1',
+    driverId: 'd1',
+    type: 'license',
+    documentName: "Driver's License",
+    fileUrl: '/docs/license_d1.pdf',
+    expiryDate: new Date(2025, 5, 15),
+    status: 'valid',
+    uploadedAt: new Date(2023, 8, 1),
+  },
+  {
+    id: 'doc2',
+    driverId: 'd1',
+    type: 'visa',
+    documentName: 'Work Visa',
+    fileUrl: '/docs/visa_d1.pdf',
+    expiryDate: new Date(2024, 2, 20),
+    status: 'expiring',
+    uploadedAt: new Date(2023, 8, 1),
+  },
+  {
+    id: 'doc3',
+    driverId: 'd2',
+    type: 'license',
+    documentName: "Driver's License",
+    fileUrl: '/docs/license_d2.pdf',
+    expiryDate: new Date(2023, 11, 31),
+    status: 'expired',
+    uploadedAt: new Date(2023, 7, 15),
+  },
+];
+
+export const mockDriverKPIs: DriverKPI[] = [
+  {
+    driverId: 'd1',
+    totalShifts: 24,
+    completedShifts: 23,
+    onTimeRate: 96.3,
+    customerRating: 4.8,
+    packagesPerHour: 18.5,
+    weeklyStats: [
+      { week: 'Week 1', shiftsCompleted: 5, packagesDelivered: 450 },
+      { week: 'Week 2', shiftsCompleted: 6, packagesDelivered: 520 },
+      { week: 'Week 3', shiftsCompleted: 5, packagesDelivered: 480 },
+      { week: 'Week 4', shiftsCompleted: 7, packagesDelivered: 590 },
+    ],
+  },
+  {
+    driverId: 'd2',
+    totalShifts: 20,
+    completedShifts: 19,
+    onTimeRate: 95.0,
+    customerRating: 4.6,
+    packagesPerHour: 17.2,
+  },
+];
+
+// Asset/Inventory Mock Data
+export const mockAssets: Asset[] = [
+  {
+    id: 'asset1',
+    name: 'Handheld Scanner',
+    category: 'Equipment',
+    totalQuantity: 15,
+    availableQuantity: 13,
+    borrowedQuantity: 2,
+    minThreshold: 5,
+    status: 'available',
+    createdAt: new Date(2023, 6, 1),
+    updatedAt: new Date(2024, 0, 15)
+  },
+  {
+    id: 'asset2',
+    name: 'Delivery Dolly',
+    category: 'Equipment',
+    totalQuantity: 8,
+    availableQuantity: 7,
+    borrowedQuantity: 1,
+    minThreshold: 3,
+    status: 'available',
+    createdAt: new Date(2023, 6, 1),
+    updatedAt: new Date(2024, 0, 12)
+  },
+  {
+    id: 'asset3',
+    name: 'Safety Vest',
+    category: 'Safety',
+    totalQuantity: 8,
+    availableQuantity: 3,
+    borrowedQuantity: 5,
+    minThreshold: 10,
+    status: 'low-stock',
+    createdAt: new Date(2023, 6, 1),
+    updatedAt: new Date(2024, 0, 14)
+  },
+  {
+    id: 'asset4',
+    name: 'Phone Charger',
+    category: 'Electronics',
+    totalQuantity: 12,
+    availableQuantity: 10,
+    borrowedQuantity: 2,
+    minThreshold: 5,
+    status: 'available',
+    createdAt: new Date(2023, 7, 15),
+    updatedAt: new Date(2024, 0, 10)
+  },
+  {
+    id: 'asset5',
+    name: 'Reflective Jacket',
+    category: 'Safety',
+    totalQuantity: 0,
+    availableQuantity: 0,
+    borrowedQuantity: 0,
+    minThreshold: 5,
+    status: 'out-of-stock',
+    createdAt: new Date(2023, 8, 1),
+    updatedAt: new Date(2024, 0, 5)
+  },
+];
+
+export const mockAssetBorrowRecords: AssetBorrowRecord[] = [
+  {
+    id: 'borrow1',
+    assetId: 'asset1',
+    assetName: 'Handheld Scanner',
+    driverId: 'd1',
+    driverName: 'John Smith',
+    borrowedAt: new Date(2024, 0, 15),
+    quantity: 1,
+    notes: 'For daily route',
+    borrowedBy: 'admin1'
+  },
+  {
+    id: 'borrow2',
+    assetId: 'asset4',
+    assetName: 'Phone Charger',
+    driverId: 'd2',
+    driverName: 'Maria Garcia',
+    borrowedAt: new Date(2024, 0, 10),
+    returnedAt: new Date(2024, 0, 14),
+    quantity: 1,
+    borrowedBy: 'admin1'
+  },
+  {
+    id: 'borrow3',
+    assetId: 'asset3',
+    assetName: 'Safety Vest',
+    driverId: 'd3',
+    driverName: 'David Chen',
+    borrowedAt: new Date(2024, 0, 14),
+    quantity: 2,
+    notes: 'Extra vest for trainee',
+    borrowedBy: 'admin1'
+  },
+];
+
+// Asset Purchase Records
+export const mockAssetPurchases: AssetPurchase[] = [
+  {
+    id: 'purchase1',
+    assetId: 'asset1',
+    assetName: 'Handheld Scanner',
+    quantity: 5,
+    purchaseDate: new Date(2023, 11, 1),
+    cost: 750,
+    vendor: 'Tech Supplies Co',
+    purchasedBy: 'admin1'
+  },
+  {
+    id: 'purchase2',
+    assetId: 'asset3',
+    assetName: 'Safety Vest',
+    quantity: 10,
+    purchaseDate: new Date(2023, 10, 15),
+    cost: 250,
+    vendor: 'Safety Gear Plus',
+    purchasedBy: 'admin1'
+  },
+];
+
+// Vehicle Inspection Mock Data
+export const mockVehicleInspections: VehicleInspection[] = [
+  {
+    id: 'insp1',
+    vehicleId: 'v1',
+    driverId: 'd1',
+    driverName: 'John Smith',
+    scheduleId: 's1',
+    date: new Date(2024, 0, 15, 7, 30),
+    photos: [
+      {
+        id: 'photo1',
+        vehicleId: 'v1',
+        url: '/inspections/v1_20240115_front.jpg',
+        uploadedBy: 'd1',
+        uploadedAt: new Date(2024, 0, 15, 7, 30)
+      },
+      {
+        id: 'photo2',
+        vehicleId: 'v1',
+        url: '/inspections/v1_20240115_back.jpg',
+        uploadedBy: 'd1',
+        uploadedAt: new Date(2024, 0, 15, 7, 30)
+      }
+    ],
+    odometer: 45320,
+    status: 'normal',
+    notes: 'All good, ready for delivery',
+    adminReviewed: true,
+    adminReviewedBy: 'admin1',
+    adminReviewedAt: new Date(2024, 0, 15, 8, 0)
+  },
+  {
+    id: 'insp2',
+    vehicleId: 'v3',
+    driverId: 'd3',
+    driverName: 'David Chen',
+    scheduleId: 's3',
+    date: new Date(2024, 0, 14, 7, 45),
+    photos: [
+      {
+        id: 'photo3',
+        vehicleId: 'v3',
+        url: '/inspections/v3_20240114_front.jpg',
+        uploadedBy: 'd3',
+        uploadedAt: new Date(2024, 0, 14, 7, 45)
+      }
+    ],
+    odometer: 52100,
+    status: 'has-issues',
+    notes: 'Brake noise when slowing down',
+    adminReviewed: true,
+    adminReviewedBy: 'admin1',
+    adminReviewedAt: new Date(2024, 0, 14, 9, 0),
+    adminNotes: 'Scheduled for brake inspection'
+  },
+];
+
+// Vehicle Maintenance Mock Data
+export const mockVehicleMaintenances: VehicleMaintenance[] = [
+  {
+    id: 'maint1',
+    vehicleId: 'v1',
+    vehicleNumber: 'VAN-001',
+    scheduledDate: new Date(2024, 3, 10),
+    location: 'City Auto Service',
+    garageEmail: 'service@cityauto.com',
+    type: 'routine',
+    notes: 'Regular 90-day service',
+    reminderSent: false,
+    emailSent: false
+  },
+  {
+    id: 'maint2',
+    vehicleId: 'v5',
+    vehicleNumber: 'VAN-005',
+    scheduledDate: new Date(2024, 0, 20),
+    completedDate: new Date(2024, 0, 22),
+    location: 'City Auto Service',
+    garageEmail: 'service@cityauto.com',
+    type: 'repair',
+    notes: 'Engine overheating repair',
+    cost: 1250,
+    reminderSent: true,
+    emailSent: true
+  },
+  {
+    id: 'maint3',
+    vehicleId: 'v3',
+    vehicleNumber: 'VAN-003',
+    scheduledDate: new Date(2024, 0, 25),
+    location: 'Quick Fix Garage',
+    garageEmail: 'info@quickfix.com',
+    type: 'inspection',
+    notes: 'Brake system inspection',
+    reminderSent: true,
+    emailSent: true
+  },
+];
+
+// System Settings Mock Data
+export const mockSystemSettings: SystemSettings = {
+  id: 'settings1',
+  adminNotificationPhone: '+61400000000',
+  documentExpiryReminderDays: 30,
+  driverConfirmationSMSTime: '08:00',
+  maintenanceReminderDays: 7,
+  lowStockNotificationEnabled: true,
+  scheduleReminderTemplate: 'Hi {driverName}, your shift is scheduled for {date} from {startTime} to {endTime}. Vehicle: {vehicleNumber}',
+  vehicleAssignmentTemplate: 'Vehicle {vehicleNumber} has been assigned to your shift on {date}.',
+  documentExpiryTemplate: 'Your {documentType} will expire on {expiryDate}. Please renew it soon.',
+  deputySyncEnabled: true,
+  deputySyncIntervalHours: 2,
+  updatedAt: new Date(2024, 0, 10),
+  updatedBy: 'admin1'
+};
+
+// System Users Mock Data
+export const mockSystemUsers: SystemUser[] = [
+  {
+    id: 'admin1',
+    name: 'Admin User',
+    email: 'admin@dsp.com',
+    phone: '+61400000000',
+    role: 'admin',
+    passwordHash: 'hashed_password_admin',
+    isActive: true,
+    createdAt: new Date(2023, 5, 1),
+    updatedAt: new Date(2024, 0, 10),
+    lastLoginAt: new Date(2024, 0, 15)
+  },
+  {
+    id: 'staff1',
+    name: 'Staff Member',
+    email: 'staff@dsp.com',
+    phone: '+61400000001',
+    role: 'staff',
+    passwordHash: 'hashed_password_staff',
+    isActive: true,
+    createdAt: new Date(2023, 6, 15),
+    updatedAt: new Date(2024, 0, 8),
+    lastLoginAt: new Date(2024, 0, 14)
+  },
+];
+
+// Reminders Mock Data
+export const mockReminders: Reminder[] = [
+  {
+    id: 'rem1',
+    type: 'document-expiry',
+    entityId: 'd1',
+    entityType: 'driver',
+    message: 'John Smith\'s Work Visa expires on March 20, 2024',
+    scheduledFor: new Date(2024, 1, 20),
+    status: 'pending',
+    recipientPhone: '+61400000000',
+    recipientEmail: 'admin@dsp.com'
+  },
+  {
+    id: 'rem2',
+    type: 'vehicle-maintenance',
+    entityId: 'v3',
+    entityType: 'vehicle',
+    message: 'VAN-003 maintenance scheduled for January 25, 2024',
+    scheduledFor: new Date(2024, 0, 18),
+    sentAt: new Date(2024, 0, 18, 8, 0),
+    status: 'sent',
+    recipientEmail: 'info@quickfix.com'
+  },
+  {
+    id: 'rem3',
+    type: 'low-stock',
+    entityId: 'asset3',
+    entityType: 'asset',
+    message: 'Safety Vest stock is below minimum threshold (3 available, min: 10)',
+    scheduledFor: new Date(2024, 0, 14),
+    sentAt: new Date(2024, 0, 14, 9, 0),
+    status: 'sent',
+    recipientPhone: '+61400000000'
   },
 ];

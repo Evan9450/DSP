@@ -82,8 +82,8 @@ export function ScheduleDetailsDialog({
           </div>
 
           {/* Vehicle Info */}
-          <div className="flex items-start gap-3 p-4 bg-orange-50 rounded-lg border border-orange-200">
-            <Car className="h-5 w-5 text-orange-700 mt-0.5" />
+          <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <Car className="h-5 w-5 text-blue-700 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-700">Assigned Vehicle</p>
               {schedule.vehicleNumber ? (
@@ -96,7 +96,7 @@ export function ScheduleDetailsDialog({
               onClick={onAssignVehicle}
               variant="outline"
               size="sm"
-              className="border-orange-300 text-orange-700 hover:bg-orange-100"
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
             >
               <Edit className="h-3 w-3 mr-1" />
               {schedule.vehicleNumber ? 'Change' : 'Assign'}
@@ -150,7 +150,7 @@ export function ScheduleDetailsDialog({
           <div className="pt-4 border-t border-gray-200">
             <Button
               onClick={onSendSMS}
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
               <MessageSquare className="h-4 w-4 mr-2" />
               Send SMS Notification

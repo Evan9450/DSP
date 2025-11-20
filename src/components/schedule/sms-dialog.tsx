@@ -117,7 +117,7 @@ export function SMSDialog({ open, onOpenChange, schedule, onSend }: SMSDialogPro
           <Button
             onClick={handleSend}
             disabled={!message.trim() || isSending}
-            className="bg-orange-600 hover:bg-orange-700 text-white"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Send className="h-4 w-4 mr-2" />
             {isSending ? 'Sending...' : 'Send SMS'}

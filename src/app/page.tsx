@@ -80,7 +80,7 @@ export default function ScheduleManagementPage() {
 					? {
 							...s,
 							vehicleId: vehicle.id,
-							vehicleNumber: vehicle.vehicleNumber,
+							vehicleNumber: vehicle.alias,
 						}
 					: s
 			)
@@ -88,7 +88,7 @@ export default function ScheduleManagementPage() {
 
 		toast({
 			title: 'Vehicle Assigned',
-			description: `${vehicle.vehicleNumber} assigned successfully`,
+			description: `${vehicle.alias} assigned successfully`,
 		});
 	};
 

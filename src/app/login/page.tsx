@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { Calendar, Eye, EyeOff } from 'lucide-react';
-import { validateUser } from '@/lib/mock-users';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function LoginPage() {
@@ -22,36 +21,26 @@ export default function LoginPage() {
 		e.preventDefault();
 		setIsLoading(true);
 
-		// Simulate login delay
-		await new Promise((resolve) => setTimeout(resolve, 800));
-
-		// Validate credentials
-		const user = validateUser(email, password);
-
-		if (user) {
-			const userData = {
-				name: user.name,
-				email: user.email,
-			};
-
-			// Use AuthContext login method
-			login(userData);
+		try {
+			// Call API login through AuthContext
+			await login(email, password);
 
 			toast({
 				title: 'Login Successful',
-				description: `Welcome back, ${user.name}!`,
+				description: `Welcome back!`,
 			});
 
 			// Navigation will be handled by AuthContext
-		} else {
+		} catch (error) {
+			console.error('Login error:', error);
 			toast({
 				title: 'Login Failed',
 				description: 'Invalid email or password',
 				variant: 'destructive',
 			});
+		} finally {
+			setIsLoading(false);
 		}
-
-		setIsLoading(false);
 	};
 
 	return (

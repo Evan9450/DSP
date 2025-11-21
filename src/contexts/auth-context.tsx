@@ -2,15 +2,18 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { apiClient } from '@/lib/api/client';
 
 interface User {
+	id: number;
 	name: string;
 	email: string;
+	role: 'admin' | 'manager' | 'viewer';
 }
 
 interface AuthContextType {
 	user: User | null;
-	login: (user: User) => void;
+	login: (email: string, password: string) => Promise<void>;
 	logout: () => void;
 	isLoading: boolean;
 }
@@ -47,14 +50,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		}
 	}, [user, isLoading, pathname, router]);
 
-	const login = (userData: User) => {
-		setUser(userData);
-		localStorage.setItem('user', JSON.stringify(userData));
+	const login = async (email: string, password: string) => {
+		try {
+			// Call API to login
+			await apiClient.adminLogin(email, password);
+
+			// Get current user info (we'll need to add this endpoint)
+			// For now, store basic info
+			const userData: User = {
+				id: 1, // Will be replaced when we add getCurrentUser endpoint
+				email,
+				name: email.split('@')[0], // Temporary
+				role: 'admin', // Temporary
+			};
+
+			setUser(userData);
+			localStorage.setItem('user', JSON.stringify(userData));
+		} catch (error) {
+			console.error('Login failed:', error);
+			throw error;
+		}
 	};
 
 	const logout = () => {
 		setUser(null);
 		localStorage.removeItem('user');
+		apiClient.logout(false);
 		router.push('/login');
 	};
 

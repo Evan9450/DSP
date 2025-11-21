@@ -39,8 +39,10 @@ export function VehicleAssignmentDialog({
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
 
   // Only show vehicles that are available AND in green condition (per PRD requirements)
+  // status: 0=available, 1=in-use, 2=maintenance
+  // condition: 0=green, 1=yellow, 2=red
   const availableVehicles = vehicles.filter(
-    (v) => v.status === 'available' && v.condition === 'green'
+    (v) => v.status === 0 && v.condition === 0
   );
 
   const handleAssign = () => {
@@ -106,7 +108,7 @@ export function VehicleAssignmentDialog({
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
                       <Car className="h-4 w-4 text-gray-600" />
-                      <span className="font-medium">{vehicle.vehicleNumber}</span>
+                      <span className="font-medium">{vehicle.alias}</span>
                       {vehicle.brand && (
                         <span className="text-xs text-gray-500">
                           ({vehicle.brand} {vehicle.model})

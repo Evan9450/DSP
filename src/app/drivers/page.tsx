@@ -13,17 +13,44 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Driver } from '@/types/schedule';
 import { Input } from '@/components/ui/input';
-import { mockDrivers, mockDriverDocuments } from '@/lib/mock-data';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { calculateDocumentStatus, getDaysUntilExpiry, getDocumentStatusColor } from '@/lib/helpers';
+import { useState, useEffect } from 'react';
+import { calculateDocumentStatus } from '@/lib/helpers';
+import { useDrivers } from '@/hooks/use-drivers';
+import { apiClient } from '@/lib/api/client';
+import { convertDriver, convertDriverDocument } from '@/lib/api/converters';
 
 export default function DriversPage() {
 	const router = useRouter();
-	const [drivers] = useState<Driver[]>(mockDrivers);
+	const { drivers: apiDrivers, isLoading } = useDrivers();
 	const [searchTerm, setSearchTerm] = useState('');
+	const [driverDocuments, setDriverDocuments] = useState<Record<string, any[]>>({});
+
+	const drivers = apiDrivers?.map(convertDriver) || [];
+
+	// Fetch documents for all drivers
+	useEffect(() => {
+		if (!apiDrivers) return;
+
+		const fetchAllDocuments = async () => {
+			const docsMap: Record<string, any[]> = {};
+
+			for (const driver of apiDrivers) {
+				try {
+					const docs = await apiClient.getDriverDocuments(driver.id);
+					docsMap[driver.id.toString()] = docs;
+				} catch (error) {
+					console.error(`Failed to fetch documents for driver ${driver.id}:`, error);
+					docsMap[driver.id.toString()] = [];
+				}
+			}
+
+			setDriverDocuments(docsMap);
+		};
+
+		fetchAllDocuments();
+	}, [apiDrivers]);
 
 	const filteredDrivers = drivers.filter(
 		(d) =>
@@ -34,13 +61,13 @@ export default function DriversPage() {
 
 	// Get document stats for alerts
 	const getDriverDocumentStatus = (driverId: string) => {
-		const docs = mockDriverDocuments.filter(d => d.driverId === driverId);
+		const docs = driverDocuments[driverId] || [];
 		const expiring = docs.filter(d => {
-			const status = calculateDocumentStatus(d.expiryDate);
+			const status = calculateDocumentStatus(new Date(d.expiry_date));
 			return status === 'expiring';
 		});
 		const expired = docs.filter(d => {
-			const status = calculateDocumentStatus(d.expiryDate);
+			const status = calculateDocumentStatus(new Date(d.expiry_date));
 			return status === 'expired';
 		});
 		return { total: docs.length, expiring: expiring.length, expired: expired.length };
@@ -54,6 +81,17 @@ export default function DriversPage() {
 	const handleRowClick = (driverId: string) => {
 		router.push(`/drivers/${driverId}`);
 	};
+
+	if (isLoading) {
+		return (
+			<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center'>
+				<div className='text-center'>
+					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto'></div>
+					<p className='mt-4 text-gray-600'>Loading drivers...</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>

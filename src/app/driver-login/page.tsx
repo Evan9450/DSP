@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { Truck, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { mockDrivers } from '@/lib/mock-data';
+import { apiClient } from '@/lib/api/client';
 
 export default function DriverLoginPage() {
 	const router = useRouter();
@@ -21,27 +21,22 @@ export default function DriverLoginPage() {
 		setError('');
 		setIsLoading(true);
 
-		// Simulate API call
-		await new Promise(resolve => setTimeout(resolve, 1000));
+		try {
+			// Call API to login
+			await apiClient.driverLogin(amazonId, password);
 
-		// Mock authentication - check against mock data
-		const driver = mockDrivers.find(
-			d => d.amazonId === amazonId && d.amazonPassword === password
-		);
-
-		if (driver) {
-			// Store driver info in session storage for demo
-			sessionStorage.setItem('driverId', driver.id);
-			sessionStorage.setItem('driverName', driver.name);
-			sessionStorage.setItem('amazonId', driver.amazonId);
+			// Store driver info in session storage
+			// TODO: Get driver info from API after login
+			sessionStorage.setItem('amazonId', amazonId);
 
 			// Redirect to driver inspection page
 			router.push('/driver-inspection');
-		} else {
+		} catch (error: any) {
+			console.error('Driver login error:', error);
 			setError('Invalid Amazon ID or password');
+		} finally {
+			setIsLoading(false);
 		}
-
-		setIsLoading(false);
 	};
 
 	return (

@@ -171,3 +171,45 @@ export function formatScheduleDate(date: Date): string {
 export function formatScheduleDateTime(date: Date): string {
   return format(date, 'MMM d, yyyy h:mm a');
 }
+
+/**
+ * Convert API condition number to VehicleCondition string
+ * API: 0=green (available), 1=yellow (needs repair), 2=red (unavailable)
+ */
+export function apiConditionToString(condition: number): VehicleCondition {
+  if (condition === 0) return 'green';
+  if (condition === 1) return 'yellow';
+  if (condition === 2) return 'red';
+  return 'green'; // default fallback
+}
+
+/**
+ * Convert VehicleCondition string to API number
+ */
+export function conditionToApiNumber(condition: VehicleCondition): number {
+  if (condition === 'green') return 0;
+  if (condition === 'yellow') return 1;
+  if (condition === 'red') return 2;
+  return 0; // default fallback
+}
+
+/**
+ * Convert API status number to status string
+ * API: 0=available, 1=in-use, 2=maintenance
+ */
+export function apiStatusToString(status: number): 'available' | 'in-use' | 'maintenance' {
+  if (status === 0) return 'available';
+  if (status === 1) return 'in-use';
+  if (status === 2) return 'maintenance';
+  return 'available'; // default fallback
+}
+
+/**
+ * Convert status string to API number
+ */
+export function statusToApiNumber(status: 'available' | 'in-use' | 'maintenance'): number {
+  if (status === 'available') return 0;
+  if (status === 'in-use') return 1;
+  if (status === 'maintenance') return 2;
+  return 0; // default fallback
+}

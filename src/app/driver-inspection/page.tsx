@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Camera, Upload, X, Check, LogOut, AlertCircle, Gauge } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { VehicleInspectionStatus } from '@/types/schedule';
+import { apiClient } from '@/lib/api/client';
 
 export default function DriverInspectionPage() {
 	const router = useRouter();
@@ -74,22 +75,52 @@ export default function DriverInspectionPage() {
 
 		setIsSubmitting(true);
 
-		// Simulate upload
-		await new Promise(resolve => setTimeout(resolve, 2000));
+		try {
+			// Get driver ID from session storage
+			const driverIdStr = sessionStorage.getItem('driverId');
+			if (!driverIdStr) {
+				throw new Error('Driver not logged in');
+			}
 
-		toast({
-			title: 'Inspection Submitted',
-			description: 'Your vehicle inspection has been submitted successfully',
-		});
+			// TODO: Get current vehicle assignment from API
+			// For now, use a placeholder vehicle ID
+			const vehicleId = 1; // This should come from the driver's current schedule/assignment
 
-		// Reset form
-		setPhotos([]);
-		setPhotoPreviews([]);
-		setOdometer('');
-		setStatus('normal');
-		setNotes('');
+			// Create inspection record
+			const inspection = await apiClient.createVehicleInspection({
+				vehicle_id: vehicleId,
+				driver_id: parseInt(driverIdStr),
+				odometer: parseInt(odometer),
+				status: status,
+				notes: notes || undefined,
+			});
 
-		setIsSubmitting(false);
+			// Upload photos
+			if (photos.length > 0) {
+				await apiClient.uploadInspectionPhotos(inspection.id, photos);
+			}
+
+			toast({
+				title: 'Inspection Submitted',
+				description: 'Your vehicle inspection has been submitted successfully',
+			});
+
+			// Reset form
+			setPhotos([]);
+			setPhotoPreviews([]);
+			setOdometer('');
+			setStatus('normal');
+			setNotes('');
+		} catch (error) {
+			console.error('Inspection submission error:', error);
+			toast({
+				title: 'Submission Failed',
+				description: 'Failed to submit inspection. Please try again.',
+				variant: 'destructive',
+			});
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	const handleLogout = () => {

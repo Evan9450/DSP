@@ -1,6 +1,13 @@
 'use client';
 
-import { Car, ChevronRight, Plus, Search, AlertCircle, Wrench } from 'lucide-react';
+import {
+	AlertCircle,
+	Car,
+	ChevronRight,
+	Plus,
+	Search,
+	Wrench,
+} from 'lucide-react';
 import {
 	Table,
 	TableBody,
@@ -9,57 +16,104 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { apiConditionToString, apiStatusToString } from '@/lib/helpers';
+import {
+	getDaysUntilMaintenance,
+	isMaintenanceDueSoon,
+	isMaintenanceOverdue,
+} from '@/lib/helpers';
 
+import { AddVehicleDialog } from './components/add-vehicle-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Vehicle, VehicleCondition } from '@/types/schedule';
-import { mockVehicles } from '@/lib/mock-data';
+import { VehicleCondition } from '@/types/schedule';
+import { convertVehicle } from '@/lib/api/converters';
+import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { format } from 'date-fns';
-import { getVehicleConditionBadge, getDaysUntilMaintenance, isMaintenanceOverdue, isMaintenanceDueSoon } from '@/lib/helpers';
+import { useVehicles } from '@/hooks/use-vehicles';
 
 export default function VehiclesPage() {
 	const router = useRouter();
-	const [vehicles] = useState<Vehicle[]>(mockVehicles);
+	const { vehicles: apiVehicles, isLoading, refetch } = useVehicles();
 	const [searchTerm, setSearchTerm] = useState('');
-	const [conditionFilter, setConditionFilter] = useState<VehicleCondition | 'all'>('all');
+	const [conditionFilter, setConditionFilter] = useState<number | 'all'>(
+		'all'
+	);
+	const [showAddDialog, setShowAddDialog] = useState(false);
+
+	const vehicles = apiVehicles?.map(convertVehicle) || [];
 
 	const filteredVehicles = vehicles.filter((v) => {
 		const matchesSearch =
-			v.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			v.alias?.toLowerCase().includes(searchTerm.toLowerCase()) ||
 			v.rego.toLowerCase().includes(searchTerm.toLowerCase()) ||
 			v.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
 			v.model?.toLowerCase().includes(searchTerm.toLowerCase());
 
-		const matchesCondition = conditionFilter === 'all' || v.condition === conditionFilter;
+		const matchesCondition =
+			conditionFilter === 'all' || v.condition === conditionFilter;
 
 		return matchesSearch && matchesCondition;
 	});
 
 	const conditionStats = {
-		green: vehicles.filter(v => v.condition === 'green').length,
-		yellow: vehicles.filter(v => v.condition === 'yellow').length,
-		red: vehicles.filter(v => v.condition === 'red').length,
+		green: vehicles.filter((v) => v.condition === 0).length,
+		yellow: vehicles.filter((v) => v.condition === 1).length,
+		red: vehicles.filter((v) => v.condition === 2).length,
 	};
 
 	const statusConfig = {
 		available: { label: 'Available', className: 'bg-green-600 text-white' },
 		'in-use': { label: 'In Use', className: 'bg-blue-600 text-white' },
-		maintenance: { label: 'Maintenance', className: 'bg-orange-600 text-white' },
+		maintenance: {
+			label: 'Maintenance',
+			className: 'bg-orange-600 text-white',
+		},
 	};
 
 	const conditionConfig = {
-		green: { label: 'Ready', className: 'bg-green-500', textClass: 'text-green-700' },
-		yellow: { label: 'Needs Repair', className: 'bg-yellow-500', textClass: 'text-yellow-700' },
-		red: { label: 'Unavailable', className: 'bg-red-500', textClass: 'text-red-700' },
+		green: {
+			label: 'Ready',
+			className: 'bg-green-500',
+			textClass: 'text-green-700',
+		},
+		yellow: {
+			label: 'Needs Repair',
+			className: 'bg-yellow-500',
+			textClass: 'text-yellow-700',
+		},
+		red: {
+			label: 'Unavailable',
+			className: 'bg-red-500',
+			textClass: 'text-red-700',
+		},
 	};
 
 	const handleRowClick = (vehicleId: string) => {
 		router.push(`/vehicles/${vehicleId}`);
 	};
+
+	// Vehicles with maintenance alerts
+	const vehiclesNeedingMaintenance = vehicles.filter(
+		(v) =>
+			v.nextMaintenanceDate &&
+			(isMaintenanceOverdue(v.nextMaintenanceDate) ||
+				isMaintenanceDueSoon(v.nextMaintenanceDate))
+	);
+
+	if (isLoading) {
+		return (
+			<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center'>
+				<div className='text-center'>
+					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto'></div>
+					<p className='mt-4 text-gray-600'>Loading vehicles...</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>
@@ -69,42 +123,76 @@ export default function VehiclesPage() {
 						Vehicle Fleet Management
 					</h1>
 					<p className='text-sm sm:text-base text-gray-600 mt-1'>
-						Manage fleet vehicles, conditions, and maintenance schedules
+						Manage vehicles, track condition status, and monitor
+						maintenance schedules
 					</p>
 				</div>
 
+				{/* Maintenance Alerts */}
+				{vehiclesNeedingMaintenance.length > 0 && (
+					<Card className='mb-6 p-4 border-orange-200 bg-orange-50'>
+						<div className='flex items-start gap-3'>
+							<Wrench className='h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0' />
+							<div className='flex-1'>
+								<h3 className='font-semibold text-orange-900'>
+									Maintenance Alerts
+								</h3>
+								<p className='text-sm text-orange-700 mt-1'>
+									{vehiclesNeedingMaintenance.length}{' '}
+									{vehiclesNeedingMaintenance.length === 1
+										? 'vehicle needs'
+										: 'vehicles need'}{' '}
+									maintenance attention
+								</p>
+							</div>
+						</div>
+					</Card>
+				)}
+
 				{/* Stats Cards */}
 				<div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6'>
-					<Card className='p-4 cursor-pointer hover:shadow-lg transition-shadow' onClick={() => setConditionFilter('green')}>
+					<Card className='p-4 bg-green-50 border-green-200'>
 						<div className='flex items-center justify-between'>
 							<div>
-								<p className='text-sm text-gray-600'>Ready to Use</p>
-								<p className='text-2xl font-bold text-green-600'>{conditionStats.green}</p>
+								<p className='text-sm text-green-700 font-medium'>
+									Ready Vehicles
+								</p>
+								<p className='text-2xl font-bold text-green-900 mt-1'>
+									{conditionStats.green}
+								</p>
 							</div>
-							<div className='w-12 h-12 rounded-full bg-green-500'></div>
+							<div className='w-3 h-3 rounded-full bg-green-500'></div>
 						</div>
 					</Card>
-					<Card className='p-4 cursor-pointer hover:shadow-lg transition-shadow' onClick={() => setConditionFilter('yellow')}>
+					<Card className='p-4 bg-yellow-50 border-yellow-200'>
 						<div className='flex items-center justify-between'>
 							<div>
-								<p className='text-sm text-gray-600'>Needs Repair</p>
-								<p className='text-2xl font-bold text-yellow-600'>{conditionStats.yellow}</p>
+								<p className='text-sm text-yellow-700 font-medium'>
+									Needs Repair
+								</p>
+								<p className='text-2xl font-bold text-yellow-900 mt-1'>
+									{conditionStats.yellow}
+								</p>
 							</div>
-							<div className='w-12 h-12 rounded-full bg-yellow-500'></div>
+							<div className='w-3 h-3 rounded-full bg-yellow-500'></div>
 						</div>
 					</Card>
-					<Card className='p-4 cursor-pointer hover:shadow-lg transition-shadow' onClick={() => setConditionFilter('red')}>
+					<Card className='p-4 bg-red-50 border-red-200'>
 						<div className='flex items-center justify-between'>
 							<div>
-								<p className='text-sm text-gray-600'>Unavailable</p>
-								<p className='text-2xl font-bold text-red-600'>{conditionStats.red}</p>
+								<p className='text-sm text-red-700 font-medium'>
+									Unavailable
+								</p>
+								<p className='text-2xl font-bold text-red-900 mt-1'>
+									{conditionStats.red}
+								</p>
 							</div>
-							<div className='w-12 h-12 rounded-full bg-red-500'></div>
+							<div className='w-3 h-3 rounded-full bg-red-500'></div>
 						</div>
 					</Card>
 				</div>
 
-				{/* Filters and Actions */}
+				{/* Search and Filters */}
 				<div className='mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3'>
 					<div className='relative flex-1 max-w-full sm:max-w-md'>
 						<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
@@ -115,133 +203,212 @@ export default function VehiclesPage() {
 							className='pl-10'
 						/>
 					</div>
+
 					<div className='flex gap-2'>
 						<Button
-							variant={conditionFilter === 'all' ? 'default' : 'outline'}
+							variant={
+								conditionFilter === 'all'
+									? 'default'
+									: 'outline'
+							}
 							onClick={() => setConditionFilter('all')}
-							className={conditionFilter === 'all' ? 'bg-blue-700' : ''}
-						>
+							size='sm'>
 							All
 						</Button>
 						<Button
-							variant={conditionFilter === 'green' ? 'default' : 'outline'}
-							onClick={() => setConditionFilter('green')}
-							className={conditionFilter === 'green' ? 'bg-green-600' : ''}
-						>
-							Green
+							variant={
+								conditionFilter === 0 ? 'default' : 'outline'
+							}
+							onClick={() => setConditionFilter(0)}
+							size='sm'
+							className={
+								conditionFilter === 0 ? 'bg-green-600' : ''
+							}>
+							Ready
 						</Button>
 						<Button
-							variant={conditionFilter === 'yellow' ? 'default' : 'outline'}
-							onClick={() => setConditionFilter('yellow')}
-							className={conditionFilter === 'yellow' ? 'bg-yellow-600' : ''}
-						>
-							Yellow
+							variant={
+								conditionFilter === 1 ? 'default' : 'outline'
+							}
+							onClick={() => setConditionFilter(1)}
+							size='sm'
+							className={
+								conditionFilter === 1 ? 'bg-yellow-600' : ''
+							}>
+							Needs Repair
 						</Button>
 						<Button
-							variant={conditionFilter === 'red' ? 'default' : 'outline'}
-							onClick={() => setConditionFilter('red')}
-							className={conditionFilter === 'red' ? 'bg-red-600' : ''}
-						>
-							Red
+							variant={
+								conditionFilter === 2 ? 'default' : 'outline'
+							}
+							onClick={() => setConditionFilter(2)}
+							size='sm'
+							className={
+								conditionFilter === 2 ? 'bg-red-600' : ''
+							}>
+							Unavailable
 						</Button>
 					</div>
-					<Button className='bg-blue-700 hover:bg-blue-800 text-white'>
+
+					<Button
+						className='bg-blue-700 hover:bg-blue-800 text-white'
+						onClick={() => setShowAddDialog(true)}>
 						<Plus className='h-4 w-4 mr-2' />
 						<span className='hidden sm:inline'>Add Vehicle</span>
 						<span className='sm:hidden'>Add</span>
 					</Button>
 				</div>
 
+				{/* Vehicles Table */}
 				<Card className='bg-white overflow-x-auto'>
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead className='w-[40px]'></TableHead>
+								<TableHead className='w-[60px]'></TableHead>
 								<TableHead>Rego</TableHead>
-								<TableHead>Vehicle Number</TableHead>
-								<TableHead>Brand / Model</TableHead>
+								<TableHead>Vehicle</TableHead>
 								<TableHead>Condition</TableHead>
 								<TableHead>Status</TableHead>
 								<TableHead>Mileage</TableHead>
 								<TableHead>Next Maintenance</TableHead>
+								<TableHead>Notes</TableHead>
 								<TableHead className='w-[50px]'></TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{filteredVehicles.map((vehicle) => {
-								const statusInfo = statusConfig[vehicle.status];
-								const conditionInfo = conditionConfig[vehicle.condition];
-								const daysUntilMaintenance = getDaysUntilMaintenance(vehicle.nextMaintenanceDate);
-								const maintenanceOverdue = isMaintenanceOverdue(vehicle.nextMaintenanceDate);
-								const maintenanceDueSoon = isMaintenanceDueSoon(vehicle.nextMaintenanceDate);
+								const maintenanceDays =
+									vehicle.nextMaintenanceDate
+										? getDaysUntilMaintenance(
+												vehicle.nextMaintenanceDate
+											)
+										: null;
+								const isOverdue = vehicle.nextMaintenanceDate
+									? isMaintenanceOverdue(
+											vehicle.nextMaintenanceDate
+										)
+									: false;
+								const isDueSoon = vehicle.nextMaintenanceDate
+									? isMaintenanceDueSoon(
+											vehicle.nextMaintenanceDate
+										)
+									: false;
+
+								const conditionStr = apiConditionToString(
+									vehicle.condition
+								);
+								const statusStr = apiStatusToString(
+									vehicle.status
+								);
 
 								return (
 									<TableRow
 										key={vehicle.id}
 										className='cursor-pointer hover:bg-gray-50 transition-colors'
-										onClick={() => handleRowClick(vehicle.id)}
-									>
+										onClick={() =>
+											handleRowClick(vehicle.id)
+										}>
 										<TableCell>
-											<div className={`w-3 h-3 rounded-full ${conditionInfo.className}`}></div>
+											<div className='p-2 bg-blue-100 rounded-full inline-block'>
+												<Car className='h-5 w-5 text-blue-700' />
+											</div>
 										</TableCell>
-										<TableCell className='font-semibold text-gray-900'>
-											{vehicle.rego}
+										<TableCell>
+											<div className='font-semibold text-gray-900 font-mono'>
+												{vehicle.rego}
+											</div>
+											<div className='text-xs text-gray-500'>
+												{vehicle.alias}
+											</div>
 										</TableCell>
-										<TableCell className='font-medium text-gray-800'>
-											{vehicle.vehicleNumber}
-										</TableCell>
-										<TableCell className='text-gray-600'>
+										<TableCell>
 											{vehicle.brand && vehicle.model ? (
 												<div>
-													<span className='font-medium'>{vehicle.brand}</span> {vehicle.model}
+													<p className='font-medium text-gray-900'>
+														{vehicle.brand}
+													</p>
+													<p className='text-xs text-gray-600'>
+														{vehicle.model}
+													</p>
 												</div>
 											) : (
-												<span className='text-gray-400'>-</span>
+												<span className='text-gray-400'>
+													-
+												</span>
 											)}
 										</TableCell>
 										<TableCell>
 											<div className='flex items-center gap-2'>
-												<div className={`w-2 h-2 rounded-full ${conditionInfo.className}`}></div>
-												<span className={`text-sm font-medium ${conditionInfo.textClass}`}>
-													{conditionInfo.label}
+												<div
+													className={`w-3 h-3 rounded-full ${conditionConfig[conditionStr]?.className}`}></div>
+												<span
+													className={`font-medium ${conditionConfig[conditionStr]?.textClass}`}>
+													{
+														conditionConfig[
+															conditionStr
+														]?.label
+													}
 												</span>
 											</div>
-											{vehicle.notes && vehicle.condition !== 'green' && (
-												<div className='flex items-center gap-1 mt-1'>
-													<AlertCircle className='h-3 w-3 text-gray-500' />
-													<span className='text-xs text-gray-600'>{vehicle.notes}</span>
-												</div>
+										</TableCell>
+										<TableCell>
+											<Badge
+												className={
+													statusConfig[statusStr]
+														?.className
+												}>
+												{statusConfig[statusStr]?.label}
+											</Badge>
+										</TableCell>
+										<TableCell>
+											{vehicle.mileage ? (
+												<span className='font-mono text-sm'>
+													{vehicle.mileage?.toLocaleString()}
+													km
+												</span>
+											) : (
+												<span className='text-gray-400'>
+													-
+												</span>
 											)}
 										</TableCell>
 										<TableCell>
-											<Badge className={statusInfo.className}>
-												{statusInfo.label}
-											</Badge>
-										</TableCell>
-										<TableCell className='text-gray-600'>
-											{vehicle.mileage ? vehicle.mileage.toLocaleString() + ' km' : '-'}
-										</TableCell>
-										<TableCell>
 											{vehicle.nextMaintenanceDate ? (
-												<div className='flex items-center gap-2'>
-													{maintenanceOverdue ? (
-														<div className='flex items-center gap-1 text-red-600'>
-															<AlertCircle className='h-4 w-4' />
-															<span className='text-sm font-medium'>Overdue</span>
-														</div>
-													) : maintenanceDueSoon ? (
-														<div className='flex items-center gap-1 text-orange-600'>
-															<Wrench className='h-4 w-4' />
-															<span className='text-sm font-medium'>In {daysUntilMaintenance} days</span>
-														</div>
-													) : (
-														<span className='text-sm text-gray-600'>
-															{format(vehicle.nextMaintenanceDate, 'MMM d, yyyy')}
-														</span>
+												<div>
+													<p
+														className={`text-sm ${isOverdue ? 'text-red-600 font-semibold' : isDueSoon ? 'text-orange-600 font-medium' : 'text-gray-600'}`}>
+														{format(
+															vehicle.nextMaintenanceDate,
+															'MMM dd, yyyy'
+														)}
+													</p>
+													{maintenanceDays !==
+														null && (
+														<p
+															className={`text-xs ${isOverdue ? 'text-red-500' : isDueSoon ? 'text-orange-500' : 'text-gray-500'}`}>
+															{isOverdue
+																? `${Math.abs(maintenanceDays)} days overdue`
+																: `${maintenanceDays} days`}
+														</p>
 													)}
 												</div>
 											) : (
-												<span className='text-gray-400'>-</span>
+												<span className='text-gray-400'>
+													Not scheduled
+												</span>
+											)}
+										</TableCell>
+										<TableCell>
+											{vehicle.notes ? (
+												<div
+													className='max-w-xs truncate text-sm text-gray-600'
+													title={vehicle.notes}>
+													{vehicle.notes}
+												</div>
+											) : (
+												<span className='text-gray-400'>
+													-
+												</span>
 											)}
 										</TableCell>
 										<TableCell>
@@ -260,6 +427,12 @@ export default function VehiclesPage() {
 						<p className='text-gray-600'>No vehicles found</p>
 					</div>
 				)}
+
+				<AddVehicleDialog
+					open={showAddDialog}
+					onOpenChange={setShowAddDialog}
+					onSuccess={refetch}
+				/>
 			</div>
 		</div>
 	);

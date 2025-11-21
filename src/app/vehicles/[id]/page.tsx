@@ -1,18 +1,27 @@
 'use client';
 
-import React from 'react';
 import {
-	AlertCircle,
-	AlertTriangle,
 	ArrowLeft,
 	Calendar,
-	Camera,
 	Car,
-	CheckCircle,
+	Check,
 	Edit,
+	FileText,
+	Image as ImageIcon,
+	MapPin,
+	Package,
+	Trash2,
+	Upload,
 	Wrench,
+	X,
 } from 'lucide-react';
-import { Schedule, Vehicle } from '@/types/schedule';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
 import {
 	Table,
 	TableBody,
@@ -21,420 +30,1177 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { mockSchedules, mockVehicles } from '@/lib/mock-data';
+import { VehicleDetailResponse, apiClient } from '@/lib/api/client';
+import {
+	apiConditionToString,
+	apiStatusToString,
+	getDaysUntilMaintenance,
+	isMaintenanceDueSoon,
+	isMaintenanceOverdue,
+} from '@/lib/helpers';
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PhotoLightboxDialog } from '../components/photo-lightbox-dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/use-toast';
 
-export default function VehicleDetailsPage() {
+export default function VehicleDetailPage({
+	params,
+}: {
+	params: { id: string };
+}) {
 	const router = useRouter();
-	const params = useParams();
-	const vehicleId = params.id as string;
-
-	const [vehicle, setVehicle] = useState<Vehicle | null>(null);
-	const [schedules, setSchedules] = useState<Schedule[]>([]);
+	const { toast } = useToast();
+	const [vehicle, setVehicle] = useState<VehicleDetailResponse | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+	const [isUploading, setIsUploading] = useState(false);
+	const [isEditing, setIsEditing] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
+	const [editForm, setEditForm] = useState<Partial<VehicleDetailResponse>>(
+		{}
+	);
+	const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(
+		null
+	);
 
 	useEffect(() => {
-		const foundVehicle = mockVehicles.find((v) => v.id === vehicleId);
-		setVehicle(foundVehicle || null);
+		fetchVehicleDetail();
+	}, [params.id]);
 
-		const vehicleSchedules = mockSchedules.filter(
-			(s) => s.vehicleId === vehicleId
+	// Keyboard navigation for photo viewer
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (selectedPhotoIndex === null) return;
+
+			if (e.key === 'ArrowLeft') {
+				handlePreviousPhoto();
+			} else if (e.key === 'ArrowRight') {
+				handleNextPhoto();
+			} else if (e.key === 'Escape') {
+				setSelectedPhotoIndex(null);
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, [selectedPhotoIndex]);
+
+	const fetchVehicleDetail = async () => {
+		try {
+			setIsLoading(true);
+			const data = await apiClient.getVehicleDetail(parseInt(params.id));
+			setVehicle(data);
+			setEditForm(data);
+		} catch (error) {
+			console.error('Failed to fetch vehicle detail:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to load vehicle details.',
+				variant: 'destructive',
+			});
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const handleStartEdit = () => {
+		setEditForm(vehicle || {});
+		setIsEditing(true);
+	};
+
+	const handleCancelEdit = () => {
+		setEditForm(vehicle || {});
+		setIsEditing(false);
+	};
+
+	const handleSaveEdit = async () => {
+		if (!vehicle) return;
+
+		setIsSaving(true);
+		try {
+			await apiClient.updateVehicle(vehicle.id, {
+				rego: editForm.rego,
+				alias: editForm.alias,
+				brand: editForm.brand,
+				model: editForm.model,
+				condition: editForm.condition,
+				status: editForm.status,
+				maintenance_cycle_days: editForm.maintenance_cycle_days,
+				maintenance_location: editForm.maintenance_location,
+				workshop_email: editForm.workshop_email,
+				mileage: editForm.mileage,
+				notes: editForm.notes,
+				last_maintenance_date: editForm.last_maintenance_date,
+				next_maintenance_date: editForm.next_maintenance_date,
+			});
+			toast({
+				title: 'Success',
+				description: 'Vehicle updated successfully.',
+			});
+			setIsEditing(false);
+			fetchVehicleDetail();
+		} catch (error) {
+			console.error('Failed to update vehicle:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to update vehicle.',
+				variant: 'destructive',
+			});
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
+	const handlePhotoUpload = async (files: FileList | null) => {
+		if (!files || files.length === 0 || !vehicle) return;
+
+		setIsUploading(true);
+		try {
+			await apiClient.uploadVehiclePhotos(vehicle.id, Array.from(files));
+			toast({
+				title: 'Success',
+				description: 'Photos uploaded successfully.',
+			});
+			fetchVehicleDetail();
+		} catch (error) {
+			console.error('Failed to upload photos:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to upload photos.',
+				variant: 'destructive',
+			});
+		} finally {
+			setIsUploading(false);
+		}
+	};
+
+	const handleDeletePhoto = async (photoIndex: number) => {
+		if (!vehicle) return;
+
+		try {
+			await apiClient.deleteVehiclePhoto(vehicle.id, photoIndex);
+			toast({
+				title: 'Success',
+				description: 'Photo deleted successfully.',
+			});
+			fetchVehicleDetail();
+			setSelectedPhotoIndex(null);
+		} catch (error) {
+			console.error('Failed to delete photo:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to delete photo.',
+				variant: 'destructive',
+			});
+		}
+	};
+
+	const handlePreviousPhoto = () => {
+		if (selectedPhotoIndex === null || !vehicle?.photo_urls) return;
+
+		// Parse photo URLs to get count
+		let photoCount = 0;
+		try {
+			const cleanedString = vehicle.photo_urls
+				.replace(/\\n/g, '')
+				.replace(/\n/g, '')
+				.trim();
+			const parsed = JSON.parse(cleanedString);
+			photoCount = Array.isArray(parsed) ? parsed.length : 0;
+		} catch {
+			photoCount = 0;
+		}
+
+		setSelectedPhotoIndex((prev) =>
+			prev === 0 ? photoCount - 1 : (prev || 0) - 1
 		);
-		setSchedules(vehicleSchedules);
-	}, [vehicleId]);
+	};
 
-	if (!vehicle) {
+	const handleNextPhoto = () => {
+		if (selectedPhotoIndex === null || !vehicle?.photo_urls) return;
+
+		// Parse photo URLs to get count
+		let photoCount = 0;
+		try {
+			const cleanedString = vehicle.photo_urls
+				.replace(/\\n/g, '')
+				.replace(/\n/g, '')
+				.trim();
+			const parsed = JSON.parse(cleanedString);
+			photoCount = Array.isArray(parsed) ? parsed.length : 0;
+		} catch {
+			photoCount = 0;
+		}
+
+		setSelectedPhotoIndex((prev) =>
+			prev === photoCount - 1 ? 0 : (prev || 0) + 1
+		);
+	};
+
+	if (isLoading) {
 		return (
-			<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50'>
-				<div className='container mx-auto px-6 py-8 max-w-7xl'>
-					<div className='text-center py-12'>
-						<Car className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-						<p className='text-gray-600'>Vehicle not found</p>
-						<Button
-							variant='outline'
-							className='mt-4'
-							onClick={() => router.push('/vehicles')}>
-							Back to Vehicles
-						</Button>
-					</div>
+			<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center'>
+				<div className='text-center'>
+					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto'></div>
+					<p className='mt-4 text-gray-600'>
+						Loading vehicle details...
+					</p>
 				</div>
 			</div>
 		);
 	}
 
+	if (!vehicle) {
+		return (
+			<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center'>
+				<div className='text-center'>
+					<Car className='h-16 w-16 text-gray-400 mx-auto mb-4' />
+					<h2 className='text-xl font-semibold text-gray-900 mb-2'>
+						Vehicle Not Found
+					</h2>
+					<Button onClick={() => router.push('/vehicles')}>
+						<ArrowLeft className='h-4 w-4 mr-2' />
+						Back to Vehicles
+					</Button>
+				</div>
+			</div>
+		);
+	}
+
+	const conditionStr = apiConditionToString(vehicle.condition);
+	const statusStr = apiStatusToString(vehicle.status);
+
+	// Parse photo_urls from JSON string to array
+	const photoUrls: string[] = vehicle.photo_urls
+		? (() => {
+				try {
+					// First, clean up the JSON string structure
+					let cleanedString = vehicle.photo_urls
+						.replace(/\\n/g, '')
+						.replace(/\n/g, '')
+						.trim();
+
+					// Parse the JSON
+					const parsed = JSON.parse(cleanedString);
+
+					// Clean up each URL by removing any remaining whitespace
+					const cleanedUrls = Array.isArray(parsed)
+						? parsed.map((url: string) => url.replace(/\s+/g, ''))
+						: [];
+
+					return cleanedUrls;
+				} catch (error) {
+					console.error('Failed to parse photo_urls:', error);
+					console.log('Original photo_urls:', vehicle.photo_urls);
+					return [];
+				}
+			})()
+		: [];
+	console.log('🚀 => VehicleDetailPage => photoUrls:', photoUrls);
+
 	const statusConfig = {
-		available: {
-			label: 'Available',
-			className: 'bg-green-600',
-			icon: CheckCircle,
-		},
-		'in-use': { label: 'In Use', className: 'bg-blue-600', icon: Calendar },
+		available: { label: 'Available', className: 'bg-green-600 text-white' },
+		'in-use': { label: 'In Use', className: 'bg-blue-600 text-white' },
 		maintenance: {
 			label: 'Maintenance',
-			className: 'bg-blue-600',
-			icon: AlertTriangle,
+			className: 'bg-orange-600 text-white',
 		},
 	};
-
-	const statusInfo = statusConfig[vehicle.status];
-	const StatusIcon = statusInfo.icon;
 
 	const conditionConfig = {
 		green: {
-			label: 'Good Condition',
-			className: 'bg-green-500 text-white',
-			icon: CheckCircle,
+			label: 'Ready',
+			className: 'bg-green-500',
+			textClass: 'text-green-700',
 		},
 		yellow: {
-			label: 'Fair Condition',
-			className: 'bg-yellow-500 text-white',
-			icon: AlertTriangle,
+			label: 'Needs Repair',
+			className: 'bg-yellow-500',
+			textClass: 'text-yellow-700',
 		},
 		red: {
-			label: 'Needs Attention',
-			className: 'bg-red-500 text-white',
-			icon: AlertCircle,
+			label: 'Unavailable',
+			className: 'bg-red-500',
+			textClass: 'text-red-700',
 		},
 	};
 
+	const maintenanceDays = vehicle.next_maintenance_date
+		? getDaysUntilMaintenance(new Date(vehicle.next_maintenance_date))
+		: null;
+	const isOverdue = vehicle.next_maintenance_date
+		? isMaintenanceOverdue(new Date(vehicle.next_maintenance_date))
+		: false;
+	const isDueSoon = vehicle.next_maintenance_date
+		? isMaintenanceDueSoon(new Date(vehicle.next_maintenance_date))
+		: false;
+
 	return (
-		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50'>
+		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>
 			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl'>
-				<Button
-					variant='ghost'
-					className='mb-4 sm:mb-6'
-					onClick={() => router.push('/vehicles')}>
-					<ArrowLeft className='h-4 w-4 mr-2' />
-					Back to Vehicles
-				</Button>
+				<div className='mb-6'>
+					<Button
+						variant='ghost'
+						className='mb-4'
+						onClick={() => router.push('/vehicles')}>
+						<ArrowLeft className='h-4 w-4 mr-2' />
+						Back to Vehicles
+					</Button>
 
-				<div className='grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6'>
-					<div className='lg:col-span-1'>
-						<Card className='p-6 bg-white '>
-							<div className='flex flex-col items-center mb-6'>
-								<div className='p-6 bg-blue-100 rounded-full mb-4'>
-									<Car className='h-16 w-16 text-blue-700' />
-								</div>
-								<h1 className='text-2xl font-bold text-gray-900 mb-2'>
-									{vehicle.vehicleNumber}
-								</h1>
-								<div className='flex gap-2 flex-wrap justify-center'>
-									<Badge
-										className={`${statusInfo.className} text-white flex items-center gap-1`}>
-										<StatusIcon className='h-3 w-3' />
-										{statusInfo.label}
-									</Badge>
-									{vehicle.condition && (
-										<Badge
-											className={`${conditionConfig[vehicle.condition].className} flex items-center gap-1`}>
-											{React.createElement(
-												conditionConfig[vehicle.condition].icon,
-												{ className: 'h-3 w-3' }
-											)}
-											{conditionConfig[vehicle.condition].label}
-										</Badge>
-									)}
-								</div>
-							</div>
-
-							<div className='space-y-4 mb-6'>
-								<div className='border-t border-gray-200 pt-4'>
-									<h3 className='text-sm font-semibold text-gray-900 mb-3'>
-										Vehicle Information
-									</h3>
-									<div className='space-y-3'>
-										<div className='flex justify-between text-sm'>
-											<span className='text-gray-600'>
-												ID:
-											</span>
-											<span className='font-medium text-gray-900'>
-												{vehicle.id}
-											</span>
-										</div>
-										<div className='flex justify-between text-sm'>
-											<span className='text-gray-600'>
-												Type:
-											</span>
-											<span className='font-medium text-gray-900'>
-												Delivery Van
-											</span>
-										</div>
-										{vehicle.mileage && (
-											<div className='flex justify-between text-sm'>
-												<span className='text-gray-600'>
-													Mileage:
-												</span>
-												<span className='font-medium text-gray-900'>
-													{vehicle.mileage.toLocaleString()} miles
-												</span>
-											</div>
-										)}
-										{vehicle.lastMaintenanceDate && (
-											<div className='flex justify-between text-sm'>
-												<span className='text-gray-600'>
-													Last Service:
-												</span>
-												<span className='font-medium text-gray-900'>
-													{format(
-														vehicle.lastMaintenanceDate,
-														'MMM dd, yyyy'
-													)}
-												</span>
-											</div>
-										)}
-										{vehicle.nextMaintenanceDate && (
-											<div className='flex justify-between text-sm'>
-												<span className='text-gray-600'>
-													Next Service:
-												</span>
-												<span
-													className={`font-medium ${
-														vehicle.nextMaintenanceDate <
-														new Date()
-															? 'text-red-600'
-															: 'text-gray-900'
-													}`}>
-													{format(
-														vehicle.nextMaintenanceDate,
-														'MMM dd, yyyy'
-													)}
-												</span>
-											</div>
-										)}
-									</div>
-								</div>
-
-								<div className='border-t border-gray-200 pt-4'>
-									<h3 className='text-sm font-semibold text-gray-900 mb-3'>
-										Statistics
-									</h3>
-									<div className='space-y-3'>
-										<div className='flex justify-between text-sm'>
-											<span className='text-gray-600'>
-												Total Deliveries:
-											</span>
-											<span className='font-medium text-gray-900'>
-												1,243
-											</span>
-										</div>
-										<div className='flex justify-between text-sm'>
-											<span className='text-gray-600'>
-												Total Shifts:
-											</span>
-											<span className='font-medium text-gray-900'>
-												156
-											</span>
-										</div>
-										<div className='flex justify-between text-sm'>
-											<span className='text-gray-600'>
-												Avg. Efficiency:
-											</span>
-											<span className='font-medium text-green-600'>
-												94.2%
-											</span>
-										</div>
-									</div>
-								</div>
-							</div>
-
-							<div className='space-y-2'>
-								<div className='flex gap-2'>
-									<Button variant='outline' className='flex-1'>
-										<Edit className='h-4 w-4 mr-2' />
-										Edit
+					<div className='flex items-start justify-between'>
+						<div>
+							<h1 className='text-3xl font-bold text-gray-900'>
+								{vehicle.brand && vehicle.model
+									? `${vehicle.brand} ${vehicle.model}`
+									: vehicle.rego}
+							</h1>
+							<p className='text-gray-600 mt-1'>
+								{vehicle.rego} • {vehicle.alias}
+							</p>
+						</div>
+						<div className='flex gap-2'>
+							{isEditing ? (
+								<>
+									<Button
+										variant='outline'
+										onClick={handleCancelEdit}
+										disabled={isSaving}>
+										<X className='h-4 w-4 mr-2' />
+										Cancel
 									</Button>
-									<Button variant='outline' className='flex-1'>
-										<Wrench className='h-4 w-4 mr-2' />
-										Service
+									<Button
+										onClick={handleSaveEdit}
+										disabled={isSaving}>
+										<Check className='h-4 w-4 mr-2' />
+										{isSaving
+											? 'Saving...'
+											: 'Save Changes'}
 									</Button>
-								</div>
-								<Button variant='outline' className='w-full'>
-									<Camera className='h-4 w-4 mr-2' />
-									Upload Photo
+								</>
+							) : (
+								<Button onClick={handleStartEdit}>
+									<Edit className='h-4 w-4 mr-2' />
+									Edit
 								</Button>
-							</div>
-						</Card>
+							)}
+						</div>
 					</div>
+				</div>
 
-					<div className='lg:col-span-2 space-y-4 sm:space-y-6'>
-						<Card className='p-4 sm:p-6 bg-white '>
-							<h2 className='text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2'>
-								<Camera className='h-5 w-5 text-blue-700' />
-								Vehicle Photos
+				{/* Maintenance Alert */}
+				{(isOverdue || isDueSoon) && (
+					<Card className='mb-6 p-4 border-orange-200 bg-orange-50'>
+						<div className='flex items-start gap-3'>
+							<Wrench className='h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0' />
+							<div className='flex-1'>
+								<h3 className='font-semibold text-orange-900'>
+									{isOverdue
+										? 'Maintenance Overdue'
+										: 'Maintenance Due Soon'}
+								</h3>
+								<p className='text-sm text-orange-700 mt-1'>
+									{isOverdue
+										? `Maintenance was due ${Math.abs(maintenanceDays || 0)} days ago`
+										: `Maintenance due in ${maintenanceDays} days`}
+								</p>
+							</div>
+						</div>
+					</Card>
+				)}
+
+				<div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+					{/* Main Info */}
+					<div className='lg:col-span-2 space-y-6'>
+						{/* Basic Information */}
+						<Card className='p-6'>
+							<h2 className='text-xl font-semibold text-gray-900 mb-4'>
+								Vehicle Information
 							</h2>
-							{vehicle.photos && vehicle.photos.length > 0 ? (
-								<div className='grid grid-cols-2 sm:grid-cols-3 gap-4'>
-									{vehicle.photos.map((photo) => (
-										<div
-											key={photo.id}
-											className='relative aspect-square bg-gray-100 rounded-lg overflow-hidden group cursor-pointer'>
-											<div className='absolute inset-0 bg-gray-200 flex items-center justify-center'>
-												<Camera className='h-8 w-8 text-gray-400' />
-											</div>
-											<div className='absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity'>
-												<p className='text-xs text-white'>
-													{format(photo.uploadedAt, 'MMM dd, yyyy')}
-												</p>
-												{photo.notes && (
-													<p className='text-xs text-white/80 truncate'>
-														{photo.notes}
-													</p>
-												)}
-											</div>
+							{isEditing ? (
+								<div className='space-y-4'>
+									<div className='grid grid-cols-2 gap-4'>
+										<div className='space-y-2'>
+											<Label htmlFor='edit-rego'>
+												Registration
+											</Label>
+											<Input
+												id='edit-rego'
+												value={editForm.rego || ''}
+												onChange={(e) =>
+													setEditForm({
+														...editForm,
+														rego: e.target.value,
+													})
+												}
+												placeholder='ABC123'
+											/>
 										</div>
-									))}
+										<div className='space-y-2'>
+											<Label htmlFor='edit-alias'>
+												Vehicle Number
+											</Label>
+											<Input
+												id='edit-alias'
+												value={editForm.alias || ''}
+												onChange={(e) =>
+													setEditForm({
+														...editForm,
+														alias: e.target.value,
+													})
+												}
+												placeholder='V001'
+											/>
+										</div>
+										<div className='space-y-2'>
+											<Label htmlFor='edit-brand'>
+												Brand
+											</Label>
+											<Input
+												id='edit-brand'
+												value={editForm.brand || ''}
+												onChange={(e) =>
+													setEditForm({
+														...editForm,
+														brand: e.target.value,
+													})
+												}
+												placeholder='Toyota'
+											/>
+										</div>
+										<div className='space-y-2'>
+											<Label htmlFor='edit-model'>
+												Model
+											</Label>
+											<Input
+												id='edit-model'
+												value={editForm.model || ''}
+												onChange={(e) =>
+													setEditForm({
+														...editForm,
+														model: e.target.value,
+													})
+												}
+												placeholder='Hiace'
+											/>
+										</div>
+										<div className='space-y-2'>
+											<Label htmlFor='edit-condition'>
+												Condition
+											</Label>
+											<Select
+												value={
+													editForm.condition?.toString() ||
+													'0'
+												}
+												onValueChange={(value) =>
+													setEditForm({
+														...editForm,
+														condition:
+															parseInt(value),
+													})
+												}>
+												<SelectTrigger>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value='0'>
+														<div className='flex items-center gap-2'>
+															<div className='w-3 h-3 rounded-full bg-green-500'></div>
+															<span>
+																Ready (Green)
+															</span>
+														</div>
+													</SelectItem>
+													<SelectItem value='1'>
+														<div className='flex items-center gap-2'>
+															<div className='w-3 h-3 rounded-full bg-yellow-500'></div>
+															<span>
+																Needs Repair
+																(Yellow)
+															</span>
+														</div>
+													</SelectItem>
+													<SelectItem value='2'>
+														<div className='flex items-center gap-2'>
+															<div className='w-3 h-3 rounded-full bg-red-500'></div>
+															<span>
+																Unavailable
+																(Red)
+															</span>
+														</div>
+													</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
+										<div className='space-y-2'>
+											<Label htmlFor='edit-status'>
+												Status
+											</Label>
+											<Select
+												value={
+													editForm.status?.toString() ||
+													'0'
+												}
+												onValueChange={(value) =>
+													setEditForm({
+														...editForm,
+														status: parseInt(value),
+													})
+												}>
+												<SelectTrigger>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value='0'>
+														Available
+													</SelectItem>
+													<SelectItem value='1'>
+														In Use
+													</SelectItem>
+													<SelectItem value='2'>
+														Maintenance
+													</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
+										<div className='space-y-2'>
+											<Label htmlFor='edit-mileage'>
+												Mileage (km)
+											</Label>
+											<Input
+												id='edit-mileage'
+												type='number'
+												value={editForm.mileage || ''}
+												onChange={(e) =>
+													setEditForm({
+														...editForm,
+														mileage: e.target.value
+															? parseInt(
+																	e.target
+																		.value
+																)
+															: undefined,
+													})
+												}
+												placeholder='50000'
+											/>
+										</div>
+										<div className='space-y-2'>
+											<Label htmlFor='edit-cycle'>
+												Maintenance Cycle (days)
+											</Label>
+											<Input
+												id='edit-cycle'
+												type='number'
+												value={
+													editForm.maintenance_cycle_days ||
+													''
+												}
+												onChange={(e) =>
+													setEditForm({
+														...editForm,
+														maintenance_cycle_days:
+															e.target.value
+																? parseInt(
+																		e.target
+																			.value
+																	)
+																: undefined,
+													})
+												}
+												placeholder='90'
+											/>
+										</div>
+									</div>
+									<div className='space-y-2'>
+										<Label htmlFor='edit-notes'>
+											Notes
+										</Label>
+										<Textarea
+											id='edit-notes'
+											value={editForm.notes || ''}
+											onChange={(e) =>
+												setEditForm({
+													...editForm,
+													notes: e.target.value,
+												})
+											}
+											placeholder='Additional notes...'
+											rows={3}
+										/>
+									</div>
 								</div>
 							) : (
-								<div className='text-center py-12 bg-gray-50 rounded-lg'>
-									<Camera className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-									<p className='text-gray-600 mb-2'>No photos uploaded</p>
-									<p className='text-sm text-gray-500'>
-										Upload photos to track vehicle condition
+								<>
+									<div className='grid grid-cols-2 gap-4'>
+										<div>
+											<p className='text-sm text-gray-600'>
+												Registration
+											</p>
+											<p className='font-semibold font-mono text-lg'>
+												{vehicle.rego}
+											</p>
+										</div>
+										<div>
+											<p className='text-sm text-gray-600'>
+												Vehicle Number
+											</p>
+											<p className='font-semibold text-lg'>
+												{vehicle.alias}
+											</p>
+										</div>
+										<div>
+											<p className='text-sm text-gray-600'>
+												Brand
+											</p>
+											<p className='font-semibold'>
+												{vehicle.brand || (
+													<span className='text-gray-400'>
+														-
+													</span>
+												)}
+											</p>
+										</div>
+										<div>
+											<p className='text-sm text-gray-600'>
+												Model
+											</p>
+											<p className='font-semibold'>
+												{vehicle.model || (
+													<span className='text-gray-400'>
+														-
+													</span>
+												)}
+											</p>
+										</div>
+										<div>
+											<p className='text-sm text-gray-600'>
+												Condition
+											</p>
+											<div className='flex items-center gap-2 mt-1'>
+												<div
+													className={`w-3 h-3 rounded-full ${conditionConfig[conditionStr]?.className}`}></div>
+												<span
+													className={`font-medium ${conditionConfig[conditionStr]?.textClass}`}>
+													{
+														conditionConfig[
+															conditionStr
+														]?.label
+													}
+												</span>
+											</div>
+										</div>
+										<div>
+											<p className='text-sm text-gray-600'>
+												Status
+											</p>
+											<Badge
+												className={`mt-1 ${statusConfig[statusStr]?.className}`}>
+												{statusConfig[statusStr]?.label}
+											</Badge>
+										</div>
+										<div>
+											<p className='text-sm text-gray-600'>
+												Mileage
+											</p>
+											<p className='font-semibold font-mono'>
+												{vehicle.mileage ? (
+													<>
+														{vehicle.mileage.toLocaleString()}{' '}
+														km
+													</>
+												) : (
+													<span className='text-gray-400'>
+														-
+													</span>
+												)}
+											</p>
+										</div>
+										<div>
+											<p className='text-sm text-gray-600'>
+												Maintenance Cycle
+											</p>
+											<p className='font-semibold'>
+												{vehicle.maintenance_cycle_days ? (
+													<>
+														{
+															vehicle.maintenance_cycle_days
+														}{' '}
+														days
+													</>
+												) : (
+													<span className='text-gray-400'>
+														-
+													</span>
+												)}
+											</p>
+										</div>
+									</div>
+
+									{vehicle.notes && (
+										<div className='mt-4 pt-4 border-t'>
+											<p className='text-sm text-gray-600 mb-1'>
+												Notes
+											</p>
+											<p className='text-gray-900'>
+												{vehicle.notes}
+											</p>
+										</div>
+									)}
+								</>
+							)}
+						</Card>
+
+						{/* Maintenance Information */}
+						<Card className='p-6'>
+							<h2 className='text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2'>
+								<Wrench className='h-5 w-5' />
+								Maintenance Schedule
+							</h2>
+							{isEditing ? (
+								<div className='grid grid-cols-2 gap-4'>
+									<div className='space-y-2'>
+										<Label htmlFor='edit-last-maintenance'>
+											Last Maintenance Date
+										</Label>
+										<Input
+											id='edit-last-maintenance'
+											type='date'
+											value={
+												editForm.last_maintenance_date ||
+												''
+											}
+											onChange={(e) =>
+												setEditForm({
+													...editForm,
+													last_maintenance_date:
+														e.target.value,
+												})
+											}
+										/>
+									</div>
+									<div className='space-y-2'>
+										<Label htmlFor='edit-next-maintenance'>
+											Next Maintenance Date
+										</Label>
+										<Input
+											id='edit-next-maintenance'
+											type='date'
+											value={
+												editForm.next_maintenance_date ||
+												''
+											}
+											onChange={(e) =>
+												setEditForm({
+													...editForm,
+													next_maintenance_date:
+														e.target.value,
+												})
+											}
+										/>
+									</div>
+									<div className='space-y-2'>
+										<Label htmlFor='edit-location'>
+											Maintenance Location
+										</Label>
+										<Input
+											id='edit-location'
+											value={
+												editForm.maintenance_location ||
+												''
+											}
+											onChange={(e) =>
+												setEditForm({
+													...editForm,
+													maintenance_location:
+														e.target.value,
+												})
+											}
+											placeholder='Main Workshop'
+										/>
+									</div>
+									<div className='space-y-2'>
+										<Label htmlFor='edit-email'>
+											Workshop Email
+										</Label>
+										<Input
+											id='edit-email'
+											type='email'
+											value={
+												editForm.workshop_email || ''
+											}
+											onChange={(e) =>
+												setEditForm({
+													...editForm,
+													workshop_email:
+														e.target.value,
+												})
+											}
+											placeholder='workshop@example.com'
+										/>
+									</div>
+								</div>
+							) : (
+								<div className='grid grid-cols-2 gap-4'>
+									<div>
+										<p className='text-sm text-gray-600'>
+											Last Maintenance
+										</p>
+										<p className='font-semibold'>
+											{vehicle.last_maintenance_date ? (
+												format(
+													new Date(
+														vehicle.last_maintenance_date
+													),
+													'MMM dd, yyyy'
+												)
+											) : (
+												<span className='text-gray-400'>
+													Not recorded
+												</span>
+											)}
+										</p>
+									</div>
+									<div>
+										<p className='text-sm text-gray-600'>
+											Next Maintenance
+										</p>
+										<p
+											className={`font-semibold ${isOverdue ? 'text-red-600' : isDueSoon ? 'text-orange-600' : ''}`}>
+											{vehicle.next_maintenance_date ? (
+												format(
+													new Date(
+														vehicle.next_maintenance_date
+													),
+													'MMM dd, yyyy'
+												)
+											) : (
+												<span className='text-gray-400'>
+													Not scheduled
+												</span>
+											)}
+										</p>
+									</div>
+									<div>
+										<p className='text-sm text-gray-600'>
+											Maintenance Location
+										</p>
+										<p className='font-semibold flex items-center gap-2'>
+											{vehicle.maintenance_location ? (
+												<>
+													<MapPin className='h-4 w-4 text-gray-400' />
+													{
+														vehicle.maintenance_location
+													}
+												</>
+											) : (
+												<span className='text-gray-400'>
+													-
+												</span>
+											)}
+										</p>
+									</div>
+									<div>
+										<p className='text-sm text-gray-600'>
+											Workshop Email
+										</p>
+										<p className='font-semibold'>
+											{vehicle.workshop_email || (
+												<span className='text-gray-400'>
+													-
+												</span>
+											)}
+										</p>
+									</div>
+								</div>
+							)}
+						</Card>
+
+						{/* Photos */}
+						<Card className='p-6'>
+							<div className='flex items-center justify-between mb-4'>
+								<h2 className='text-xl font-semibold text-gray-900 flex items-center gap-2'>
+									<ImageIcon className='h-5 w-5' />
+									Vehicle Photos
+								</h2>
+								<div className='relative'>
+									<input
+										type='file'
+										id='photo-upload'
+										multiple
+										accept='image/*'
+										className='hidden'
+										onChange={(e) =>
+											handlePhotoUpload(e.target.files)
+										}
+										disabled={isUploading}
+									/>
+									<Button
+										size='sm'
+										onClick={() =>
+											document
+												.getElementById('photo-upload')
+												?.click()
+										}
+										disabled={isUploading}>
+										<Upload className='h-4 w-4 mr-2' />
+										{isUploading
+											? 'Uploading...'
+											: 'Upload Photos'}
+									</Button>
+								</div>
+							</div>
+
+							{photoUrls && photoUrls.length > 0 ? (
+								<div className='grid grid-cols-2 sm:grid-cols-3 gap-4'>
+									{photoUrls.map((url, index) => {
+										console.log(
+											`Photo ${index + 1} URL:`,
+											url
+										);
+										return (
+											<div
+												key={index}
+												className='relative group bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all'
+												onClick={() => setSelectedPhotoIndex(index)}>
+												<div className='relative w-full h-40'>
+													<img
+														src={url}
+														alt={`Vehicle photo ${index + 1}`}
+														className='w-full h-full object-cover'
+														crossOrigin='anonymous'
+														onLoad={() => {
+															console.log(
+																`Photo ${index + 1} loaded successfully`
+															);
+														}}
+														onError={(e) => {
+															// Handle image load error
+															console.error(
+																`Failed to load photo ${index + 1}:`,
+																url
+															);
+															const target =
+																e.target as HTMLImageElement;
+															target.src =
+																'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f3f4f6" width="200" height="200"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="14" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3EImage not available%3C/text%3E%3C/svg%3E';
+														}}
+													/>
+													<div className='absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity' />
+												</div>
+
+												<div className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2'>
+													<p
+														className='text-xs text-white truncate'
+														title={url}>
+														Photo {index + 1}
+													</p>
+												</div>
+											</div>
+										);
+									})}
+								</div>
+							) : (
+								<div className='text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300'>
+									<ImageIcon className='h-12 w-12 text-gray-400 mx-auto mb-3' />
+									<p className='text-gray-600 text-sm mb-1'>
+										No photos uploaded yet
+									</p>
+									<p className='text-gray-500 text-xs'>
+										Click "Upload Photos" to add vehicle
+										images
 									</p>
 								</div>
 							)}
 						</Card>
 
-						<Card className='p-4 sm:p-6 bg-white  overflow-x-auto'>
-							<h2 className='text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2'>
-								<Calendar className='h-5 w-5' />
-								Schedule History
+						{/* Recent Inspections */}
+						<Card className='p-6'>
+							<h2 className='text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2'>
+								<FileText className='h-5 w-5' />
+								Recent Inspections
 							</h2>
 
-							{schedules.length > 0 ? (
+							{vehicle.recent_inspections &&
+							vehicle.recent_inspections.length > 0 ? (
 								<Table>
 									<TableHeader>
 										<TableRow>
-											<TableHead>Driver</TableHead>
-											<TableHead>Amazon ID</TableHead>
 											<TableHead>Date</TableHead>
-											<TableHead>Time</TableHead>
+											<TableHead>Driver</TableHead>
+											<TableHead>Odometer</TableHead>
 											<TableHead>Status</TableHead>
+											<TableHead>Reviewed</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
-										{schedules.map((schedule) => (
-											<TableRow key={schedule.id}>
-												<TableCell className='font-semibold text-gray-900'>
-													{schedule.driverName}
-												</TableCell>
-												<TableCell>
-													<Badge className='bg-blue-600 text-white'>
-														{schedule.amazonId}
-													</Badge>
-												</TableCell>
-												<TableCell className='text-gray-600'>
-													{format(
-														schedule.startTime,
-														'MMM dd, yyyy'
-													)}
-												</TableCell>
-												<TableCell className='text-gray-600'>
-													{format(
-														schedule.startTime,
-														'h:mm a'
-													)}{' '}
-													-{' '}
-													{format(
-														schedule.endTime,
-														'h:mm a'
-													)}
-												</TableCell>
-												<TableCell>
-													<Badge
-														className={
-															schedule.status ===
-															'completed'
-																? 'bg-green-600 text-white'
-																: schedule.status ===
-																	  'confirmed'
-																	? 'bg-blue-600 text-white'
-																	: 'bg-gray-500 text-white'
-														}>
-														{schedule.status}
-													</Badge>
-												</TableCell>
-											</TableRow>
-										))}
+										{vehicle.recent_inspections.map(
+											(inspection) => (
+												<TableRow key={inspection.id}>
+													<TableCell>
+														{inspection.date
+															? format(
+																	new Date(
+																		inspection.date
+																	),
+																	'MMM dd, yyyy'
+																)
+															: '-'}
+													</TableCell>
+													<TableCell>
+														Driver #
+														{inspection.driver_id}
+													</TableCell>
+													<TableCell className='font-mono'>
+														{inspection.odometer?.toLocaleString()}{' '}
+														km
+													</TableCell>
+													<TableCell>
+														<Badge
+															className={
+																inspection.status ===
+																'normal'
+																	? 'bg-green-600'
+																	: inspection.status ===
+																		  'has-issues'
+																		? 'bg-yellow-600'
+																		: 'bg-red-600'
+															}>
+															{inspection.status ===
+															'normal'
+																? 'Normal'
+																: inspection.status ===
+																	  'has-issues'
+																	? 'Has Issues'
+																	: 'Needs Repair'}
+														</Badge>
+													</TableCell>
+													<TableCell>
+														{inspection.admin_reviewed ? (
+															<span className='text-green-600'>
+																✓ Yes
+															</span>
+														) : (
+															<span className='text-gray-400'>
+																Pending
+															</span>
+														)}
+													</TableCell>
+												</TableRow>
+											)
+										)}
 									</TableBody>
 								</Table>
 							) : (
-								<div className='text-center py-12'>
-									<Calendar className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-									<p className='text-gray-600'>
-										No schedule history for this vehicle
+								<div className='text-center py-8'>
+									<FileText className='h-12 w-12 text-gray-400 mx-auto mb-2' />
+									<p className='text-gray-600 text-sm'>
+										No inspections recorded yet
 									</p>
 								</div>
 							)}
 						</Card>
+					</div>
 
-						<Card className='p-4 sm:p-6 bg-white  overflow-x-auto'>
-							<h2 className='text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2'>
-								<Wrench className='h-5 w-5' />
-								Maintenance History
-							</h2>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Date</TableHead>
-										<TableHead>Type</TableHead>
-										<TableHead>Description</TableHead>
-										<TableHead>Cost</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									<TableRow>
-										<TableCell className='text-gray-600'>
-											Jan 10, 2024
-										</TableCell>
-										<TableCell className='font-medium text-gray-900'>
-											Oil Change
-										</TableCell>
-										<TableCell className='text-gray-600'>
-											Regular maintenance service
-										</TableCell>
-										<TableCell className='text-gray-900'>
-											$85.00
-										</TableCell>
-									</TableRow>
-									<TableRow>
-										<TableCell className='text-gray-600'>
-											Dec 15, 2023
-										</TableCell>
-										<TableCell className='font-medium text-gray-900'>
-											Tire Rotation
-										</TableCell>
-										<TableCell className='text-gray-600'>
-											Rotated all four tires
-										</TableCell>
-										<TableCell className='text-gray-900'>
-											$60.00
-										</TableCell>
-									</TableRow>
-									<TableRow>
-										<TableCell className='text-gray-600'>
-											Nov 22, 2023
-										</TableCell>
-										<TableCell className='font-medium text-gray-900'>
-											Brake Inspection
-										</TableCell>
-										<TableCell className='text-gray-600'>
-											Inspected brake pads and rotors
-										</TableCell>
-										<TableCell className='text-gray-900'>
-											$120.00
-										</TableCell>
-									</TableRow>
-								</TableBody>
-							</Table>
+					{/* Sidebar */}
+					<div className='space-y-6'>
+						{/* Quick Actions */}
+						<Card className='p-4'>
+							<h3 className='font-semibold text-gray-900 mb-3'>
+								Quick Actions
+							</h3>
+							<div className='space-y-2'>
+								<Button
+									variant='outline'
+									className='w-full justify-start'>
+									<Calendar className='h-4 w-4 mr-2' />
+									Schedule Maintenance
+								</Button>
+								<Button
+									variant='outline'
+									className='w-full justify-start'>
+									<Package className='h-4 w-4 mr-2' />
+									Assign to Schedule
+								</Button>
+								<Button
+									variant='outline'
+									className='w-full justify-start text-red-600 hover:text-red-700'>
+									<Trash2 className='h-4 w-4 mr-2' />
+									Delete Vehicle
+								</Button>
+							</div>
+						</Card>
+
+						{/* Timeline/History */}
+						<Card className='p-4'>
+							<h3 className='font-semibold text-gray-900 mb-3'>
+								Activity
+							</h3>
+							<div className='space-y-3 text-sm'>
+								<div className='flex gap-3'>
+									<div className='w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0'>
+										<Car className='h-4 w-4 text-blue-700' />
+									</div>
+									<div>
+										<p className='font-medium text-gray-900'>
+											Vehicle created
+										</p>
+										<p className='text-gray-500 text-xs'>
+											{vehicle.created_at
+												? format(
+														new Date(
+															vehicle.created_at
+														),
+														'MMM dd, yyyy'
+													)
+												: '-'}
+										</p>
+									</div>
+								</div>
+								{vehicle.updated_at &&
+									vehicle.updated_at !==
+										vehicle.created_at && (
+										<div className='flex gap-3'>
+											<div className='w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0'>
+												<Edit className='h-4 w-4 text-orange-700' />
+											</div>
+											<div>
+												<p className='font-medium text-gray-900'>
+													Last updated
+												</p>
+												<p className='text-gray-500 text-xs'>
+													{format(
+														new Date(
+															vehicle.updated_at
+														),
+														'MMM dd, yyyy'
+													)}
+												</p>
+											</div>
+										</div>
+									)}
+							</div>
 						</Card>
 					</div>
 				</div>
+
+				{/* Photo Lightbox Dialog */}
+				<PhotoLightboxDialog
+					photoUrls={photoUrls}
+					selectedPhotoIndex={selectedPhotoIndex}
+					isEditing={isEditing}
+					onClose={() => setSelectedPhotoIndex(null)}
+					onPrevious={handlePreviousPhoto}
+					onNext={handleNextPhoto}
+					onDelete={handleDeletePhoto}
+				/>
 			</div>
 		</div>
 	);

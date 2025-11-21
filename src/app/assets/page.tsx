@@ -2,14 +2,13 @@
 
 import {
 	AlertCircle,
-	ArrowUpCircle,
 	Package,
 	Plus,
 	Search,
 	ShoppingCart,
 	TrendingDown,
 } from 'lucide-react';
-import type { Asset, AssetBorrowRecord, AssetPurchase } from '@/types/schedule';
+import type { Asset, BorrowRecord } from '@/types/schedule';
 import {
 	Dialog,
 	DialogContent,
@@ -34,34 +33,54 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import {
-	mockAssetBorrowRecords,
-	mockAssetPurchases,
-	mockAssets,
-	mockDrivers,
-} from '@/lib/mock-data';
+import { convertAsset, convertBorrowRecord } from '@/lib/api/converters';
+import { useAssets, useBorrowRecords } from '@/hooks/use-assets';
 
+import AddAssetDialog from './components/AddAssetDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { isLowStock } from '@/lib/helpers';
+import { apiClient } from '@/lib/api/client';
+import { useDrivers } from '@/hooks/use-drivers';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function AssetsPage() {
 	const { toast } = useToast();
-	const [assets, setAssets] = useState<Asset[]>(mockAssets);
-	const [borrowRecords, setBorrowRecords] = useState<AssetBorrowRecord[]>(
-		mockAssetBorrowRecords
-	);
-	const [purchaseRecords] = useState<AssetPurchase[]>(mockAssetPurchases);
+	const {
+		assets: apiAssets,
+		isLoading: assetsLoading,
+		refetch: refetchAssets,
+	} = useAssets();
+	const {
+		records: apiRecords,
+		isLoading: recordsLoading,
+		refetch: refetchRecords,
+	} = useBorrowRecords();
+	const { drivers: apiDrivers, isLoading: driversLoading } = useDrivers();
+
 	const [searchTerm, setSearchTerm] = useState('');
 	const [isBorrowDialogOpen, setIsBorrowDialogOpen] = useState(false);
-	const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
 	const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false);
 	const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+	const [borrowDriverId, setBorrowDriverId] = useState('');
+	const [borrowQuantity, setBorrowQuantity] = useState('1');
+	const [borrowNotes, setBorrowNotes] = useState('');
+	const [expectedReturnDate, setExpectedReturnDate] = useState('');
+
+	// Convert API data to frontend types
+	const assets = apiAssets?.map(convertAsset) || [];
+	const borrowRecords = apiRecords?.map(convertBorrowRecord) || [];
+	const drivers =
+		apiDrivers?.map((d) => ({
+			id: d.id.toString(),
+			name: d.name,
+			amazonId: d.amazon_id,
+		})) || [];
+
+	const isLoading = assetsLoading || recordsLoading || driversLoading;
 
 	const filteredAssets = assets.filter(
 		(asset) =>
@@ -70,7 +89,10 @@ export default function AssetsPage() {
 	);
 
 	const getStatusBadge = (asset: Asset) => {
-		if (asset.status === 'out-of-stock') {
+		const available = asset.availableQuantity;
+		const threshold = asset.lowStockThreshold || asset.minThreshold || 5;
+
+		if (available === 0) {
 			return (
 				<Badge
 					variant='destructive'
@@ -80,7 +102,7 @@ export default function AssetsPage() {
 				</Badge>
 			);
 		}
-		if (asset.status === 'low-stock') {
+		if (available <= threshold) {
 			return (
 				<Badge className='bg-orange-500 text-white flex items-center gap-1'>
 					<TrendingDown className='h-3 w-3' />
@@ -91,11 +113,89 @@ export default function AssetsPage() {
 		return <Badge className='bg-green-500 text-white'>Available</Badge>;
 	};
 
-	const activeBorrows = borrowRecords.filter((record) => !record.returnedAt);
-	const borrowHistory = borrowRecords.filter((record) => record.returnedAt);
+	const activeBorrows = borrowRecords.filter(
+		(record) => record.status === 'borrowed'
+	);
+	const borrowHistory = borrowRecords.filter(
+		(record) => record.status === 'returned'
+	);
 
-	const lowStockAssets = assets.filter((a) => a.status === 'low-stock');
-	const outOfStockAssets = assets.filter((a) => a.status === 'out-of-stock');
+	const lowStockAssets = assets.filter((a) => {
+		const threshold = a.lowStockThreshold || a.minThreshold || 5;
+		return a.availableQuantity > 0 && a.availableQuantity <= threshold;
+	});
+	const outOfStockAssets = assets.filter((a) => a.availableQuantity === 0);
+
+	const handleBorrow = async () => {
+		if (!selectedAsset || !borrowDriverId) {
+			toast({
+				title: 'Error',
+				description: 'Please select a driver',
+				variant: 'destructive',
+			});
+			return;
+		}
+
+		try {
+			await apiClient.createBorrowRecord({
+				asset_id: parseInt(selectedAsset.id),
+				driver_id: parseInt(borrowDriverId),
+				quantity: parseInt(borrowQuantity),
+				expected_return_date: expectedReturnDate || undefined,
+				notes: borrowNotes || undefined,
+			});
+
+			toast({
+				title: 'Success',
+				description: 'Asset borrowed successfully',
+			});
+
+			setIsBorrowDialogOpen(false);
+			setBorrowDriverId('');
+			setBorrowQuantity('1');
+			setBorrowNotes('');
+			setExpectedReturnDate('');
+			refetchAssets();
+			refetchRecords();
+		} catch (error) {
+			toast({
+				title: 'Error',
+				description: 'Failed to record borrow',
+				variant: 'destructive',
+			});
+		}
+	};
+
+	const handleReturn = async (recordId: string) => {
+		try {
+			await apiClient.returnBorrowRecord(parseInt(recordId));
+
+			toast({
+				title: 'Success',
+				description: 'Asset returned successfully',
+			});
+
+			refetchAssets();
+			refetchRecords();
+		} catch (error) {
+			toast({
+				title: 'Error',
+				description: 'Failed to record return',
+				variant: 'destructive',
+			});
+		}
+	};
+
+	if (isLoading) {
+		return (
+			<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center'>
+				<div className='text-center'>
+					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto'></div>
+					<p className='mt-4 text-gray-600'>Loading assets...</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>
@@ -103,7 +203,7 @@ export default function AssetsPage() {
 				<div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6'>
 					<div>
 						<h1 className='text-3xl font-bold text-gray-900'>
-							Asset & Inventory Management
+							Asset Management
 						</h1>
 						<p className='text-gray-500 mt-1'>
 							Track inventory, manage borrowing, and monitor stock
@@ -111,86 +211,7 @@ export default function AssetsPage() {
 						</p>
 					</div>
 					<div className='flex gap-2'>
-						<Button
-							onClick={() => setIsPurchaseDialogOpen(true)}
-							variant='outline'
-							className='border-blue-600 text-blue-700 hover:bg-blue-50'>
-							<ShoppingCart className='h-4 w-4 mr-2' />
-							Record Purchase
-						</Button>
-						<Dialog>
-							<DialogTrigger asChild>
-								<Button className='bg-blue-700 hover:bg-blue-800'>
-									<Plus className='h-4 w-4 mr-2' />
-									Add Asset
-								</Button>
-							</DialogTrigger>
-							<DialogContent>
-								<DialogHeader>
-									<DialogTitle>Add New Asset</DialogTitle>
-									<DialogDescription>
-										Add a new asset to the inventory
-									</DialogDescription>
-								</DialogHeader>
-								<div className='space-y-4 py-4'>
-									<div className='space-y-2'>
-										<Label htmlFor='name'>Asset Name</Label>
-										<Input
-											id='name'
-											placeholder='Enter asset name'
-										/>
-									</div>
-									<div className='space-y-2'>
-										<Label htmlFor='category'>
-											Category
-										</Label>
-										<Select>
-											<SelectTrigger>
-												<SelectValue placeholder='Select category' />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value='equipment'>
-													Equipment
-												</SelectItem>
-												<SelectItem value='electronics'>
-													Electronics
-												</SelectItem>
-												<SelectItem value='safety'>
-													Safety
-												</SelectItem>
-											</SelectContent>
-										</Select>
-									</div>
-									<div className='space-y-2'>
-										<Label htmlFor='quantity'>
-											Quantity
-										</Label>
-										<Input
-											id='quantity'
-											type='number'
-											placeholder='0'
-										/>
-									</div>
-									<div className='space-y-2'>
-										<Label htmlFor='minThreshold'>
-											Min Threshold
-										</Label>
-										<Input
-											id='minThreshold'
-											type='number'
-											placeholder='0'
-										/>
-									</div>
-								</div>
-								<DialogFooter>
-									<Button
-										type='submit'
-										className='bg-blue-700 hover:bg-blue-800'>
-										Add Asset
-									</Button>
-								</DialogFooter>
-							</DialogContent>
-						</Dialog>
+						<AddAssetDialog />
 					</div>
 				</div>
 
@@ -250,7 +271,7 @@ export default function AssetsPage() {
 				</div>
 
 				{/* Assets Inventory */}
-				<Card>
+				<Card className='mb-6'>
 					<div className='p-6'>
 						<h2 className='text-xl font-semibold mb-4 flex items-center gap-2'>
 							<Package className='h-5 w-5 text-blue-700' />
@@ -261,16 +282,11 @@ export default function AssetsPage() {
 								<TableHeader>
 									<TableRow>
 										<TableHead>Asset Name</TableHead>
-										<TableHead>Category</TableHead>
-										<TableHead className='text-center'>
-											Total
-										</TableHead>
+
 										<TableHead className='text-center'>
 											Available
 										</TableHead>
-										<TableHead className='text-center'>
-											Borrowed
-										</TableHead>
+
 										<TableHead className='text-center'>
 											Min Threshold
 										</TableHead>
@@ -287,16 +303,7 @@ export default function AssetsPage() {
 												<TableCell className='font-medium'>
 													{asset.name}
 												</TableCell>
-												<TableCell>
-													<Badge
-														variant='outline'
-														className='text-xs'>
-														{asset.category}
-													</Badge>
-												</TableCell>
-												<TableCell className='text-center font-semibold'>
-													{asset.totalQuantity}
-												</TableCell>
+
 												<TableCell className='text-center'>
 													<span
 														className={
@@ -310,22 +317,11 @@ export default function AssetsPage() {
 														}
 													</span>
 												</TableCell>
-												<TableCell className='text-center'>
-													{asset.borrowedQuantity >
-													0 ? (
-														<span className='text-blue-600 font-medium'>
-															{
-																asset.borrowedQuantity
-															}
-														</span>
-													) : (
-														<span className='text-gray-400'>
-															0
-														</span>
-													)}
-												</TableCell>
+
 												<TableCell className='text-center text-gray-600'>
-													{asset.minThreshold}
+													{asset.lowStockThreshold ||
+														asset.minThreshold ||
+														5}
 												</TableCell>
 												<TableCell>
 													{getStatusBadge(asset)}
@@ -352,75 +348,6 @@ export default function AssetsPage() {
 											</TableRow>
 										);
 									})}
-								</TableBody>
-							</Table>
-						</div>
-					</div>
-				</Card>
-
-				{/* Active Borrows */}
-				<Card>
-					<div className='p-6'>
-						<h2 className='text-xl font-semibold mb-4'>
-							Active Borrows
-						</h2>
-						<div className='overflow-x-auto'>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Asset</TableHead>
-										<TableHead>Borrowed By</TableHead>
-										<TableHead>Quantity</TableHead>
-										<TableHead>Borrowed Date</TableHead>
-										<TableHead>Expected Return</TableHead>
-										<TableHead>Notes</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{activeBorrows.length === 0 ? (
-										<TableRow>
-											<TableCell
-												colSpan={6}
-												className='text-center text-gray-500'>
-												No active borrows
-											</TableCell>
-										</TableRow>
-									) : (
-										activeBorrows.map((record) => (
-											<TableRow key={record.id}>
-												<TableCell className='font-medium'>
-													{record.assetName}
-												</TableCell>
-												<TableCell>
-													{record.driverName}
-												</TableCell>
-												<TableCell>
-													{record.quantity}
-												</TableCell>
-												<TableCell>
-													{record.borrowedAt.toLocaleDateString()}
-												</TableCell>
-												<TableCell>
-													{assets.find(
-														(a) =>
-															a.id ===
-															record.assetId
-													)?.expectedReturnDate
-														? assets
-																.find(
-																	(a) =>
-																		a.id ===
-																		record.assetId
-																)
-																?.expectedReturnDate?.toLocaleDateString()
-														: '-'}
-												</TableCell>
-												<TableCell>
-													{record.notes || '-'}
-												</TableCell>
-											</TableRow>
-										))
-									)}
 								</TableBody>
 							</Table>
 						</div>
@@ -467,10 +394,10 @@ export default function AssetsPage() {
 													{record.quantity}
 												</TableCell>
 												<TableCell>
-													{record.borrowedAt.toLocaleDateString()}
+													{record.borrowDate.toLocaleDateString()}
 												</TableCell>
 												<TableCell>
-													{record.returnedAt?.toLocaleDateString() ||
+													{record.actualReturnDate?.toLocaleDateString() ||
 														'-'}
 												</TableCell>
 												<TableCell>
@@ -506,12 +433,14 @@ export default function AssetsPage() {
 							</div>
 							<div className='space-y-2'>
 								<Label htmlFor='driver'>Driver</Label>
-								<Select>
+								<Select
+									value={borrowDriverId}
+									onValueChange={setBorrowDriverId}>
 									<SelectTrigger>
 										<SelectValue placeholder='Select driver' />
 									</SelectTrigger>
 									<SelectContent>
-										{mockDrivers.map((driver) => (
+										{drivers.map((driver) => (
 											<SelectItem
 												key={driver.id}
 												value={driver.id}>
@@ -528,19 +457,36 @@ export default function AssetsPage() {
 									id='borrowQuantity'
 									type='number'
 									min='1'
-									max={selectedAsset?.quantity || 1}
-									defaultValue='1'
+									max={selectedAsset?.availableQuantity || 1}
+									value={borrowQuantity}
+									onChange={(e) =>
+										setBorrowQuantity(e.target.value)
+									}
 								/>
 							</div>
 							<div className='space-y-2'>
 								<Label htmlFor='expectedReturn'>
-									Expected Return Date
+									Expected Return Date (Optional)
 								</Label>
-								<Input id='expectedReturn' type='date' />
+								<Input
+									id='expectedReturn'
+									type='date'
+									value={expectedReturnDate}
+									onChange={(e) =>
+										setExpectedReturnDate(e.target.value)
+									}
+								/>
 							</div>
 							<div className='space-y-2'>
 								<Label htmlFor='notes'>Notes (optional)</Label>
-								<Input id='notes' placeholder='Add notes...' />
+								<Input
+									id='notes'
+									placeholder='Add notes...'
+									value={borrowNotes}
+									onChange={(e) =>
+										setBorrowNotes(e.target.value)
+									}
+								/>
 							</div>
 						</div>
 						<DialogFooter>
@@ -551,66 +497,8 @@ export default function AssetsPage() {
 							</Button>
 							<Button
 								className='bg-blue-700 hover:bg-blue-800'
-								onClick={() => setIsBorrowDialogOpen(false)}>
+								onClick={handleBorrow}>
 								Confirm Borrow
-							</Button>
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
-
-				{/* Return Dialog */}
-				<Dialog
-					open={isReturnDialogOpen}
-					onOpenChange={setIsReturnDialogOpen}>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>Return Asset</DialogTitle>
-							<DialogDescription>
-								Record asset return from driver
-							</DialogDescription>
-						</DialogHeader>
-						<div className='space-y-4 py-4'>
-							<div className='space-y-2'>
-								<Label>Asset</Label>
-								<Input
-									value={selectedAsset?.name || ''}
-									disabled
-								/>
-							</div>
-							<div className='space-y-2'>
-								<Label>Borrowed By</Label>
-								<Input
-									value={
-										mockDrivers.find(
-											(d) =>
-												d.id ===
-												selectedAsset?.borrowedBy
-										)?.name || ''
-									}
-									disabled
-								/>
-							</div>
-							<div className='space-y-2'>
-								<Label htmlFor='returnDate'>Return Date</Label>
-								<Input
-									id='returnDate'
-									type='date'
-									defaultValue={
-										new Date().toISOString().split('T')[0]
-									}
-								/>
-							</div>
-						</div>
-						<DialogFooter>
-							<Button
-								variant='outline'
-								onClick={() => setIsReturnDialogOpen(false)}>
-								Cancel
-							</Button>
-							<Button
-								className='bg-blue-700 hover:bg-blue-800'
-								onClick={() => setIsReturnDialogOpen(false)}>
-								Confirm Return
 							</Button>
 						</DialogFooter>
 					</DialogContent>

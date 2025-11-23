@@ -4,10 +4,13 @@ import {
 	BarChart3,
 	Calendar,
 	Car,
+	ClipboardCheck,
+	LayoutDashboard,
 	MessageSquare,
 	Package,
 	Settings,
 	Users,
+	UserCog,
 } from 'lucide-react';
 import {
 	Sidebar,
@@ -24,12 +27,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const menuItems = [
-	{ href: '/', label: 'Schedule', icon: Calendar },
+	{ href: '/', label: 'Dashboard', icon: LayoutDashboard },
+	{ href: '/schedules', label: 'Schedule', icon: Calendar },
 	{ href: '/vehicles', label: 'Vehicles', icon: Car },
 	{ href: '/drivers', label: 'Drivers', icon: Users },
+	{ href: '/inspections', label: 'Inspections', icon: ClipboardCheck },
 	{ href: '/assets', label: 'Assets', icon: Package },
-	{ href: '/messages', label: 'Messages', icon: MessageSquare },
-	{ href: '/reports', label: 'Reports', icon: BarChart3 },
+	{ href: '/users', label: 'User Management', icon: UserCog },
+	// { href: '/messages', label: 'Messages', icon: MessageSquare },
+	// { href: '/reports', label: 'Reports', icon: BarChart3 },
 	{ href: '/settings', label: 'Settings', icon: Settings },
 ];
 

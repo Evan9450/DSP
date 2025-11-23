@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiClient, DriverResponse, DriverDocumentResponse } from '@/lib/api/client';
+import { apiClient, DriverResponse, DriverFileResponse } from '@/lib/api/client';
 
 export function useDrivers() {
 	const [drivers, setDrivers] = useState<DriverResponse[]>([]);
@@ -69,39 +69,42 @@ export function useDriver(driverId: number | null) {
 	};
 }
 
-export function useDriverDocuments(driverId: number | null) {
-	const [documents, setDocuments] = useState<DriverDocumentResponse[]>([]);
+export function useDriverFiles(driverId: number | null) {
+	const [files, setFiles] = useState<DriverFileResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
 
-	const fetchDocuments = async () => {
+	const fetchFiles = async () => {
 		if (!driverId) {
-			setDocuments([]);
+			setFiles([]);
 			setIsLoading(false);
 			return;
 		}
 
 		try {
 			setIsLoading(true);
-			const data = await apiClient.getDriverDocuments(driverId);
-			setDocuments(data);
+			const data = await apiClient.getDriverFiles(driverId);
+			setFiles(data);
 			setError(null);
 		} catch (err) {
 			setError(err as Error);
-			console.error('Failed to fetch driver documents:', err);
+			console.error('Failed to fetch driver files:', err);
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
 	useEffect(() => {
-		fetchDocuments();
+		fetchFiles();
 	}, [driverId]);
 
 	return {
-		documents,
+		files,
 		isLoading,
 		error,
-		refetch: fetchDocuments,
+		refetch: fetchFiles,
 	};
 }
+
+// Backwards compatibility
+export const useDriverDocuments = useDriverFiles;

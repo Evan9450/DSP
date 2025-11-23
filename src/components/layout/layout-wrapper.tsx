@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/sidebar';
 
 import { AppSidebar } from '@/components/layout/app-sidebar';
-import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/layout/user-nav';
 import { useAuth } from '@/contexts/auth-context';
 import { usePathname } from 'next/navigation';
@@ -41,14 +40,9 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 			<AppSidebar />
 			<SidebarInset>
 				<header className='sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4'>
-					<SidebarTrigger>
-						<Button
-							variant='ghost'
-							size='icon'
-							className='hover:bg-gray-100'>
-							<Menu className='h-5 w-5 md:hidden' />
-							<PanelLeftOpen className='h-5 w-5 hidden md:block hover:text-black' />
-						</Button>
+					<SidebarTrigger className='h-10 w-10 hover:bg-gray-100 rounded-md'>
+						<Menu className='h-5 w-5 md:hidden' />
+						<PanelLeftOpen className='h-5 w-5 hidden md:block hover:text-black' />
 					</SidebarTrigger>
 					<h1 className='text-xl font-bold text-blue-700 md:hidden'>
 						DSP Manager

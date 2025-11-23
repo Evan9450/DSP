@@ -12,9 +12,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, LogOut, Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function UserNav() {
 	const { user, logout } = useAuth();
+	const router = useRouter();
 
 	if (!user) return null;
 
@@ -50,11 +52,11 @@ export function UserNav() {
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem>
+				<DropdownMenuItem onClick={() => router.push('/profile')}>
 					<User className='mr-2 h-4 w-4' />
 					<span>Profile</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem>
+				<DropdownMenuItem onClick={() => router.push('/settings')}>
 					<Settings className='mr-2 h-4 w-4' />
 					<span>Settings</span>
 				</DropdownMenuItem>

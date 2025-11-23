@@ -84,109 +84,12 @@
   }
 }
 
-/* React Big Calendar Custom Styles */
-.rbc-calendar {
-  font-family: inherit;
-}
-
-.rbc-header {
-  padding: 12px 4px;
-  font-weight: 600;
-  color: #1e40af;
-  background-color: #eff6ff;
-  border-bottom: 2px solid #2563eb;
-}
-
-.rbc-today {
-  background-color: #fef3c7;
-}
-
-.rbc-toolbar {
-  padding: 12px 0;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.rbc-toolbar button {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
-  background-color: white;
-  color: #374151;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.rbc-toolbar button:hover {
-  background-color: #f3f4f6;
-  border-color: #9ca3af;
-}
-
-.rbc-toolbar button.rbc-active {
-  background-color: #1e40af;
-  color: white;
-  border-color: #1e40af;
-}
-
-.rbc-event {
-  padding: 4px 8px;
-  cursor: pointer;
-  border: none;
-}
-
-.rbc-event:hover {
-  opacity: 1 !important;
-  transform: scale(1.02);
-  transition: transform 0.2s;
-}
-
-.rbc-event-label {
-  font-size: 11px;
-}
-
-.rbc-time-slot {
-  min-height: 40px;
-}
-
-.rbc-day-slot .rbc-time-slot {
-  border-top: 1px solid #f3f4f6;
-}
-
-.rbc-time-header-content {
-  border-left: 1px solid #e5e7eb;
-}
-
-.rbc-time-content {
-  border-top: 2px solid #2563eb;
-}
-
-.rbc-current-time-indicator {
-  background-color: #2563eb;
-  height: 2px;
-}
-
-.rbc-month-view {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.rbc-month-row {
-  border-top: 1px solid #e5e7eb;
-  min-height: 80px;
-}
-
-.rbc-day-bg {
-  border-left: 1px solid #f3f4f6;
-}
-
-.rbc-off-range-bg {
-  background-color: #f9fafb;
-}
-
-.rbc-toolbar-label {
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: #111827;
+/* React Day Picker v9 - Override default sizes */
+.rdp-root {
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-accent-background-color: hsl(var(--accent));
+  --rdp-day-height: 2.25rem;
+  --rdp-day-width: 2.25rem;
+  --rdp-day_button-height: 2.25rem;
+  --rdp-day_button-width: 2.25rem;
 }

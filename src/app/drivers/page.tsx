@@ -14,18 +14,34 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogFooter,
+} from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { calculateDocumentStatus } from '@/lib/helpers';
 import { useDrivers } from '@/hooks/use-drivers';
-import { apiClient } from '@/lib/api/client';
+import { apiClient, DriverCreate } from '@/lib/api/client';
 import { convertDriver, convertDriverDocument } from '@/lib/api/converters';
 
 export default function DriversPage() {
 	const router = useRouter();
-	const { drivers: apiDrivers, isLoading } = useDrivers();
+	const { drivers: apiDrivers, isLoading, refetch } = useDrivers();
 	const [searchTerm, setSearchTerm] = useState('');
 	const [driverDocuments, setDriverDocuments] = useState<Record<string, any[]>>({});
+	const [showAddDialog, setShowAddDialog] = useState(false);
+	const [showImportDialog, setShowImportDialog] = useState(false);
+	const [newDriver, setNewDriver] = useState<DriverCreate>({
+		name: '',
+		amazon_id: '',
+	});
+	const [importFile, setImportFile] = useState<File | null>(null);
 
 	const drivers = apiDrivers?.map(convertDriver) || [];
 
@@ -38,10 +54,10 @@ export default function DriversPage() {
 
 			for (const driver of apiDrivers) {
 				try {
-					const docs = await apiClient.getDriverDocuments(driver.id);
-					docsMap[driver.id.toString()] = docs;
+					const files = await apiClient.getDriverFiles(driver.id);
+					docsMap[driver.id.toString()] = files;
 				} catch (error) {
-					console.error(`Failed to fetch documents for driver ${driver.id}:`, error);
+					console.error(`Failed to fetch files for driver ${driver.id}:`, error);
 					docsMap[driver.id.toString()] = [];
 				}
 			}
@@ -80,6 +96,33 @@ export default function DriversPage() {
 
 	const handleRowClick = (driverId: string) => {
 		router.push(`/drivers/${driverId}`);
+	};
+
+	const handleAddDriver = async () => {
+		try {
+			await apiClient.createDriver(newDriver);
+			setShowAddDialog(false);
+			setNewDriver({ name: '', amazon_id: '' });
+			await refetch();
+		} catch (error) {
+			console.error('Failed to create driver:', error);
+			alert('Failed to create driver');
+		}
+	};
+
+	const handleImportAmazonIds = async () => {
+		if (!importFile) return;
+
+		try {
+			await apiClient.importAmazonIds(importFile);
+			setShowImportDialog(false);
+			setImportFile(null);
+			await refetch();
+			alert('Amazon IDs imported successfully');
+		} catch (error) {
+			console.error('Failed to import Amazon IDs:', error);
+			alert('Failed to import Amazon IDs');
+		}
 	};
 
 	if (isLoading) {
@@ -131,12 +174,19 @@ export default function DriversPage() {
 						/>
 					</div>
 					<div className='flex gap-2'>
-						<Button variant='outline' className='border-blue-600 text-blue-700 hover:bg-blue-50'>
+						<Button
+							variant='outline'
+							className='border-blue-600 text-blue-700 hover:bg-blue-50'
+							onClick={() => setShowImportDialog(true)}
+						>
 							<Upload className='h-4 w-4 mr-2' />
 							<span className='hidden sm:inline'>Import Amazon IDs</span>
 							<span className='sm:hidden'>Import</span>
 						</Button>
-						<Button className='bg-blue-700 hover:bg-blue-800 text-white'>
+						<Button
+							className='bg-blue-700 hover:bg-blue-800 text-white'
+							onClick={() => setShowAddDialog(true)}
+						>
 							<Plus className='h-4 w-4 mr-2' />
 							<span className='hidden sm:inline'>Add Driver</span>
 							<span className='sm:hidden'>Add</span>
@@ -265,6 +315,138 @@ export default function DriversPage() {
 					</div>
 				)}
 			</div>
+
+			{/* Add Driver Dialog */}
+			<Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Add New Driver</DialogTitle>
+						<DialogDescription>
+							Create a new driver profile. You can add more details later.
+						</DialogDescription>
+					</DialogHeader>
+					<div className='grid gap-4 py-4'>
+						<div>
+							<Label>Name *</Label>
+							<Input
+								value={newDriver.name}
+								onChange={(e) => setNewDriver({ ...newDriver, name: e.target.value })}
+								placeholder='Enter driver name'
+							/>
+						</div>
+						<div>
+							<Label>Amazon ID *</Label>
+							<Input
+								value={newDriver.amazon_id}
+								onChange={(e) => setNewDriver({ ...newDriver, amazon_id: e.target.value })}
+								placeholder='e.g., DA123456'
+							/>
+						</div>
+						<div>
+							<Label>Phone</Label>
+							<Input
+								value={newDriver.phone || ''}
+								onChange={(e) => setNewDriver({ ...newDriver, phone: e.target.value })}
+								placeholder='Phone number'
+							/>
+						</div>
+						<div>
+							<Label>Email</Label>
+							<Input
+								type='email'
+								value={newDriver.email || ''}
+								onChange={(e) => setNewDriver({ ...newDriver, email: e.target.value })}
+								placeholder='email@example.com'
+							/>
+						</div>
+						<div>
+							<Label>Address</Label>
+							<Input
+								value={newDriver.address || ''}
+								onChange={(e) => setNewDriver({ ...newDriver, address: e.target.value })}
+								placeholder='Full address'
+							/>
+						</div>
+						<div>
+							<Label>Deputy ID</Label>
+							<Input
+								value={newDriver.deputy_id || ''}
+								onChange={(e) => setNewDriver({ ...newDriver, deputy_id: e.target.value })}
+								placeholder='Deputy ID (if synced)'
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button
+							variant='outline'
+							onClick={() => {
+								setShowAddDialog(false);
+								setNewDriver({ name: '', amazon_id: '' });
+							}}
+						>
+							Cancel
+						</Button>
+						<Button
+							onClick={handleAddDriver}
+							disabled={!newDriver.name || !newDriver.amazon_id}
+						>
+							Add Driver
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Import Amazon IDs Dialog */}
+			<Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Import Amazon IDs</DialogTitle>
+						<DialogDescription>
+							Upload an Excel or CSV file containing Amazon IDs to import driver data.
+						</DialogDescription>
+					</DialogHeader>
+					<div className='py-4'>
+						<Label>Select File</Label>
+						<Input
+							type='file'
+							onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+							accept='.xlsx,.xls,.csv'
+						/>
+						{importFile && (
+							<p className='text-sm text-gray-600 mt-2'>
+								Selected: {importFile.name}
+							</p>
+						)}
+						<div className='mt-4 p-4 bg-blue-50 rounded-lg'>
+							<p className='text-sm text-gray-700 mb-2'>
+								<strong>File Requirements:</strong>
+							</p>
+							<ul className='text-sm text-gray-600 list-disc list-inside space-y-1'>
+								<li>Supported formats: Excel (.xlsx, .xls) or CSV (.csv)</li>
+								<li>File should contain Amazon ID column</li>
+								<li>Optionally include name, phone, email columns</li>
+							</ul>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button
+							variant='outline'
+							onClick={() => {
+								setShowImportDialog(false);
+								setImportFile(null);
+							}}
+						>
+							Cancel
+						</Button>
+						<Button
+							onClick={handleImportAmazonIds}
+							disabled={!importFile}
+						>
+							Import
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

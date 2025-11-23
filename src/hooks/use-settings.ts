@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { apiClient, SettingsResponse } from '@/lib/api/client';
+import { apiClient, SystemConfigResponse } from '@/lib/api/client';
 
 export function useSettings() {
-	const [settings, setSettings] = useState<SettingsResponse | null>(null);
+	const [settings, setSettings] = useState<SystemConfigResponse | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
 
 	const fetchSettings = async () => {
 		try {
 			setIsLoading(true);
-			const data = await apiClient.getSettings();
+			const data = await apiClient.getSystemConfig();
 			setSettings(data);
 			setError(null);
 		} catch (err) {

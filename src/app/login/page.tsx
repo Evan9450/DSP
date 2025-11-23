@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { Calendar, Eye, EyeOff } from 'lucide-react';
+import { Calendar, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function LoginPage() {
@@ -16,6 +16,23 @@ export default function LoginPage() {
 	const [password, setPassword] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
+	const [logoutMessage, setLogoutMessage] = useState<string | null>(null);
+
+	useEffect(() => {
+		// Check for logout reason in sessionStorage
+		const reason = sessionStorage.getItem('logout_reason');
+		if (reason) {
+			setLogoutMessage(reason);
+			sessionStorage.removeItem('logout_reason');
+
+			// Also show toast
+			toast({
+				title: 'Session Expired',
+				description: reason,
+				variant: 'destructive',
+			});
+		}
+	}, [toast]);
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -57,6 +74,19 @@ export default function LoginPage() {
 						Operations System
 					</p>
 				</div>
+
+				{/* Session expired message */}
+				{logoutMessage && (
+					<div className='mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg flex items-start gap-3'>
+						<AlertCircle className='h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5' />
+						<div>
+							<p className='text-sm font-medium text-orange-900'>
+								Session Expired
+							</p>
+							<p className='text-sm text-orange-700 mt-1'>{logoutMessage}</p>
+						</div>
+					</div>
+				)}
 
 				<form onSubmit={handleLogin} className='space-y-6'>
 					<div className='space-y-2'>

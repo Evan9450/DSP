@@ -24,31 +24,40 @@ export interface LoginRequest {
 export interface TokenResponse {
 	access_token: string;
 	token_type: string;
+	user: UserResponse;
 }
 
 // User Types
+export type UserRole = 0 | 1; // 0 = Admin (Superuser), 1 = Manager
+
 export interface UserResponse {
 	id: number;
 	email: string;
 	name: string;
-	role: 'admin' | 'manager' | 'viewer';
+	phone?: string | null;
+	role: UserRole;
 	is_active: boolean;
+	is_superuser: boolean;
 	created_at: string;
+	updated_at: string;
 }
 
 export interface UserCreate {
 	email: string;
 	name: string;
 	password: string;
-	role: 'admin' | 'manager' | 'viewer';
+	phone?: string | null;
+	role?: UserRole; // Optional, defaults to 1 (Manager)
 }
 
 export interface UserUpdate {
-	email?: string;
-	name?: string;
-	password?: string;
-	role?: 'admin' | 'manager' | 'viewer';
-	is_active?: boolean;
+	email?: string | null;
+	name?: string | null;
+	old_password?: string | null;
+	password?: string | null;
+	phone?: string | null;
+	role?: UserRole | null;
+	is_active?: boolean | null;
 }
 
 // Driver Types
@@ -87,8 +96,8 @@ export interface DriverUpdate {
 	is_active?: boolean;
 }
 
-// Driver Document Types
-export interface DriverDocumentResponse {
+// Driver File Types
+export interface DriverFileResponse {
 	id: number;
 	driver_id: number;
 	type: 'license' | 'visa' | 'certification' | 'other';
@@ -100,13 +109,17 @@ export interface DriverDocumentResponse {
 	created_at: string;
 }
 
-export interface DriverDocumentCreate {
+export interface DriverFileCreate {
 	type: 'license' | 'visa' | 'certification' | 'other';
 	document_number?: string;
 	issue_date?: string;
 	expiry_date: string;
 	notes?: string;
 }
+
+// Keep old names for backwards compatibility
+export type DriverDocumentResponse = DriverFileResponse;
+export type DriverDocumentCreate = DriverFileCreate;
 
 // Vehicle Types
 export interface VehicleResponse {
@@ -135,6 +148,8 @@ export interface VehiclePhotoResponse {
 
 export interface VehicleDetailResponse extends VehicleResponse {
 	photo_urls?: string;
+	photos: string[];
+	photo_full_urls: string[];
 	recent_inspections: VehicleInspectionResponse[];
 }
 
@@ -174,26 +189,23 @@ export interface VehicleUpdate {
 export interface VehicleInspectionResponse {
 	id: number;
 	vehicle_id: number;
-	driver_id: number;
-	schedule_id?: number;
-	date: string;
-	odometer: number;
-	status: 'normal' | 'has-issues' | 'needs-repair';
+	driver_id?: number;
+	inspection_date: string;
+	mileage_at_inspection?: number;
 	notes?: string;
-	admin_reviewed: boolean;
-	admin_reviewed_by?: number;
-	admin_reviewed_at?: string;
+	photo_urls?: string;
+	reviewed_by_admin: boolean;
 	admin_notes?: string;
 	created_at: string;
+	updated_at: string;
 }
 
 export interface VehicleInspectionCreate {
+	inspection_date: string;
 	vehicle_id: number;
-	driver_id: number;
-	schedule_id?: number;
-	odometer: number;
-	status: 'normal' | 'has-issues' | 'needs-repair';
+	mileage_at_inspection?: number;
 	notes?: string;
+	photo_urls?: string;
 }
 
 export interface InspectionPhotoResponse {
@@ -305,37 +317,31 @@ export interface BorrowRecordCreate {
 	notes?: string;
 }
 
-// Settings Types
-export interface SettingsResponse {
-	id: number;
-	admin_notification_phone: string;
-	document_expiry_reminder_days: number;
-	driver_confirmation_sms_time: string;
-	maintenance_reminder_days: number;
-	low_stock_notification_enabled: boolean;
-	schedule_reminder_template?: string;
-	vehicle_assignment_template?: string;
-	document_expiry_template?: string;
-	deputy_sync_enabled: boolean;
-	deputy_api_key?: string;
-	deputy_sync_interval_hours?: number;
-	updated_at: string;
-	updated_by: number;
+// Settings Types - System Configuration
+export interface SystemConfigResponse {
+	admin_phone?: string; // 管理员提醒电话
+	driver_file_reminder_days?: number; // 司机文件临期提醒周期（10/15/30天）
+	daily_sms_time?: string; // 司机每日确认短信时间（HH:MM格式）
+	maintenance_booking_reminder_days?: number; // 保养预约提醒周期（10/15/30天）
+	next_maintenance_reminder_days?: number; // 下次保养临近提醒周期（10/15/30天）
 }
 
-export interface SettingsUpdate {
-	admin_notification_phone?: string;
-	document_expiry_reminder_days?: number;
-	driver_confirmation_sms_time?: string;
-	maintenance_reminder_days?: number;
-	low_stock_notification_enabled?: boolean;
-	schedule_reminder_template?: string;
-	vehicle_assignment_template?: string;
-	document_expiry_template?: string;
-	deputy_sync_enabled?: boolean;
-	deputy_api_key?: string;
-	deputy_sync_interval_hours?: number;
+export interface SystemConfigUpdate {
+	admin_phone?: string;
+	driver_file_reminder_days?: number;
+	daily_sms_time?: string;
+	maintenance_booking_reminder_days?: number;
+	next_maintenance_reminder_days?: number;
 }
+
+// Legacy Settings Types (kept for backwards compatibility)
+export interface SettingsResponse extends SystemConfigResponse {
+	id?: number;
+	updated_at?: string;
+	updated_by?: number;
+}
+
+export interface SettingsUpdate extends SystemConfigUpdate {}
 
 // SMS History Types
 export interface SMSHistoryResponse {
@@ -347,6 +353,63 @@ export interface SMSHistoryResponse {
 	status: 'sent' | 'failed' | 'pending';
 	sent_at: string;
 	error_message?: string;
+}
+
+// Dashboard Types
+export interface DashboardStatsResponse {
+	total_drivers: number;
+	active_drivers: number;
+	total_vehicles: number;
+	vehicles_in_use: number;
+	today_schedules: number;
+	vehicles_need_attention: number;
+	vehicle_status: {
+		available: number;
+		need_repair: number;
+		unavailable: number;
+		in_use: number;
+	};
+	driver_status: {
+		active: number;
+		inactive: number;
+		total: number;
+	};
+}
+
+export interface DashboardAlertsResponse {
+	expiring_documents: any[];
+	maintenance_due: any[];
+	unreviewed_inspections: any[];
+	low_stock_products: any[];
+}
+
+// ============================================================================
+// Token Utilities
+// ============================================================================
+
+export function decodeJWT(token: string): any {
+	try {
+		const base64Url = token.split('.')[1];
+		const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+		const jsonPayload = decodeURIComponent(
+			atob(base64)
+				.split('')
+				.map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+				.join('')
+		);
+		return JSON.parse(jsonPayload);
+	} catch (error) {
+		console.error('Failed to decode JWT:', error);
+		return null;
+	}
+}
+
+export function getTokenExpiration(token: string): Date | null {
+	const decoded = decodeJWT(token);
+	if (decoded && decoded.exp) {
+		return new Date(decoded.exp * 1000);
+	}
+	return null;
 }
 
 // ============================================================================
@@ -426,13 +489,38 @@ class APIClient {
 			(response) => response,
 			async (error: unknown) => {
 				const axiosError = error as AxiosError;
-				// Handle 401 Unauthorized
+
+				// Log detailed error information for debugging
+				if (axiosError.response) {
+					console.group('🔴 API Error');
+					console.log('Status:', axiosError.response.status);
+					console.log('Status Text:', axiosError.response.statusText);
+					console.log('URL:', axiosError.config?.url);
+					console.log('Method:', axiosError.config?.method?.toUpperCase());
+					console.log('Response Data:', axiosError.response.data);
+					console.groupEnd();
+				}
+
+				// Handle 401 Unauthorized (token expired/invalid)
+				// Only logout on 401, not 403 (which might be permissions issue)
 				if (axiosError.response?.status === 401) {
+					console.warn('⚠️ Token expired or invalid - logging out');
+
+					// Clear all authentication data
 					TokenManager.clearAdminToken();
 					TokenManager.clearDriverToken();
 
-					// Redirect to appropriate login page
+					// Clear user data from localStorage
 					if (typeof window !== 'undefined') {
+						localStorage.removeItem('user');
+
+						// Store logout reason for displaying on login page
+						sessionStorage.setItem(
+							'logout_reason',
+							'Session expired. Please login again.'
+						);
+
+						// Redirect to appropriate login page
 						const isDriverPage =
 							window.location.pathname.startsWith('/driver');
 						window.location.href = isDriverPage
@@ -458,7 +546,6 @@ class APIClient {
 				password,
 			}
 		);
-		console.log('🚀 => APIClient => adminLogin => response:', response);
 		TokenManager.setAdminToken(response.data.access_token);
 		return response.data;
 	}
@@ -501,6 +588,11 @@ class APIClient {
 		const response = await this.client.get<UserResponse>(
 			`/api/v1/users/${userId}`
 		);
+		return response.data;
+	}
+
+	async getCurrentUser(): Promise<UserResponse> {
+		const response = await this.client.get<UserResponse>('/api/v1/users/me');
 		return response.data;
 	}
 
@@ -565,37 +657,49 @@ class APIClient {
 		await this.client.delete(`/api/v1/drivers/${driverId}`);
 	}
 
-	// Driver Documents
-	async getDriverDocuments(
+	// Driver Files (Documents)
+	async getDriverFiles(
 		driverId: number
-	): Promise<DriverDocumentResponse[]> {
-		const response = await this.client.get<DriverDocumentResponse[]>(
-			`/api/v1/drivers/${driverId}/documents`
+	): Promise<DriverFileResponse[]> {
+		const response = await this.client.get<DriverFileResponse[]>(
+			`/api/v1/drivers/${driverId}/files`
 		);
 		return response.data;
 	}
 
-	async createDriverDocument(
+	async createDriverFile(
 		driverId: number,
-		data: DriverDocumentCreate
-	): Promise<DriverDocumentResponse> {
-		const response = await this.client.post<DriverDocumentResponse>(
-			`/api/v1/drivers/${driverId}/documents`,
+		data: DriverFileCreate
+	): Promise<DriverFileResponse> {
+		const response = await this.client.post<DriverFileResponse>(
+			`/api/v1/drivers/${driverId}/files`,
 			data
 		);
 		return response.data;
 	}
 
-	async uploadDriverDocumentFile(
+	async updateDriverFile(
 		driverId: number,
-		documentId: number,
+		fileId: number,
+		data: DriverFileCreate
+	): Promise<DriverFileResponse> {
+		const response = await this.client.put<DriverFileResponse>(
+			`/api/v1/drivers/${driverId}/files/${fileId}`,
+			data
+		);
+		return response.data;
+	}
+
+	async uploadDriverFile(
+		driverId: number,
+		fileId: number,
 		file: File
-	): Promise<DriverDocumentResponse> {
+	): Promise<any> {
 		const formData = new FormData();
 		formData.append('file', file);
 
-		const response = await this.client.post<DriverDocumentResponse>(
-			`/api/v1/drivers/${driverId}/documents/${documentId}/upload`,
+		const response = await this.client.post(
+			`/api/v1/drivers/${driverId}/files/${fileId}/upload`,
 			formData,
 			{
 				headers: {
@@ -606,13 +710,62 @@ class APIClient {
 		return response.data;
 	}
 
-	async deleteDriverDocument(
+	async deleteDriverFile(
 		driverId: number,
-		documentId: number
+		fileId: number
 	): Promise<void> {
 		await this.client.delete(
-			`/api/v1/drivers/${driverId}/documents/${documentId}`
+			`/api/v1/drivers/${driverId}/files/${fileId}`
 		);
+	}
+
+	async getExpiringDriverFiles(daysAhead: number = 30): Promise<DriverFileResponse[]> {
+		const response = await this.client.get<DriverFileResponse[]>(
+			'/api/v1/drivers/files/expiring',
+			{ params: { days_ahead: daysAhead } }
+		);
+		return response.data;
+	}
+
+	async setDriverPassword(driverId: number, password: string): Promise<any> {
+		const response = await this.client.post(
+			`/api/v1/drivers/${driverId}/set-password`,
+			{ password }
+		);
+		return response.data;
+	}
+
+	async importAmazonIds(file: File): Promise<any> {
+		const formData = new FormData();
+		formData.append('file', file);
+
+		const response = await this.client.post(
+			'/api/v1/drivers/import/amazon-ids',
+			formData,
+			{
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			}
+		);
+		return response.data;
+	}
+
+	// Backwards compatibility methods
+	async getDriverDocuments(driverId: number): Promise<DriverDocumentResponse[]> {
+		return this.getDriverFiles(driverId);
+	}
+
+	async createDriverDocument(driverId: number, data: DriverDocumentCreate): Promise<DriverDocumentResponse> {
+		return this.createDriverFile(driverId, data);
+	}
+
+	async uploadDriverDocumentFile(driverId: number, documentId: number, file: File): Promise<DriverDocumentResponse> {
+		return this.uploadDriverFile(driverId, documentId, file);
+	}
+
+	async deleteDriverDocument(driverId: number, documentId: number): Promise<void> {
+		return this.deleteDriverFile(driverId, documentId);
 	}
 
 	// ============================================================================
@@ -699,6 +852,25 @@ class APIClient {
 	): Promise<VehicleInspectionResponse[]> {
 		const response = await this.client.get<VehicleInspectionResponse[]>(
 			`/api/v1/vehicles/${vehicleId}/inspections`
+		);
+		return response.data;
+	}
+
+	async listInspections(
+		vehicleId?: number,
+		driverId?: number,
+		reviewed?: boolean,
+		skip: number = 0,
+		limit: number = 100
+	): Promise<VehicleInspectionResponse[]> {
+		const params: Record<string, number | boolean> = { skip, limit };
+		if (vehicleId !== undefined) params.vehicle_id = vehicleId;
+		if (driverId !== undefined) params.driver_id = driverId;
+		if (reviewed !== undefined) params.reviewed = reviewed;
+
+		const response = await this.client.get<VehicleInspectionResponse[]>(
+			'/api/v1/vehicles/inspections',
+			{ params }
 		);
 		return response.data;
 	}
@@ -906,19 +1078,56 @@ class APIClient {
 	// Settings API
 	// ============================================================================
 
-	async getSettings(): Promise<SettingsResponse> {
-		const response =
-			await this.client.get<SettingsResponse>('/api/v1/settings/');
-		console.log('🚀 => APIClient => getSettings => response:', response);
+	// ============================================================================
+	// System Settings API
+	// ============================================================================
+
+	/**
+	 * Get system configuration
+	 * 获取系统配置（所有用户可见）
+	 */
+	async getSystemConfig(): Promise<SystemConfigResponse> {
+		const response = await this.client.get<SystemConfigResponse>(
+			'/api/v1/settings/config'
+		);
 		return response.data;
 	}
 
-	async updateSettings(data: SettingsUpdate): Promise<SettingsResponse> {
-		const response = await this.client.put<SettingsResponse>(
-			'/api/v1/settings/',
+	/**
+	 * Create system configuration
+	 * 创建/初始化系统配置
+	 */
+	async createSystemConfig(
+		data: SystemConfigUpdate
+	): Promise<SystemConfigResponse> {
+		const response = await this.client.post<SystemConfigResponse>(
+			'/api/v1/settings/config',
 			data
 		);
 		return response.data;
+	}
+
+	/**
+	 * Update system configuration (batch update)
+	 * 更新系统配置（批量更新）
+	 */
+	async updateSystemConfig(
+		data: SystemConfigUpdate
+	): Promise<SystemConfigResponse> {
+		const response = await this.client.put<SystemConfigResponse>(
+			'/api/v1/settings/config',
+			data
+		);
+		return response.data;
+	}
+
+	// Legacy methods (for backwards compatibility)
+	async getSettings(): Promise<SettingsResponse> {
+		return this.getSystemConfig();
+	}
+
+	async updateSettings(data: SettingsUpdate): Promise<SettingsResponse> {
+		return this.updateSystemConfig(data);
 	}
 
 	// ============================================================================
@@ -938,6 +1147,24 @@ class APIClient {
 		const response = await this.client.get<SMSHistoryResponse[]>(
 			'/api/v1/sms/history',
 			{ params }
+		);
+		return response.data;
+	}
+
+	// ============================================================================
+	// Dashboard API
+	// ============================================================================
+
+	async getDashboardStats(): Promise<DashboardStatsResponse> {
+		const response = await this.client.get<DashboardStatsResponse>(
+			'/api/v1/dashboard/stats'
+		);
+		return response.data;
+	}
+
+	async getDashboardAlerts(): Promise<DashboardAlertsResponse> {
+		const response = await this.client.get<DashboardAlertsResponse>(
+			'/api/v1/dashboard/alerts'
 		);
 		return response.data;
 	}

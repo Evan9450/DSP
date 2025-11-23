@@ -306,12 +306,8 @@ export default function VehicleDetailPage({
 	console.log('🚀 => VehicleDetailPage => photoUrls:', photoUrls);
 
 	const statusConfig = {
-		available: { label: 'Available', className: 'bg-green-600 text-white' },
 		'in-use': { label: 'In Use', className: 'bg-blue-600 text-white' },
-		maintenance: {
-			label: 'Maintenance',
-			className: 'bg-orange-600 text-white',
-		},
+		'not-in-use': { label: 'Not In Use', className: 'bg-gray-600 text-white' },
 	};
 
 	const conditionConfig = {
@@ -559,13 +555,10 @@ export default function VehicleDetailPage({
 												</SelectTrigger>
 												<SelectContent>
 													<SelectItem value='0'>
-														Available
-													</SelectItem>
-													<SelectItem value='1'>
 														In Use
 													</SelectItem>
-													<SelectItem value='2'>
-														Maintenance
+													<SelectItem value='1'>
+														Not In Use
 													</SelectItem>
 												</SelectContent>
 											</Select>
@@ -1035,55 +1028,40 @@ export default function VehicleDetailPage({
 										<TableRow>
 											<TableHead>Date</TableHead>
 											<TableHead>Driver</TableHead>
-											<TableHead>Odometer</TableHead>
-											<TableHead>Status</TableHead>
+											<TableHead>Mileage</TableHead>
 											<TableHead>Reviewed</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
 										{vehicle.recent_inspections.map(
-											(inspection) => (
+											(inspection: any) => (
 												<TableRow key={inspection.id}>
 													<TableCell>
-														{inspection.date
+														{inspection.inspection_date
 															? format(
 																	new Date(
-																		inspection.date
+																		inspection.inspection_date
 																	),
 																	'MMM dd, yyyy'
 																)
 															: '-'}
 													</TableCell>
 													<TableCell>
-														Driver #
-														{inspection.driver_id}
+														{inspection.driver_id ? (
+															`Driver #${inspection.driver_id}`
+														) : (
+															<span className='text-gray-400'>-</span>
+														)}
 													</TableCell>
 													<TableCell className='font-mono'>
-														{inspection.odometer?.toLocaleString()}{' '}
-														km
+														{inspection.mileage_at_inspection ? (
+															`${inspection.mileage_at_inspection.toLocaleString()} km`
+														) : (
+															<span className='text-gray-400'>-</span>
+														)}
 													</TableCell>
 													<TableCell>
-														<Badge
-															className={
-																inspection.status ===
-																'normal'
-																	? 'bg-green-600'
-																	: inspection.status ===
-																		  'has-issues'
-																		? 'bg-yellow-600'
-																		: 'bg-red-600'
-															}>
-															{inspection.status ===
-															'normal'
-																? 'Normal'
-																: inspection.status ===
-																	  'has-issues'
-																	? 'Has Issues'
-																	: 'Needs Repair'}
-														</Badge>
-													</TableCell>
-													<TableCell>
-														{inspection.admin_reviewed ? (
+														{inspection.reviewed_by_admin ? (
 															<span className='text-green-600'>
 																✓ Yes
 															</span>

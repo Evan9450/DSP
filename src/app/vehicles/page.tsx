@@ -66,17 +66,17 @@ export default function VehiclesPage() {
 	};
 
 	const statusConfig = {
-		available: { label: 'Available', className: 'bg-green-600 text-white' },
+		// available: { label: 'Available', className: 'bg-green-600 text-white' },
 		'in-use': { label: 'In Use', className: 'bg-blue-600 text-white' },
-		maintenance: {
-			label: 'Maintenance',
-			className: 'bg-orange-600 text-white',
+		'not-in-use': {
+			label: 'Not In Use',
+			className: 'bg-gray-300 text-black',
 		},
 	};
 
 	const conditionConfig = {
 		green: {
-			label: 'Ready',
+			label: 'Available',
 			className: 'bg-green-500',
 			textClass: 'text-green-700',
 		},

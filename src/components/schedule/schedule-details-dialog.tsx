@@ -26,6 +26,7 @@ const statusConfig: Record<ScheduleStatus, { label: string; className: string }>
   pending: { label: 'Pending', className: 'bg-gray-500' },
   confirmed: { label: 'Confirmed', className: 'bg-blue-600' },
   completed: { label: 'Completed', className: 'bg-green-600' },
+  cancelled: { label: 'Cancelled', className: 'bg-red-600' },
 };
 
 export function ScheduleDetailsDialog({

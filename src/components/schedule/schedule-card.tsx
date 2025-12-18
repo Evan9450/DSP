@@ -25,6 +25,10 @@ const statusConfig: Record<
 		label: 'Completed',
 		className: 'bg-green-600 hover:bg-green-700',
 	},
+	cancelled: {
+		label: 'Cancelled',
+		className: 'bg-red-600 hover:bg-red-700',
+	},
 };
 
 export function ScheduleCard({ schedule, onClick }: ScheduleCardProps) {

@@ -1,7 +1,6 @@
 'use client';
 
-import { useAuth } from '@/contexts/auth-context';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -10,8 +9,10 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, User, UserCog } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 
 export function UserNav() {
@@ -55,6 +56,11 @@ export function UserNav() {
 				<DropdownMenuItem onClick={() => router.push('/profile')}>
 					<User className='mr-2 h-4 w-4' />
 					<span>Profile</span>
+				</DropdownMenuItem>
+				{/* { href: '/users', label: 'User Management', icon: UserCog }, */}
+				<DropdownMenuItem onClick={() => router.push('/users')}>
+					<UserCog className='mr-2 h-4 w-4' />
+					<span>User Management</span>
 				</DropdownMenuItem>
 				<DropdownMenuItem onClick={() => router.push('/settings')}>
 					<Settings className='mr-2 h-4 w-4' />

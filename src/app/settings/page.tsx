@@ -164,7 +164,7 @@ export default function SettingsPage() {
 									Admin Contact
 								</h2>
 								<p className='text-sm text-gray-500'>
-									管理员联系信息和提醒设置
+									Administrator contact information and reminder settings
 								</p>
 							</div>
 						</div>
@@ -174,7 +174,7 @@ export default function SettingsPage() {
 								<Label htmlFor='adminPhone'>
 									Admin Notification Phone{' '}
 									<span className='text-gray-500 font-normal'>
-										(管理员提醒电话)
+										(Admin notification phone)
 									</span>
 								</Label>
 								<Input
@@ -205,7 +205,7 @@ export default function SettingsPage() {
 									Driver & Document Reminders
 								</h2>
 								<p className='text-sm text-gray-500'>
-									司机文件和每日确认提醒设置
+									Driver files and daily confirmation reminder settings
 								</p>
 							</div>
 						</div>
@@ -217,7 +217,7 @@ export default function SettingsPage() {
 									<Label htmlFor='driverFileReminderDays'>
 										Driver File Reminder{' '}
 										<span className='text-gray-500 font-normal'>
-											(司机文件临期提醒)
+											(Driver file expiry reminder)
 										</span>
 									</Label>
 									<Select
@@ -247,7 +247,7 @@ export default function SettingsPage() {
 									<Label htmlFor='dailySmsTime'>
 										Daily SMS Time{' '}
 										<span className='text-gray-500 font-normal'>
-											(每日确认短信时间)
+											(Daily confirmation SMS time)
 										</span>
 									</Label>
 									<Input
@@ -277,7 +277,7 @@ export default function SettingsPage() {
 								<h2 className='text-xl font-bold text-gray-900'>
 									Vehicle Maintenance Reminders
 								</h2>
-								<p className='text-sm text-gray-500'>车辆保养提醒设置</p>
+								<p className='text-sm text-gray-500'>Vehicle maintenance reminder settings</p>
 							</div>
 						</div>
 
@@ -288,7 +288,7 @@ export default function SettingsPage() {
 									<Label htmlFor='maintenanceBookingReminderDays'>
 										Maintenance Booking Reminder{' '}
 										<span className='text-gray-500 font-normal'>
-											(保养预约提醒)
+											(Maintenance booking reminder)
 										</span>
 									</Label>
 									<Select
@@ -318,7 +318,7 @@ export default function SettingsPage() {
 									<Label htmlFor='nextMaintenanceReminderDays'>
 										Next Maintenance Reminder{' '}
 										<span className='text-gray-500 font-normal'>
-											(下次保养临近提醒)
+											(Next maintenance reminder)
 										</span>
 									</Label>
 									<Select

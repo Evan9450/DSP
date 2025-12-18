@@ -1,13 +1,6 @@
 'use client';
 
-import {
-	AlertCircle,
-	Package,
-	Plus,
-	Search,
-	ShoppingCart,
-	TrendingDown,
-} from 'lucide-react';
+import { Plus } from 'lucide-react';
 import {
 	Dialog,
 	DialogContent,
@@ -17,27 +10,83 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select';
-
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import React from 'react';
-import { apiClient } from '@/lib/api/client';
-import { useDrivers } from '@/hooks/use-drivers';
 import { useState } from 'react';
+import { apiClient, ProductCreate } from '@/lib/api/client';
 import { useToast } from '@/components/ui/use-toast';
 
-const AddAssetDialog = () => {
+interface AddAssetDialogProps {
+	onSuccess?: () => void;
+}
+
+const AddAssetDialog = ({ onSuccess }: AddAssetDialogProps) => {
+	const { toast } = useToast();
+	const [open, setOpen] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [formData, setFormData] = useState<ProductCreate>({
+		name: '',
+		description: '',
+		min_stock_threshold: 5,
+		available_stock: 0,
+	});
+
+	const handleSubmit = async () => {
+		// Validation
+		if (!formData.name || formData.name.trim() === '') {
+			toast({
+				title: 'Error',
+				description: 'Please enter a product name',
+				variant: 'destructive',
+			});
+			return;
+		}
+
+		try {
+			setIsSubmitting(true);
+
+			// Create the product with initial stock
+			await apiClient.createProduct({
+				name: formData.name,
+				description: formData.description || undefined,
+				min_stock_threshold: formData.min_stock_threshold,
+				available_stock: formData.available_stock,
+			});
+
+			toast({
+				title: 'Success',
+				description: `Product "${formData.name}" added successfully${formData.available_stock && formData.available_stock > 0 ? ` with ${formData.available_stock} units` : ''}`,
+			});
+
+			// Reset form
+			setFormData({
+				name: '',
+				description: '',
+				min_stock_threshold: 5,
+				available_stock: 0,
+			});
+
+			setOpen(false);
+
+			// Trigger refresh
+			if (onSuccess) {
+				onSuccess();
+			}
+		} catch (error: any) {
+			console.error('Failed to create product:', error);
+			toast({
+				title: 'Error',
+				description: error.response?.data?.detail || 'Failed to add product',
+				variant: 'destructive',
+			});
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
 	return (
-		<Dialog>
+		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
 				<Button className='bg-blue-700 hover:bg-blue-800 w-40'>
 					<Plus className='h-4 w-4 mr-2' />
@@ -46,51 +95,91 @@ const AddAssetDialog = () => {
 			</DialogTrigger>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Add New Asset</DialogTitle>
+					<DialogTitle>Add New Product</DialogTitle>
 					<DialogDescription>
-						Add a new asset to the inventory
+						Add a new product to the inventory
 					</DialogDescription>
 				</DialogHeader>
 				<div className='space-y-4 py-4'>
 					<div className='space-y-2'>
-						<Label htmlFor='name'>Asset Name</Label>
-						<Input id='name' placeholder='Enter asset name' />
+						<Label htmlFor='name'>
+							Product Name <span className='text-red-500'>*</span>
+						</Label>
+						<Input
+							id='name'
+							placeholder='Enter product name'
+							value={formData.name}
+							onChange={(e) =>
+								setFormData({ ...formData, name: e.target.value })
+							}
+						/>
 					</div>
 					<div className='space-y-2'>
-						<Label htmlFor='category'>Category</Label>
-						<Select>
-							<SelectTrigger>
-								<SelectValue placeholder='Select category' />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value='equipment'>
-									Equipment
-								</SelectItem>
-								<SelectItem value='electronics'>
-									Electronics
-								</SelectItem>
-								<SelectItem value='safety'>Safety</SelectItem>
-							</SelectContent>
-						</Select>
+						<Label htmlFor='description'>Description (Optional)</Label>
+						<Input
+							id='description'
+							placeholder='Enter product description'
+							value={formData.description || ''}
+							onChange={(e) =>
+								setFormData({ ...formData, description: e.target.value })
+							}
+						/>
 					</div>
 					<div className='space-y-2'>
-						<Label htmlFor='quantity'>Quantity</Label>
-						<Input id='quantity' type='number' placeholder='0' />
+						<Label htmlFor='availableStock'>Initial Stock Quantity</Label>
+						<Input
+							id='availableStock'
+							type='number'
+							min='0'
+							placeholder='0'
+							value={formData.available_stock || ''}
+							onChange={(e) =>
+								setFormData({
+									...formData,
+									available_stock: e.target.value
+										? parseInt(e.target.value)
+										: 0,
+								})
+							}
+						/>
+						<p className='text-xs text-gray-500'>
+							Initial stock quantity for this product
+						</p>
 					</div>
 					<div className='space-y-2'>
-						<Label htmlFor='minThreshold'>Min Threshold</Label>
+						<Label htmlFor='minThreshold'>Low Stock Threshold</Label>
 						<Input
 							id='minThreshold'
 							type='number'
-							placeholder='0'
+							min='0'
+							placeholder='5'
+							value={formData.min_stock_threshold || ''}
+							onChange={(e) =>
+								setFormData({
+									...formData,
+									min_stock_threshold: e.target.value
+										? parseInt(e.target.value)
+										: 5,
+								})
+							}
 						/>
+						<p className='text-xs text-gray-500'>
+							Alert when stock falls below this level
+						</p>
 					</div>
 				</div>
 				<DialogFooter>
 					<Button
-						type='submit'
+						variant='outline'
+						onClick={() => setOpen(false)}
+						disabled={isSubmitting}>
+						Cancel
+					</Button>
+					<Button
+						onClick={handleSubmit}
+						disabled={isSubmitting}
 						className='bg-blue-700 hover:bg-blue-800'>
-						Add Asset
+						{isSubmitting ? 'Adding...' : 'Add Product'}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

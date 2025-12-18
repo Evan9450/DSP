@@ -2,29 +2,10 @@
 
 import {
 	AlertCircle,
-	Package,
-	Plus,
 	Search,
-	ShoppingCart,
 	TrendingDown,
 } from 'lucide-react';
-import type { Asset, BorrowRecord } from '@/types/schedule';
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select';
+import type { Asset } from '@/types/schedule';
 import {
 	Table,
 	TableBody,
@@ -33,59 +14,32 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { convertAsset, convertBorrowRecord } from '@/lib/api/converters';
-import { useAssets, useBorrowRecords } from '@/hooks/use-assets';
+import { convertAsset } from '@/lib/api/converters';
+import { useAssets } from '@/hooks/use-assets';
 
 import AddAssetDialog from './components/AddAssetDialog';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { apiClient } from '@/lib/api/client';
-import { useDrivers } from '@/hooks/use-drivers';
 import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
 
 export default function AssetsPage() {
-	const { toast } = useToast();
 	const {
 		assets: apiAssets,
 		isLoading: assetsLoading,
 		refetch: refetchAssets,
 	} = useAssets();
-	const {
-		records: apiRecords,
-		isLoading: recordsLoading,
-		refetch: refetchRecords,
-	} = useBorrowRecords();
-	const { drivers: apiDrivers, isLoading: driversLoading } = useDrivers();
 
 	const [searchTerm, setSearchTerm] = useState('');
-	const [isBorrowDialogOpen, setIsBorrowDialogOpen] = useState(false);
-	const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false);
-	const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-	const [borrowDriverId, setBorrowDriverId] = useState('');
-	const [borrowQuantity, setBorrowQuantity] = useState('1');
-	const [borrowNotes, setBorrowNotes] = useState('');
-	const [expectedReturnDate, setExpectedReturnDate] = useState('');
 
 	// Convert API data to frontend types
 	const assets = apiAssets?.map(convertAsset) || [];
-	const borrowRecords = apiRecords?.map(convertBorrowRecord) || [];
-	const drivers =
-		apiDrivers?.map((d) => ({
-			id: d.id.toString(),
-			name: d.name,
-			amazonId: d.amazon_id,
-		})) || [];
 
-	const isLoading = assetsLoading || recordsLoading || driversLoading;
+	const isLoading = assetsLoading;
 
 	const filteredAssets = assets.filter(
-		(asset) =>
-			asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			asset.category.toLowerCase().includes(searchTerm.toLowerCase())
+		(asset) => asset.name.toLowerCase().includes(searchTerm.toLowerCase())
+		// asset.category.toLowerCase().includes(searchTerm.toLowerCase())
 	);
 
 	const getStatusBadge = (asset: Asset) => {
@@ -113,78 +67,11 @@ export default function AssetsPage() {
 		return <Badge className='bg-green-500 text-white'>Available</Badge>;
 	};
 
-	const activeBorrows = borrowRecords.filter(
-		(record) => record.status === 'borrowed'
-	);
-	const borrowHistory = borrowRecords.filter(
-		(record) => record.status === 'returned'
-	);
-
 	const lowStockAssets = assets.filter((a) => {
 		const threshold = a.lowStockThreshold || a.minThreshold || 5;
 		return a.availableQuantity > 0 && a.availableQuantity <= threshold;
 	});
 	const outOfStockAssets = assets.filter((a) => a.availableQuantity === 0);
-
-	const handleBorrow = async () => {
-		if (!selectedAsset || !borrowDriverId) {
-			toast({
-				title: 'Error',
-				description: 'Please select a driver',
-				variant: 'destructive',
-			});
-			return;
-		}
-
-		try {
-			await apiClient.createBorrowRecord({
-				asset_id: parseInt(selectedAsset.id),
-				driver_id: parseInt(borrowDriverId),
-				quantity: parseInt(borrowQuantity),
-				expected_return_date: expectedReturnDate || undefined,
-				notes: borrowNotes || undefined,
-			});
-
-			toast({
-				title: 'Success',
-				description: 'Asset borrowed successfully',
-			});
-
-			setIsBorrowDialogOpen(false);
-			setBorrowDriverId('');
-			setBorrowQuantity('1');
-			setBorrowNotes('');
-			setExpectedReturnDate('');
-			refetchAssets();
-			refetchRecords();
-		} catch (error) {
-			toast({
-				title: 'Error',
-				description: 'Failed to record borrow',
-				variant: 'destructive',
-			});
-		}
-	};
-
-	const handleReturn = async (recordId: string) => {
-		try {
-			await apiClient.returnBorrowRecord(parseInt(recordId));
-
-			toast({
-				title: 'Success',
-				description: 'Asset returned successfully',
-			});
-
-			refetchAssets();
-			refetchRecords();
-		} catch (error) {
-			toast({
-				title: 'Error',
-				description: 'Failed to record return',
-				variant: 'destructive',
-			});
-		}
-	};
 
 	if (isLoading) {
 		return (
@@ -211,7 +98,7 @@ export default function AssetsPage() {
 						</p>
 					</div>
 					<div className='flex gap-2'>
-						<AddAssetDialog />
+						<AddAssetDialog onSuccess={refetchAssets} />
 					</div>
 				</div>
 
@@ -274,7 +161,7 @@ export default function AssetsPage() {
 				<Card className='mb-6'>
 					<div className='p-6'>
 						<h2 className='text-xl font-semibold mb-4 flex items-center gap-2'>
-							<Package className='h-5 w-5 text-blue-700' />
+							{/* <Package className='h-5 w-5 text-blue-700' /> */}
 							Inventory
 						</h2>
 						<div className='overflow-x-auto'>
@@ -291,9 +178,6 @@ export default function AssetsPage() {
 											Min Threshold
 										</TableHead>
 										<TableHead>Status</TableHead>
-										<TableHead className='text-right'>
-											Actions
-										</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -326,25 +210,6 @@ export default function AssetsPage() {
 												<TableCell>
 													{getStatusBadge(asset)}
 												</TableCell>
-												<TableCell className='text-right'>
-													<Button
-														variant='outline'
-														size='sm'
-														disabled={
-															asset.availableQuantity ===
-															0
-														}
-														onClick={() => {
-															setSelectedAsset(
-																asset
-															);
-															setIsBorrowDialogOpen(
-																true
-															);
-														}}>
-														Lend Out
-													</Button>
-												</TableCell>
 											</TableRow>
 										);
 									})}
@@ -353,156 +218,6 @@ export default function AssetsPage() {
 						</div>
 					</div>
 				</Card>
-
-				{/* Borrow History */}
-				<Card>
-					<div className='p-6'>
-						<h2 className='text-xl font-semibold mb-4'>
-							Borrow History
-						</h2>
-						<div className='overflow-x-auto'>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Asset</TableHead>
-										<TableHead>Borrowed By</TableHead>
-										<TableHead>Quantity</TableHead>
-										<TableHead>Borrowed Date</TableHead>
-										<TableHead>Returned Date</TableHead>
-										<TableHead>Notes</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{borrowHistory.length === 0 ? (
-										<TableRow>
-											<TableCell
-												colSpan={6}
-												className='text-center text-gray-500'>
-												No borrow history
-											</TableCell>
-										</TableRow>
-									) : (
-										borrowHistory.map((record) => (
-											<TableRow key={record.id}>
-												<TableCell className='font-medium'>
-													{record.assetName}
-												</TableCell>
-												<TableCell>
-													{record.driverName}
-												</TableCell>
-												<TableCell>
-													{record.quantity}
-												</TableCell>
-												<TableCell>
-													{record.borrowDate.toLocaleDateString()}
-												</TableCell>
-												<TableCell>
-													{record.actualReturnDate?.toLocaleDateString() ||
-														'-'}
-												</TableCell>
-												<TableCell>
-													{record.notes || '-'}
-												</TableCell>
-											</TableRow>
-										))
-									)}
-								</TableBody>
-							</Table>
-						</div>
-					</div>
-				</Card>
-
-				{/* Borrow Dialog */}
-				<Dialog
-					open={isBorrowDialogOpen}
-					onOpenChange={setIsBorrowDialogOpen}>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>Borrow Asset</DialogTitle>
-							<DialogDescription>
-								Record asset borrowing for a driver
-							</DialogDescription>
-						</DialogHeader>
-						<div className='space-y-4 py-4'>
-							<div className='space-y-2'>
-								<Label>Asset</Label>
-								<Input
-									value={selectedAsset?.name || ''}
-									disabled
-								/>
-							</div>
-							<div className='space-y-2'>
-								<Label htmlFor='driver'>Driver</Label>
-								<Select
-									value={borrowDriverId}
-									onValueChange={setBorrowDriverId}>
-									<SelectTrigger>
-										<SelectValue placeholder='Select driver' />
-									</SelectTrigger>
-									<SelectContent>
-										{drivers.map((driver) => (
-											<SelectItem
-												key={driver.id}
-												value={driver.id}>
-												{driver.name} ({driver.amazonId}
-												)
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-							<div className='space-y-2'>
-								<Label htmlFor='borrowQuantity'>Quantity</Label>
-								<Input
-									id='borrowQuantity'
-									type='number'
-									min='1'
-									max={selectedAsset?.availableQuantity || 1}
-									value={borrowQuantity}
-									onChange={(e) =>
-										setBorrowQuantity(e.target.value)
-									}
-								/>
-							</div>
-							<div className='space-y-2'>
-								<Label htmlFor='expectedReturn'>
-									Expected Return Date (Optional)
-								</Label>
-								<Input
-									id='expectedReturn'
-									type='date'
-									value={expectedReturnDate}
-									onChange={(e) =>
-										setExpectedReturnDate(e.target.value)
-									}
-								/>
-							</div>
-							<div className='space-y-2'>
-								<Label htmlFor='notes'>Notes (optional)</Label>
-								<Input
-									id='notes'
-									placeholder='Add notes...'
-									value={borrowNotes}
-									onChange={(e) =>
-										setBorrowNotes(e.target.value)
-									}
-								/>
-							</div>
-						</div>
-						<DialogFooter>
-							<Button
-								variant='outline'
-								onClick={() => setIsBorrowDialogOpen(false)}>
-								Cancel
-							</Button>
-							<Button
-								className='bg-blue-700 hover:bg-blue-800'
-								onClick={handleBorrow}>
-								Confirm Borrow
-							</Button>
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
 			</div>
 		</div>
 	);

@@ -2,12 +2,32 @@
 
 import {
 	AlertCircle,
+	Calendar,
 	Car,
 	ChevronRight,
+	MoreVertical,
+	Package,
 	Plus,
 	Search,
+	Trash2,
 	Wrench,
 } from 'lucide-react';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
 	Table,
 	TableBody,
@@ -17,6 +37,12 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { apiConditionToString, apiStatusToString } from '@/lib/helpers';
+import {
+	errorMessages,
+	handleApiError,
+	notify,
+	successMessages,
+} from '@/lib/notifications';
 import {
 	getDaysUntilMaintenance,
 	isMaintenanceDueSoon,
@@ -29,6 +55,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { VehicleCondition } from '@/types/schedule';
+import { apiClient } from '@/lib/api/client';
 import { convertVehicle } from '@/lib/api/converters';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
@@ -43,6 +70,11 @@ export default function VehiclesPage() {
 		'all'
 	);
 	const [showAddDialog, setShowAddDialog] = useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [vehicleToDelete, setVehicleToDelete] = useState<{
+		id: string;
+		rego: string;
+	} | null>(null);
 
 	const vehicles = apiVehicles?.map(convertVehicle) || [];
 
@@ -96,6 +128,50 @@ export default function VehiclesPage() {
 		router.push(`/vehicles/${vehicleId}`);
 	};
 
+	const handleScheduleMaintenance = (
+		vehicleId: string,
+		e: React.MouseEvent
+	) => {
+		e.stopPropagation();
+		// TODO: Implement schedule maintenance functionality
+		notify.info('Schedule Maintenance feature coming soon');
+	};
+
+	const handleAssignToSchedule = (vehicleId: string, e: React.MouseEvent) => {
+		e.stopPropagation();
+		// TODO: Implement assign to schedule functionality
+		notify.info('Assign to Schedule feature coming soon');
+	};
+
+	const handleDeleteClick = (
+		vehicleId: string,
+		rego: string,
+		e: React.MouseEvent
+	) => {
+		e.stopPropagation();
+		setVehicleToDelete({ id: vehicleId, rego });
+		setShowDeleteDialog(true);
+	};
+
+	const handleDeleteVehicle = async () => {
+		if (!vehicleToDelete) return;
+
+		try {
+			await apiClient.deleteVehicle(parseInt(vehicleToDelete.id));
+			const vehicleRego = vehicleToDelete.rego;
+			setShowDeleteDialog(false);
+			setVehicleToDelete(null);
+			await refetch();
+			notify.success(successMessages.vehicle.deleted(vehicleRego));
+		} catch (error) {
+			console.error('Failed to delete vehicle:', error);
+			handleApiError(
+				error,
+				errorMessages.vehicle.deleteFailed(vehicleToDelete?.rego)
+			);
+		}
+	};
+
 	// Vehicles with maintenance alerts
 	const vehiclesNeedingMaintenance = vehicles.filter(
 		(v) =>
@@ -129,7 +205,7 @@ export default function VehiclesPage() {
 				</div>
 
 				{/* Maintenance Alerts */}
-				{vehiclesNeedingMaintenance.length > 0 && (
+				{/* {vehiclesNeedingMaintenance.length > 0 && (
 					<Card className='mb-6 p-4 border-orange-200 bg-orange-50'>
 						<div className='flex items-start gap-3'>
 							<Wrench className='h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0' />
@@ -147,10 +223,10 @@ export default function VehiclesPage() {
 							</div>
 						</div>
 					</Card>
-				)}
+				)} */}
 
 				{/* Stats Cards */}
-				<div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6'>
+				{/* <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6'>
 					<Card className='p-4 bg-green-50 border-green-200'>
 						<div className='flex items-center justify-between'>
 							<div>
@@ -190,7 +266,7 @@ export default function VehiclesPage() {
 							<div className='w-3 h-3 rounded-full bg-red-500'></div>
 						</div>
 					</Card>
-				</div>
+				</div> */}
 
 				{/* Search and Filters */}
 				<div className='mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3'>
@@ -411,8 +487,59 @@ export default function VehiclesPage() {
 												</span>
 											)}
 										</TableCell>
-										<TableCell>
-											<ChevronRight className='h-5 w-5 text-gray-400' />
+										<TableCell
+											onClick={(e) =>
+												e.stopPropagation()
+											}>
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button
+														variant='ghost'
+														size='sm'
+														className='h-8 w-8 p-0'>
+														<MoreVertical className='h-4 w-4' />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align='end'>
+													<DropdownMenuLabel>
+														Actions
+													</DropdownMenuLabel>
+													<DropdownMenuSeparator />
+													<DropdownMenuItem
+														onClick={(e) =>
+															handleScheduleMaintenance(
+																vehicle.id,
+																e
+															)
+														}>
+														<Calendar className='h-4 w-4 mr-2' />
+														Schedule Maintenance
+													</DropdownMenuItem>
+													<DropdownMenuItem
+														onClick={(e) =>
+															handleAssignToSchedule(
+																vehicle.id,
+																e
+															)
+														}>
+														<Package className='h-4 w-4 mr-2' />
+														Assign to Schedule
+													</DropdownMenuItem>
+													<DropdownMenuSeparator />
+													<DropdownMenuItem
+														onClick={(e) =>
+															handleDeleteClick(
+																vehicle.id,
+																vehicle.rego,
+																e
+															)
+														}
+														className='text-red-600 focus:text-red-600'>
+														<Trash2 className='h-4 w-4 mr-2' />
+														Delete Vehicle
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
 										</TableCell>
 									</TableRow>
 								);
@@ -433,6 +560,36 @@ export default function VehiclesPage() {
 					onOpenChange={setShowAddDialog}
 					onSuccess={refetch}
 				/>
+
+				{/* Delete Confirmation Dialog */}
+				<Dialog
+					open={showDeleteDialog}
+					onOpenChange={setShowDeleteDialog}>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Delete Vehicle</DialogTitle>
+							<DialogDescription>
+								Are you sure you want to delete vehicle{' '}
+								<span className='font-semibold'>
+									{vehicleToDelete?.rego}
+								</span>
+								? This action cannot be undone.
+							</DialogDescription>
+						</DialogHeader>
+						<DialogFooter>
+							<Button
+								variant='outline'
+								onClick={() => setShowDeleteDialog(false)}>
+								Cancel
+							</Button>
+							<Button
+								variant='destructive'
+								onClick={handleDeleteVehicle}>
+								Delete Vehicle
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
 			</div>
 		</div>
 	);

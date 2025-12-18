@@ -343,7 +343,7 @@ export default function VehicleDetailPage() {
 												)}
 											</TableCell>
 											<TableCell className='max-w-xs truncate'>
-												{inspection.notes || <span className='text-gray-400'>-</span>}
+												{inspection.admin_notes || <span className='text-gray-400'>-</span>}
 											</TableCell>
 										</TableRow>
 									))}

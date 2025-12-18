@@ -307,7 +307,10 @@ export default function VehicleDetailPage({
 
 	const statusConfig = {
 		'in-use': { label: 'In Use', className: 'bg-blue-600 text-white' },
-		'not-in-use': { label: 'Not In Use', className: 'bg-gray-600 text-white' },
+		'not-in-use': {
+			label: 'Not In Use',
+			className: 'bg-gray-600 text-white',
+		},
 	};
 
 	const conditionConfig = {
@@ -391,7 +394,7 @@ export default function VehicleDetailPage({
 				</div>
 
 				{/* Maintenance Alert */}
-				{(isOverdue || isDueSoon) && (
+				{/* {(isOverdue || isDueSoon) && (
 					<Card className='mb-6 p-4 border-orange-200 bg-orange-50'>
 						<div className='flex items-start gap-3'>
 							<Wrench className='h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0' />
@@ -409,9 +412,9 @@ export default function VehicleDetailPage({
 							</div>
 						</div>
 					</Card>
-				)}
+				)} */}
 
-				<div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+				<div className='grid grid-cols-1 gap-6'>
 					{/* Main Info */}
 					<div className='lg:col-span-2 space-y-6'>
 						{/* Basic Information */}
@@ -962,7 +965,9 @@ export default function VehicleDetailPage({
 											<div
 												key={index}
 												className='relative group bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all'
-												onClick={() => setSelectedPhotoIndex(index)}>
+												onClick={() =>
+													setSelectedPhotoIndex(index)
+												}>
 												<div className='relative w-full h-40'>
 													<img
 														src={url}
@@ -1050,14 +1055,18 @@ export default function VehicleDetailPage({
 														{inspection.driver_id ? (
 															`Driver #${inspection.driver_id}`
 														) : (
-															<span className='text-gray-400'>-</span>
+															<span className='text-gray-400'>
+																-
+															</span>
 														)}
 													</TableCell>
 													<TableCell className='font-mono'>
 														{inspection.mileage_at_inspection ? (
 															`${inspection.mileage_at_inspection.toLocaleString()} km`
 														) : (
-															<span className='text-gray-400'>-</span>
+															<span className='text-gray-400'>
+																-
+															</span>
 														)}
 													</TableCell>
 													<TableCell>
@@ -1088,8 +1097,7 @@ export default function VehicleDetailPage({
 					</div>
 
 					{/* Sidebar */}
-					<div className='space-y-6'>
-						{/* Quick Actions */}
+					{/* <div className='space-y-6'>
 						<Card className='p-4'>
 							<h3 className='font-semibold text-gray-900 mb-3'>
 								Quick Actions
@@ -1114,10 +1122,10 @@ export default function VehicleDetailPage({
 									Delete Vehicle
 								</Button>
 							</div>
-						</Card>
+						</Card> */}
 
-						{/* Timeline/History */}
-						<Card className='p-4'>
+					{/* Timeline/History */}
+					{/* <Card className='p-4'>
 							<h3 className='font-semibold text-gray-900 mb-3'>
 								Activity
 							</h3>
@@ -1166,7 +1174,7 @@ export default function VehicleDetailPage({
 									)}
 							</div>
 						</Card>
-					</div>
+					</div> */}
 				</div>
 
 				{/* Photo Lightbox Dialog */}

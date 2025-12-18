@@ -4,9 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
 	Pencil,
 	Plus,
-	Shield,
 	Trash2,
-	UserPlus,
 	Users as UsersIcon,
 } from 'lucide-react';
 import {
@@ -19,56 +17,21 @@ import {
 } from '@/components/ui/table';
 import { UserResponse, apiClient } from '@/lib/api/client';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DeleteUserDialog } from './components/delete-user-dialog';
 import { UserDialog } from './components/user-dialog';
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { notify, successMessages, errorMessages, handleApiError } from '@/lib/notifications';
 import { useUsers } from '@/hooks/use-users';
 
-const getRoleBadgeColor = (role: number) => {
-	switch (role) {
-		case 0:
-			return 'bg-red-100 text-red-800 border-red-300';
-		case 1:
-			return 'bg-blue-100 text-blue-800 border-blue-300';
-		default:
-			return 'bg-gray-100 text-gray-800 border-gray-300';
-	}
-};
-
-const getRoleText = (role: number) => {
-	switch (role) {
-		case 0:
-			return 'Admin';
-		case 1:
-			return 'Manager';
-		default:
-			return 'Unknown';
-	}
-};
-
-const getRoleIcon = (role: number) => {
-	switch (role) {
-		case 0:
-			return Shield;
-		case 1:
-			return UserPlus;
-		default:
-			return UsersIcon;
-	}
-};
-
 export default function UsersPage() {
-	const { users, isLoading, refetch } = useUsers();
-	const { toast } = useToast();
+	const { users, isLoading, error, refetch } = useUsers();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
 	const [deletingUser, setDeletingUser] = useState<UserResponse | null>(null);
 
-	// Filter out Admin users (role = 0) - only show Manager users
-	const managerUsers = users.filter((user) => user.role !== 0);
+	// Show all users (including Admin users for debugging)
+	const allUsers = users;
 
 	const handleAddUser = () => {
 		setEditingUser(null);
@@ -97,18 +60,12 @@ export default function UsersPage() {
 
 		try {
 			await apiClient.deleteUser(deletingUser.id);
-			toast({
-				title: 'Success',
-				description: `User "${deletingUser.name}" has been deleted.`,
-			});
+			const userName = deletingUser.name;
 			setDeletingUser(null);
-			refetch();
+			await refetch();
+			notify.success(successMessages.user.deleted(userName));
 		} catch (error) {
-			toast({
-				title: 'Error',
-				description: 'Failed to delete user. Please try again.',
-				variant: 'destructive',
-			});
+			handleApiError(error, errorMessages.user.deleteFailed(deletingUser?.name));
 		}
 	};
 
@@ -137,7 +94,7 @@ export default function UsersPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle>
-							Manager Users ({managerUsers.length})
+							All Users ({allUsers.length})
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
@@ -148,7 +105,20 @@ export default function UsersPage() {
 									Loading users...
 								</p>
 							</div>
-						) : managerUsers.length === 0 ? (
+						) : error ? (
+							<div className='text-center py-12'>
+								<div className='bg-red-50 border border-red-200 rounded-lg p-4 mb-4'>
+									<p className='text-red-800 font-semibold'>Error loading users</p>
+									<p className='text-red-600 text-sm mt-1'>{error.message}</p>
+									<Button
+										onClick={() => refetch()}
+										variant='outline'
+										className='mt-4'>
+										Retry
+									</Button>
+								</div>
+							</div>
+						) : allUsers.length === 0 ? (
 							<div className='text-center py-12'>
 								<UsersIcon className='h-12 w-12 text-gray-400 mx-auto mb-4' />
 								<p className='text-gray-600'>No users found</p>
@@ -175,8 +145,7 @@ export default function UsersPage() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{managerUsers.map((user) => {
-										const RoleIcon = getRoleIcon(user.role);
+									{allUsers.map((user) => {
 										return (
 											<TableRow key={user.id}>
 												<TableCell className='font-medium'>

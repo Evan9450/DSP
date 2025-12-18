@@ -148,15 +148,13 @@ export interface DeputySync {
 export interface Asset {
 	id: string;
 	name: string;
-	category: string;
-	totalQuantity: number; // Total inventory
-	availableQuantity: number; // Available for borrowing
-	borrowedQuantity: number; // Currently borrowed
-	unitPrice?: number;
-	supplier?: string;
-	notes?: string;
-	lowStockThreshold?: number; // Low stock alert threshold
-	minThreshold?: number; // Alias for lowStockThreshold
+	description?: string;
+	availableQuantity: number; // Available stock
+	minStockThreshold: number; // Low stock alert threshold
+	lowStockThreshold?: number; // Alias for compatibility
+	minThreshold?: number; // Alias for compatibility
+	lowStockAlertSent?: boolean;
+	needsPurchase?: boolean;
 	status?: 'available' | 'low-stock' | 'out-of-stock';
 	createdAt?: Date;
 	updatedAt?: Date;

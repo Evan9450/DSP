@@ -12,6 +12,8 @@ import type {
 	Schedule,
 	Vehicle,
 	VehicleInspection,
+	VehicleInspectionStatus,
+	VehiclePhoto,
 } from '@/types/schedule';
 import type {
 	AssetResponse,
@@ -88,21 +90,38 @@ export function convertVehicle(apiVehicle: VehicleResponse): Vehicle {
 export function convertVehicleInspection(
 	apiInspection: VehicleInspectionResponse
 ): VehicleInspection {
+	// Convert photo URLs to VehiclePhoto objects
+	const photos: VehiclePhoto[] = (apiInspection.photo_urls || []).map((url, index) => ({
+		id: `${apiInspection.id}-photo-${index}`,
+		vehicleId: apiInspection.vehicle_id.toString(),
+		url: url,
+		uploadedBy: apiInspection.driver_id.toString(),
+		uploadedAt: new Date(apiInspection.created_at),
+	}));
+
+	// Map inspection_status to VehicleInspectionStatus
+	let status: VehicleInspectionStatus;
+	if (apiInspection.inspection_status === 1) {
+		status = 'normal'; // passed -> normal
+	} else if (apiInspection.inspection_status === 2) {
+		status = 'needs-repair'; // failed -> needs-repair
+	} else {
+		status = 'has-issues'; // pending -> has-issues
+	}
+
 	return {
 		id: apiInspection.id.toString(),
 		vehicleId: apiInspection.vehicle_id.toString(),
 		driverId: apiInspection.driver_id.toString(),
-		scheduleId: apiInspection.schedule_id?.toString(),
-		date: new Date(apiInspection.date),
-		photos: [], // Photos are fetched separately
-		odometer: apiInspection.odometer,
-		status: apiInspection.status,
-		notes: apiInspection.notes,
-		adminReviewed: apiInspection.admin_reviewed,
-		adminReviewedBy: apiInspection.admin_reviewed_by?.toString(),
-		adminReviewedAt: apiInspection.admin_reviewed_at
-			? new Date(apiInspection.admin_reviewed_at)
-			: undefined,
+		scheduleId: undefined, // No longer part of inspection response
+		date: new Date(apiInspection.inspection_date),
+		photos: photos,
+		odometer: apiInspection.mileage_at_inspection,
+		status: status,
+		notes: undefined, // Notes field removed from new API
+		adminReviewed: apiInspection.reviewed_by_admin,
+		adminReviewedBy: undefined, // No longer tracked separately
+		adminReviewedAt: apiInspection.reviewed_by_admin ? new Date(apiInspection.updated_at) : undefined,
 		adminNotes: apiInspection.admin_notes,
 		driverName: '', // Will need to be fetched from driver data
 	};
@@ -155,14 +174,15 @@ export function convertAsset(apiAsset: AssetResponse): Asset {
 	return {
 		id: apiAsset.id.toString(),
 		name: apiAsset.name,
-		category: apiAsset.category,
-		totalQuantity: apiAsset.total_quantity,
+		description: apiAsset.description || undefined,
 		availableQuantity: apiAsset.available_stock,
-		borrowedQuantity: apiAsset.borrowed_quantity,
-		unitPrice: apiAsset.unit_price,
-		supplier: apiAsset.supplier,
-		notes: apiAsset.notes,
-		lowStockThreshold: apiAsset.low_stock_threshold,
+		minStockThreshold: apiAsset.min_stock_threshold,
+		lowStockThreshold: apiAsset.min_stock_threshold, // Alias for compatibility
+		minThreshold: apiAsset.min_stock_threshold, // Alias for compatibility
+		lowStockAlertSent: apiAsset.low_stock_alert_sent,
+		needsPurchase: apiAsset.needs_purchase,
+		createdAt: new Date(apiAsset.created_at),
+		updatedAt: new Date(apiAsset.updated_at),
 	};
 }
 
@@ -171,8 +191,8 @@ export function convertBorrowRecord(
 ): BorrowRecord {
 	return {
 		id: apiRecord.id.toString(),
-		assetId: apiRecord.asset_id.toString(),
-		assetName: '', // Will need to be enriched from asset data
+		assetId: apiRecord.product_id.toString(),
+		assetName: '', // Will need to be enriched from product data
 		driverId: apiRecord.driver_id.toString(),
 		driverName: '', // Will need to be enriched from driver data
 		quantity: apiRecord.quantity,
@@ -183,7 +203,7 @@ export function convertBorrowRecord(
 		actualReturnDate: apiRecord.actual_return_date
 			? new Date(apiRecord.actual_return_date)
 			: undefined,
-		status: apiRecord.status,
+		status: apiRecord.is_returned ? 'returned' : 'borrowed',
 		notes: apiRecord.notes,
 	};
 }

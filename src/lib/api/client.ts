@@ -71,6 +71,14 @@ export interface DriverResponse {
 	amazon_password?: string;
 	deputy_id?: string;
 	is_active: boolean;
+	// License fields
+	license_number?: string;
+	license_expiry_date?: string;
+	license_files?: string[]; // Array of file URLs
+	// Visa fields
+	visa_number?: string;
+	visa_expiry_date?: string;
+	visa_files?: string[]; // Array of file URLs
 	created_at: string;
 	updated_at: string;
 }
@@ -189,11 +197,11 @@ export interface VehicleUpdate {
 export interface VehicleInspectionResponse {
 	id: number;
 	vehicle_id: number;
-	driver_id?: number;
+	driver_id: number;
 	inspection_date: string;
-	mileage_at_inspection?: number;
-	notes?: string;
-	photo_urls?: string;
+	mileage_at_inspection: number;
+	photo_urls: string[];
+	inspection_status: 0 | 1 | 2; // 0=pending, 1=passed, 2=failed
 	reviewed_by_admin: boolean;
 	admin_notes?: string;
 	created_at: string;
@@ -201,18 +209,34 @@ export interface VehicleInspectionResponse {
 }
 
 export interface VehicleInspectionCreate {
-	inspection_date: string;
 	vehicle_id: number;
-	mileage_at_inspection?: number;
-	notes?: string;
-	photo_urls?: string;
+	driver_id: number;
+	inspection_date: string;
+	mileage_at_inspection: number;
+	photo_urls?: string[];
 }
 
-export interface InspectionPhotoResponse {
+export interface VehicleInspectionUpdate {
+	inspection_date?: string;
+	mileage_at_inspection?: number;
+	photo_urls?: string[];
+}
+
+export interface VehicleInspectionReview {
+	inspection_status: 0 | 1 | 2; // 0=pending, 1=passed, 2=failed
+	admin_notes?: string;
+}
+
+export interface VehicleInspectionPhotoResponse {
 	id: number;
-	inspection_id: number;
-	file_url: string;
-	uploaded_at: string;
+	vehicle_id: number;
+	inspection_date: string;
+	mileage_at_inspection: number;
+	photos: string[];
+	inspection_status: 0 | 1 | 2;
+	reviewed_by_admin: boolean;
+	admin_notes?: string;
+	created_at: string;
 }
 
 // Schedule Types
@@ -259,63 +283,89 @@ export interface ScheduleUpdate {
 	notes?: string;
 }
 
-// Asset Types
-export interface AssetResponse {
+// Product Types (replaced Asset)
+export interface ProductResponse {
 	id: number;
 	name: string;
-	category: string;
-	total_quantity: number;
+	description?: string | null;
+	min_stock_threshold: number;
 	available_stock: number;
-	borrowed_quantity: number;
-	unit_price?: number;
-	supplier?: string;
-	notes?: string;
-	low_stock_threshold?: number;
+	low_stock_alert_sent: boolean;
+	needs_purchase: boolean;
 	created_at: string;
 	updated_at: string;
 }
 
-export interface AssetCreate {
+export interface ProductCreate {
 	name: string;
-	category: string;
-	total_quantity: number;
-	unit_price?: number;
-	supplier?: string;
-	notes?: string;
-	low_stock_threshold?: number;
+	description?: string | null;
+	min_stock_threshold?: number; // Default 0
+	available_stock?: number; // Default 0, initial stock quantity
 }
 
-export interface AssetUpdate {
+export interface ProductUpdate {
 	name?: string;
-	category?: string;
-	total_quantity?: number;
+	description?: string | null;
+	min_stock_threshold?: number;
+}
+
+// Product Inventory Types
+export interface ProductInventoryResponse {
+	id: number;
+	product_id: number;
+	quantity: number;
+	purchase_date: string;
 	unit_price?: number;
 	supplier?: string;
 	notes?: string;
-	low_stock_threshold?: number;
+	created_at: string;
 }
 
-// Borrow Record Types
-export interface BorrowRecordResponse {
+export interface ProductInventoryCreate {
+	product_id: number;
+	quantity: number;
+	purchase_date: string;
+	unit_price?: number;
+	supplier?: string;
+	notes?: string;
+}
+
+// Product Borrow Types (replaced BorrowRecord)
+export interface ProductBorrowResponse {
 	id: number;
-	asset_id: number;
+	product_id: number;
 	driver_id: number;
 	quantity: number;
 	borrow_date: string;
 	expected_return_date?: string;
 	actual_return_date?: string;
-	status: 'borrowed' | 'returned' | 'overdue';
+	is_returned: boolean;
 	notes?: string;
 	created_at: string;
+	updated_at: string;
 }
 
-export interface BorrowRecordCreate {
-	asset_id: number;
+export interface ProductBorrowCreate {
+	product_id: number;
 	driver_id: number;
 	quantity: number;
+	borrow_date: string; // Required: YYYY-MM-DD format
 	expected_return_date?: string;
 	notes?: string;
 }
+
+export interface ProductBorrowReturn {
+	actual_return_date?: string;
+	notes?: string;
+}
+
+// Legacy types for backward compatibility
+export type AssetResponse = ProductResponse;
+export type AssetCreate = ProductCreate;
+export type AssetUpdate = ProductUpdate;
+export type BorrowRecordResponse = ProductBorrowResponse;
+export type BorrowRecordCreate = ProductBorrowCreate;
+export type BorrowRecordUpdate = ProductBorrowReturn;
 
 // Settings Types - System Configuration
 export interface SystemConfigResponse {
@@ -653,75 +703,102 @@ class APIClient {
 		return response.data;
 	}
 
+	// New method for updating driver with files
+	async updateDriverWithFiles(
+		driverId: number,
+		data: {
+			name?: string;
+			phone?: string;
+			email?: string;
+			address?: string;
+			amazon_id?: string;
+			deputy_id?: string;
+			license_file?: File;
+			license_number?: string;
+			license_expiry_date?: string;
+			visa_file?: File;
+			visa_number?: string;
+			visa_expiry_date?: string;
+		}
+	): Promise<DriverResponse> {
+		console.log('📤 Updating driver with files:', { driverId, data });
+
+		const formData = new FormData();
+
+		// Add basic info fields if provided
+		if (data.name !== undefined) formData.append('name', data.name);
+		if (data.phone !== undefined) formData.append('phone', data.phone);
+		if (data.email !== undefined) formData.append('email', data.email);
+		if (data.address !== undefined) formData.append('address', data.address);
+		if (data.amazon_id !== undefined) formData.append('amazon_id', data.amazon_id);
+		if (data.deputy_id !== undefined) formData.append('deputy_id', data.deputy_id);
+
+		// Add license fields if provided
+		if (data.license_file) formData.append('license_file', data.license_file);
+		if (data.license_number !== undefined) formData.append('license_number', data.license_number);
+		if (data.license_expiry_date !== undefined) formData.append('license_expiry_date', data.license_expiry_date);
+
+		// Add visa fields if provided
+		if (data.visa_file) formData.append('visa_file', data.visa_file);
+		if (data.visa_number !== undefined) formData.append('visa_number', data.visa_number);
+		if (data.visa_expiry_date !== undefined) formData.append('visa_expiry_date', data.visa_expiry_date);
+
+		console.log('📦 FormData entries:');
+		formData.forEach((value, key) => {
+			console.log(`  ${key}:`, value instanceof File ? `File(${value.name})` : value);
+		});
+
+		try {
+			const response = await this.client.put<DriverResponse>(
+				`/api/v1/drivers/${driverId}`,
+				formData,
+				{
+					headers: {
+						'Content-Type': 'multipart/form-data',
+					},
+				}
+			);
+			console.log('✅ Driver updated successfully, full response:', response);
+			console.log('📋 Response data breakdown:');
+			console.log('  - Name:', response.data.name);
+			console.log('  - Deputy ID:', response.data.deputy_id);
+			console.log('  - License Number:', response.data.license_number);
+			console.log('  - License Expiry:', response.data.license_expiry_date);
+			console.log('  - Visa Number:', response.data.visa_number);
+			console.log('  - Visa Expiry:', response.data.visa_expiry_date);
+			console.log('  - License Files:', response.data.license_files);
+			console.log('  - Visa Files:', response.data.visa_files);
+			return response.data;
+		} catch (error: any) {
+			console.error('❌ Failed to update driver:', error.response?.data);
+			throw error;
+		}
+	}
+
 	async deleteDriver(driverId: number): Promise<void> {
 		await this.client.delete(`/api/v1/drivers/${driverId}`);
 	}
 
-	// Driver Files (Documents)
-	async getDriverFiles(
-		driverId: number
-	): Promise<DriverFileResponse[]> {
-		const response = await this.client.get<DriverFileResponse[]>(
-			`/api/v1/drivers/${driverId}/files`
-		);
-		return response.data;
-	}
-
-	async createDriverFile(
-		driverId: number,
-		data: DriverFileCreate
-	): Promise<DriverFileResponse> {
-		const response = await this.client.post<DriverFileResponse>(
-			`/api/v1/drivers/${driverId}/files`,
-			data
-		);
-		return response.data;
-	}
-
-	async updateDriverFile(
-		driverId: number,
-		fileId: number,
-		data: DriverFileCreate
-	): Promise<DriverFileResponse> {
-		const response = await this.client.put<DriverFileResponse>(
-			`/api/v1/drivers/${driverId}/files/${fileId}`,
-			data
-		);
-		return response.data;
-	}
-
-	async uploadDriverFile(
-		driverId: number,
-		fileId: number,
-		file: File
-	): Promise<any> {
-		const formData = new FormData();
-		formData.append('file', file);
-
-		const response = await this.client.post(
-			`/api/v1/drivers/${driverId}/files/${fileId}/upload`,
-			formData,
-			{
-				headers: {
-					'Content-Type': 'multipart/form-data',
-				},
-			}
-		);
-		return response.data;
-	}
-
-	async deleteDriverFile(
-		driverId: number,
-		fileId: number
-	): Promise<void> {
+	// Delete license file
+	async deleteLicenseFile(driverId: number, fileUrl: string): Promise<void> {
 		await this.client.delete(
-			`/api/v1/drivers/${driverId}/files/${fileId}`
+			`/api/v1/drivers/${driverId}/delete-license-file`,
+			{ params: { file_url: fileUrl } }
 		);
 	}
 
-	async getExpiringDriverFiles(daysAhead: number = 30): Promise<DriverFileResponse[]> {
-		const response = await this.client.get<DriverFileResponse[]>(
-			'/api/v1/drivers/files/expiring',
+	// Delete visa file
+	async deleteVisaFile(driverId: number, fileUrl: string): Promise<void> {
+		await this.client.delete(
+			`/api/v1/drivers/${driverId}/delete-visa-file`,
+			{ params: { file_url: fileUrl } }
+		);
+	}
+
+	// Get expiring documents
+	async getExpiringDocuments(daysAhead: number = 30): Promise<any> {
+		const response = await this.client.get(
+			'/api/v1/drivers/documents/expiring',
 			{ params: { days_ahead: daysAhead } }
 		);
 		return response.data;
@@ -751,22 +828,18 @@ class APIClient {
 		return response.data;
 	}
 
-	// Backwards compatibility methods
-	async getDriverDocuments(driverId: number): Promise<DriverDocumentResponse[]> {
-		return this.getDriverFiles(driverId);
+	async syncDeputyDrivers(): Promise<{
+		synced_count?: number;
+		new_drivers?: number;
+		updated_drivers?: number;
+		message?: string;
+		[key: string]: any;
+	}> {
+		const response = await this.client.post<any>('/api/v1/supervise/sync-employees');
+		console.log('🔄 Deputy sync response:', response.data);
+		return response.data;
 	}
 
-	async createDriverDocument(driverId: number, data: DriverDocumentCreate): Promise<DriverDocumentResponse> {
-		return this.createDriverFile(driverId, data);
-	}
-
-	async uploadDriverDocumentFile(driverId: number, documentId: number, file: File): Promise<DriverDocumentResponse> {
-		return this.uploadDriverFile(driverId, documentId, file);
-	}
-
-	async deleteDriverDocument(driverId: number, documentId: number): Promise<void> {
-		return this.deleteDriverFile(driverId, documentId);
-	}
 
 	// ============================================================================
 	// Vehicle API
@@ -847,34 +920,48 @@ class APIClient {
 	}
 
 	// Vehicle Inspections
-	async getVehicleInspections(
-		vehicleId: number
-	): Promise<VehicleInspectionResponse[]> {
-		const response = await this.client.get<VehicleInspectionResponse[]>(
-			`/api/v1/vehicles/${vehicleId}/inspections`
-		);
-		return response.data;
-	}
+	/**
+	 * List vehicle inspection records with optional filters
+	 * @param params Filter parameters
+	 * @returns Array of inspection records
+	 */
+	async listInspections(params?: {
+		vehicle_id?: number;
+		driver_id?: number;
+		reviewed?: boolean;
+		inspection_status?: 0 | 1 | 2;
+		inspection_date?: string; // YYYY-MM-DD
+		start_date?: string; // YYYY-MM-DD
+		end_date?: string; // YYYY-MM-DD
+		skip?: number;
+		limit?: number;
+	}): Promise<VehicleInspectionResponse[]> {
+		// Set default pagination values and filter out undefined values
+		const cleanParams: Record<string, any> = {
+			skip: 0,
+			limit: 100,
+		};
 
-	async listInspections(
-		vehicleId?: number,
-		driverId?: number,
-		reviewed?: boolean,
-		skip: number = 0,
-		limit: number = 100
-	): Promise<VehicleInspectionResponse[]> {
-		const params: Record<string, number | boolean> = { skip, limit };
-		if (vehicleId !== undefined) params.vehicle_id = vehicleId;
-		if (driverId !== undefined) params.driver_id = driverId;
-		if (reviewed !== undefined) params.reviewed = reviewed;
+		if (params) {
+			Object.entries(params).forEach(([key, value]) => {
+				if (value !== undefined) {
+					cleanParams[key] = value;
+				}
+			});
+		}
 
 		const response = await this.client.get<VehicleInspectionResponse[]>(
 			'/api/v1/vehicles/inspections',
-			{ params }
+			{ params: cleanParams }
 		);
 		return response.data;
 	}
 
+	/**
+	 * Create vehicle inspection record (for driver app)
+	 * @param data Inspection data with vehicle_id, driver_id, inspection_date, mileage_at_inspection
+	 * @returns Created inspection record
+	 */
 	async createVehicleInspection(
 		data: VehicleInspectionCreate
 	): Promise<VehicleInspectionResponse> {
@@ -885,17 +972,41 @@ class APIClient {
 		return response.data;
 	}
 
+	/**
+	 * Update inspection record (driver only)
+	 * Drivers can update: inspection_date, mileage_at_inspection, photo_urls
+	 * @param inspectionId Inspection ID
+	 * @param data Update data
+	 * @returns Updated inspection record
+	 */
+	async updateVehicleInspection(
+		inspectionId: number,
+		data: VehicleInspectionUpdate
+	): Promise<VehicleInspectionResponse> {
+		const response = await this.client.put<VehicleInspectionResponse>(
+			`/api/v1/vehicles/inspections/${inspectionId}`,
+			data
+		);
+		return response.data;
+	}
+
+	/**
+	 * Upload photos for vehicle inspection
+	 * @param inspectionId Inspection ID
+	 * @param files Array of image files
+	 * @returns Upload response
+	 */
 	async uploadInspectionPhotos(
 		inspectionId: number,
 		files: File[]
-	): Promise<InspectionPhotoResponse[]> {
+	): Promise<any> {
 		const formData = new FormData();
 		files.forEach((file) => {
 			formData.append('files', file);
 		});
 
-		const response = await this.client.post<InspectionPhotoResponse[]>(
-			`/api/v1/vehicles/inspections/${inspectionId}/photos`,
+		const response = await this.client.post(
+			`/api/v1/vehicles/inspections/${inspectionId}/upload-photos`,
 			formData,
 			{
 				headers: {
@@ -906,15 +1017,89 @@ class APIClient {
 		return response.data;
 	}
 
+	/**
+	 * Get single inspection record by ID
+	 * @param inspectionId Inspection ID
+	 * @returns Inspection record
+	 */
+	async getInspection(
+		inspectionId: number
+	): Promise<VehicleInspectionResponse> {
+		const response = await this.client.get<VehicleInspectionResponse>(
+			`/api/v1/vehicles/inspections/${inspectionId}`
+		);
+		return response.data;
+	}
+
+	/**
+	 * Admin review/approve inspection (admin only)
+	 * Admins can set inspection_status (0=pending, 1=passed, 2=failed) and add admin_notes
+	 * @param inspectionId Inspection ID
+	 * @param data Review data with inspection_status and optional admin_notes
+	 * @returns Updated inspection record
+	 */
 	async reviewInspection(
 		inspectionId: number,
-		notes?: string
+		data: VehicleInspectionReview
 	): Promise<VehicleInspectionResponse> {
 		const response = await this.client.post<VehicleInspectionResponse>(
 			`/api/v1/vehicles/inspections/${inspectionId}/review`,
-			{ admin_notes: notes }
+			data
 		);
 		return response.data;
+	}
+
+	/**
+	 * Delete inspection record (admin only)
+	 * @param inspectionId Inspection ID
+	 */
+	async deleteInspection(inspectionId: number): Promise<void> {
+		await this.client.delete(`/api/v1/vehicles/inspections/${inspectionId}`);
+	}
+
+	/**
+	 * Get inspection records with photos for a specific vehicle
+	 * @param vehicleId Vehicle ID
+	 * @param params Optional filter parameters
+	 * @returns Array of inspection photo records grouped by date
+	 */
+	async getVehicleInspectionPhotos(
+		vehicleId: number,
+		params?: {
+			inspection_date?: string; // YYYY-MM-DD
+			skip?: number;
+			limit?: number;
+		}
+	): Promise<VehicleInspectionPhotoResponse[]> {
+		// Set default pagination values and filter out undefined values
+		const cleanParams: Record<string, any> = {
+			skip: 0,
+			limit: 50,
+		};
+
+		if (params) {
+			Object.entries(params).forEach(([key, value]) => {
+				if (value !== undefined) {
+					cleanParams[key] = value;
+				}
+			});
+		}
+
+		const response = await this.client.get<VehicleInspectionPhotoResponse[]>(
+			`/api/v1/vehicles/${vehicleId}/inspection-photos`,
+			{ params: cleanParams }
+		);
+		return response.data;
+	}
+
+	// Backwards compatibility methods
+	/**
+	 * @deprecated Use listInspections with vehicle_id filter instead
+	 */
+	async getVehicleInspections(
+		vehicleId: number
+	): Promise<VehicleInspectionResponse[]> {
+		return this.listInspections({ vehicle_id: vehicleId });
 	}
 
 	// ============================================================================
@@ -996,82 +1181,150 @@ class APIClient {
 	}
 
 	// ============================================================================
-	// Asset API
+	// Product & Inventory API (replaces Asset API)
 	// ============================================================================
 
-	async getAssets(): Promise<AssetResponse[]> {
-		const response = await this.client.get<AssetResponse[]>(
+	// Products
+	async getProducts(): Promise<ProductResponse[]> {
+		const response = await this.client.get<ProductResponse[]>(
 			'/api/v1/assets/products'
 		);
-		console.log('🚀 => APIClient => getAssets => response:', response);
+		console.log('🚀 => APIClient => getProducts => response:', response);
 		return response.data;
 	}
 
-	async getAsset(assetId: number): Promise<AssetResponse> {
-		const response = await this.client.get<AssetResponse>(
-			`/api/v1/assets/${assetId}`
+	async getProduct(productId: number): Promise<ProductResponse> {
+		const response = await this.client.get<ProductResponse>(
+			`/api/v1/assets/products/${productId}`
 		);
 		return response.data;
 	}
 
-	async createAsset(data: AssetCreate): Promise<AssetResponse> {
-		const response = await this.client.post<AssetResponse>(
-			'/api/v1/assets/',
+	async createProduct(data: ProductCreate): Promise<ProductResponse> {
+		const response = await this.client.post<ProductResponse>(
+			'/api/v1/assets/products',
 			data
 		);
 		return response.data;
 	}
 
-	async updateAsset(
-		assetId: number,
-		data: AssetUpdate
-	): Promise<AssetResponse> {
-		const response = await this.client.put<AssetResponse>(
-			`/api/v1/assets/${assetId}`,
+	async updateProduct(
+		productId: number,
+		data: ProductUpdate
+	): Promise<ProductResponse> {
+		const response = await this.client.put<ProductResponse>(
+			`/api/v1/assets/products/${productId}`,
 			data
 		);
 		return response.data;
 	}
 
-	async deleteAsset(assetId: number): Promise<void> {
-		await this.client.delete(`/api/v1/assets/${assetId}`);
+	async deleteProduct(productId: number): Promise<void> {
+		await this.client.delete(`/api/v1/assets/products/${productId}`);
 	}
 
-	// Borrow Records
-	async getBorrowRecords(
-		assetId?: number,
-		driverId?: number
-	): Promise<BorrowRecordResponse[]> {
-		const params: Record<string, number> = {};
-		if (assetId) params.asset_id = assetId;
-		if (driverId) params.driver_id = driverId;
+	// Product Inventory
+	async getProductInventory(productId: number): Promise<ProductInventoryResponse[]> {
+		const response = await this.client.get<ProductInventoryResponse[]>(
+			`/api/v1/assets/products/${productId}/inventory`
+		);
+		return response.data;
+	}
 
-		const response = await this.client.get<BorrowRecordResponse[]>(
-			'/api/v1/assets/borrow-records',
+	async addInventory(data: ProductInventoryCreate): Promise<ProductInventoryResponse> {
+		const response = await this.client.post<ProductInventoryResponse>(
+			'/api/v1/assets/inventory',
+			data
+		);
+		return response.data;
+	}
+
+	// Product Borrows
+	async getProductBorrows(params?: {
+		product_id?: number;
+		driver_id?: number;
+		is_returned?: boolean;
+	}): Promise<ProductBorrowResponse[]> {
+		const response = await this.client.get<ProductBorrowResponse[]>(
+			'/api/v1/assets/borrows',
 			{ params }
 		);
 		return response.data;
 	}
 
-	async createBorrowRecord(
-		data: BorrowRecordCreate
-	): Promise<BorrowRecordResponse> {
-		const response = await this.client.post<BorrowRecordResponse>(
-			'/api/v1/assets/borrow-records',
+	async getProductBorrow(borrowId: number): Promise<ProductBorrowResponse> {
+		const response = await this.client.get<ProductBorrowResponse>(
+			`/api/v1/assets/borrows/${borrowId}`
+		);
+		return response.data;
+	}
+
+	async createProductBorrow(
+		data: ProductBorrowCreate
+	): Promise<ProductBorrowResponse> {
+		const response = await this.client.post<ProductBorrowResponse>(
+			'/api/v1/assets/borrows',
 			data
 		);
 		return response.data;
 	}
 
-	async returnBorrowRecord(
-		recordId: number,
-		notes?: string
-	): Promise<BorrowRecordResponse> {
-		const response = await this.client.post<BorrowRecordResponse>(
-			`/api/v1/assets/borrow-records/${recordId}/return`,
-			{ notes }
+	async returnProductBorrow(
+		borrowId: number,
+		data: ProductBorrowReturn
+	): Promise<ProductBorrowResponse> {
+		const response = await this.client.post<ProductBorrowResponse>(
+			`/api/v1/assets/borrows/${borrowId}/return`,
+			data
 		);
 		return response.data;
+	}
+
+	async listProductBorrowsForProduct(productId: number): Promise<ProductBorrowResponse[]> {
+		const response = await this.client.get<ProductBorrowResponse[]>(
+			`/api/v1/assets/products/${productId}/borrows`
+		);
+		return response.data;
+	}
+
+	async listProductBorrowsForDriver(driverId: number): Promise<ProductBorrowResponse[]> {
+		const response = await this.client.get<ProductBorrowResponse[]>(
+			`/api/v1/assets/drivers/${driverId}/borrows`
+		);
+		return response.data;
+	}
+
+	// Legacy methods for backward compatibility
+	async getAssets(): Promise<AssetResponse[]> {
+		return this.getProducts();
+	}
+
+	async getAsset(assetId: number): Promise<AssetResponse> {
+		return this.getProduct(assetId);
+	}
+
+	async createAsset(data: AssetCreate): Promise<AssetResponse> {
+		return this.createProduct(data);
+	}
+
+	async updateAsset(assetId: number, data: AssetUpdate): Promise<AssetResponse> {
+		return this.updateProduct(assetId, data);
+	}
+
+	async deleteAsset(assetId: number): Promise<void> {
+		return this.deleteProduct(assetId);
+	}
+
+	async getBorrowRecords(productId?: number, driverId?: number): Promise<BorrowRecordResponse[]> {
+		return this.getProductBorrows({ product_id: productId, driver_id: driverId });
+	}
+
+	async createBorrowRecord(data: BorrowRecordCreate): Promise<BorrowRecordResponse> {
+		return this.createProductBorrow(data);
+	}
+
+	async returnBorrowRecord(recordId: number, notes?: string): Promise<BorrowRecordResponse> {
+		return this.returnProductBorrow(recordId, { notes });
 	}
 
 	// ============================================================================

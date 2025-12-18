@@ -90,9 +90,8 @@ export default function DriverInspectionPage() {
 			const inspection = await apiClient.createVehicleInspection({
 				vehicle_id: vehicleId,
 				driver_id: parseInt(driverIdStr),
-				odometer: parseInt(odometer),
-				status: status,
-				notes: notes || undefined,
+				inspection_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+				mileage_at_inspection: parseInt(odometer),
 			});
 
 			// Upload photos

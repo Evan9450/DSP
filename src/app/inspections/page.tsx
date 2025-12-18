@@ -37,7 +37,7 @@ export default function InspectionsPage() {
 		formattedDate
 	);
 	const { inspections, isLoading: inspectionsLoading } = useInspections({
-		inspectionDate: formattedDate,
+		inspection_date: formattedDate,
 	});
 
 	useEffect(() => {

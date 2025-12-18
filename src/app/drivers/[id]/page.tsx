@@ -17,7 +17,12 @@ import {
 import { apiClient } from '@/lib/api/client';
 import { calculateDocumentStatus } from '@/lib/helpers';
 import { useDriver } from '@/hooks/use-drivers';
-import { notify, handleApiError, successMessages, errorMessages } from '@/lib/notifications';
+import {
+	notify,
+	handleApiError,
+	successMessages,
+	errorMessages,
+} from '@/lib/notifications';
 import {
 	validateDriverFields,
 	hasValidationErrors,
@@ -46,8 +51,10 @@ export default function DriverDetailPage() {
 	const [isEditing, setIsEditing] = useState(false);
 	const [editedDriver, setEditedDriver] = useState<any>(null);
 	const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-	const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
-	const [validationErrors, setValidationErrors] = useState<DriverValidationErrors>({});
+	const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] =
+		useState(false);
+	const [validationErrors, setValidationErrors] =
+		useState<DriverValidationErrors>({});
 
 	useEffect(() => {
 		if (driver) {
@@ -63,7 +70,7 @@ export default function DriverDetailPage() {
 	}, [driver]);
 
 	// Check if there are any changes
-	const hasChanges = useMemo(() => {
+	const hasChanges = useMemo((): boolean => {
 		if (!driver || !editedDriver) return false;
 
 		const fieldsToCompare = [
@@ -76,10 +83,10 @@ export default function DriverDetailPage() {
 			'license_expiry_date',
 			'visa_number',
 			'visa_expiry_date',
-		];
+		] as const;
 
 		return fieldsToCompare.some((field) => {
-			const originalValue = driver[field] || '';
+			const originalValue = (driver as any)[field] || '';
 			const editedValue = editedDriver[field] || '';
 			return originalValue !== editedValue;
 		});
@@ -175,7 +182,10 @@ export default function DriverDetailPage() {
 		} catch (error: any) {
 			console.error('❌ Failed to update driver:', error);
 			console.error('❌ Error details:', error.response?.data);
-			handleApiError(error, errorMessages.driver.updateFailed(driver?.name));
+			handleApiError(
+				error,
+				errorMessages.driver.updateFailed(driver?.name)
+			);
 		}
 	};
 
@@ -188,7 +198,10 @@ export default function DriverDetailPage() {
 			notify.success(successMessages.driver.passwordSet(driver?.name));
 		} catch (error) {
 			console.error('Failed to set password:', error);
-			handleApiError(error, errorMessages.driver.passwordFailed(driver?.name));
+			handleApiError(
+				error,
+				errorMessages.driver.passwordFailed(driver?.name)
+			);
 			throw error; // Re-throw to let dialog handle it
 		}
 	};
@@ -312,7 +325,9 @@ export default function DriverDetailPage() {
 				<DriverHeader
 					driverName={driver.name}
 					isEditing={isEditing}
-					hasChanges={hasChanges && !hasValidationErrors(validationErrors)}
+					hasChanges={
+						hasChanges && !hasValidationErrors(validationErrors)
+					}
 					onBack={handleBack}
 					onSetPassword={() => setShowPasswordDialog(true)}
 					onEdit={() => {
@@ -430,12 +445,15 @@ export default function DriverDetailPage() {
 			/>
 
 			{/* Unsaved Changes Dialog */}
-			<Dialog open={showUnsavedChangesDialog} onOpenChange={setShowUnsavedChangesDialog}>
+			<Dialog
+				open={showUnsavedChangesDialog}
+				onOpenChange={setShowUnsavedChangesDialog}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Unsaved Changes</DialogTitle>
 						<DialogDescription>
-							You have unsaved changes. Do you want to save them before leaving?
+							You have unsaved changes. Do you want to save them
+							before leaving?
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter className='flex gap-2'>

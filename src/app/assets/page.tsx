@@ -1,26 +1,16 @@
 'use client';
 
-import {
-	AlertCircle,
-	Search,
-	TrendingDown,
-} from 'lucide-react';
-import type { Asset } from '@/types/schedule';
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from '@/components/ui/table';
-import { convertAsset } from '@/lib/api/converters';
-import { useAssets } from '@/hooks/use-assets';
+import { AlertCircle, Search, TrendingDown } from 'lucide-react';
 
 import AddAssetDialog from './components/AddAssetDialog';
-import { Badge } from '@/components/ui/badge';
+import type { Asset } from '@/types/schedule';
+import { BorrowDialog } from './components/BorrowDialog';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import InventoryTable from './components/InventoryTable';
+import { convertAsset } from '@/lib/api/converters';
+import { useAssets } from '@/hooks/use-assets';
+import { useDrivers } from '@/hooks/use-drivers';
 import { useState } from 'react';
 
 export default function AssetsPage() {
@@ -30,42 +20,24 @@ export default function AssetsPage() {
 		refetch: refetchAssets,
 	} = useAssets();
 
+	const { drivers: apiDrivers, isLoading: driversLoading } = useDrivers();
+	const drivers =
+		apiDrivers?.map((d) => ({
+			id: d.id.toString(),
+			name: d.name,
+			amazonId: d.amazon_id,
+		})) || [];
 	const [searchTerm, setSearchTerm] = useState('');
-
+	const [isBorrowDialogOpen, setIsBorrowDialogOpen] = useState(false);
+	const [selectedAsset, setSelectedAsset] = useState<Asset>();
 	// Convert API data to frontend types
 	const assets = apiAssets?.map(convertAsset) || [];
 
-	const isLoading = assetsLoading;
+	const isLoading = assetsLoading || driversLoading;
 
-	const filteredAssets = assets.filter(
-		(asset) => asset.name.toLowerCase().includes(searchTerm.toLowerCase())
-		// asset.category.toLowerCase().includes(searchTerm.toLowerCase())
+	const filteredAssets = assets.filter((asset) =>
+		asset.name.toLowerCase().includes(searchTerm.toLowerCase())
 	);
-
-	const getStatusBadge = (asset: Asset) => {
-		const available = asset.availableQuantity;
-		const threshold = asset.lowStockThreshold || asset.minThreshold || 5;
-
-		if (available === 0) {
-			return (
-				<Badge
-					variant='destructive'
-					className='flex items-center gap-1'>
-					<AlertCircle className='h-3 w-3' />
-					Out of Stock
-				</Badge>
-			);
-		}
-		if (available <= threshold) {
-			return (
-				<Badge className='bg-orange-500 text-white flex items-center gap-1'>
-					<TrendingDown className='h-3 w-3' />
-					Low Stock
-				</Badge>
-			);
-		}
-		return <Badge className='bg-green-500 text-white'>Available</Badge>;
-	};
 
 	const lowStockAssets = assets.filter((a) => {
 		const threshold = a.lowStockThreshold || a.minThreshold || 5;
@@ -158,66 +130,24 @@ export default function AssetsPage() {
 				</div>
 
 				{/* Assets Inventory */}
-				<Card className='mb-6'>
-					<div className='p-6'>
-						<h2 className='text-xl font-semibold mb-4 flex items-center gap-2'>
-							{/* <Package className='h-5 w-5 text-blue-700' /> */}
-							Inventory
-						</h2>
-						<div className='overflow-x-auto'>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Asset Name</TableHead>
+				<InventoryTable
+					filteredAssets={filteredAssets}
+					// getStatusBadge,
+					setIsBorrowDialogOpen={setIsBorrowDialogOpen}
+					setSelectedAsset={setSelectedAsset}
+				/>
 
-										<TableHead className='text-center'>
-											Available
-										</TableHead>
-
-										<TableHead className='text-center'>
-											Min Threshold
-										</TableHead>
-										<TableHead>Status</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{filteredAssets.map((asset) => {
-										return (
-											<TableRow key={asset.id}>
-												<TableCell className='font-medium'>
-													{asset.name}
-												</TableCell>
-
-												<TableCell className='text-center'>
-													<span
-														className={
-															asset.availableQuantity ===
-															0
-																? 'text-red-600 font-semibold'
-																: 'text-gray-900'
-														}>
-														{
-															asset.availableQuantity
-														}
-													</span>
-												</TableCell>
-
-												<TableCell className='text-center text-gray-600'>
-													{asset.lowStockThreshold ||
-														asset.minThreshold ||
-														5}
-												</TableCell>
-												<TableCell>
-													{getStatusBadge(asset)}
-												</TableCell>
-											</TableRow>
-										);
-									})}
-								</TableBody>
-							</Table>
-						</div>
-					</div>
-				</Card>
+				<BorrowDialog
+					open={isBorrowDialogOpen}
+					onOpenChange={setIsBorrowDialogOpen}
+					assets={assets}
+					drivers={drivers}
+					clickedAsset={selectedAsset}
+					onSuccess={() => {
+						refetchAssets();
+						// refetchRecords();
+					}}
+				/>
 			</div>
 		</div>
 	);

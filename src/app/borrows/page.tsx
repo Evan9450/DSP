@@ -47,7 +47,7 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function BorrowsPage() {
-	const { toast } = useToast();
+	// const { toast } = useToast();
 	const {
 		assets: apiAssets,
 		isLoading: assetsLoading,
@@ -112,53 +112,53 @@ export default function BorrowsPage() {
 		(asset) => asset.availableQuantity > 0
 	);
 
-	const handleBorrow = async () => {
-		if (!selectedAsset || !borrowDriverId) {
-			toast({
-				title: 'Error',
-				description: 'Please select a driver',
-				variant: 'destructive',
-			});
-			return;
-		}
+	// const handleBorrow = async () => {
+	// 	if (!selectedAsset || !borrowDriverId) {
+	// 		toast({
+	// 			title: 'Error',
+	// 			description: 'Please select a driver',
+	// 			variant: 'destructive',
+	// 		});
+	// 		return;
+	// 	}
 
-		try {
-			const borrowData: any = {
-				product_id: parseInt(selectedAsset.id),
-				driver_id: parseInt(borrowDriverId),
-				quantity: parseInt(borrowQuantity),
-				borrow_date: format(borrowDate, 'yyyy-MM-dd'),
-			};
+	// 	try {
+	// 		const borrowData: any = {
+	// 			product_id: parseInt(selectedAsset.id),
+	// 			driver_id: parseInt(borrowDriverId),
+	// 			quantity: parseInt(borrowQuantity),
+	// 			borrow_date: format(borrowDate, 'yyyy-MM-dd'),
+	// 		};
 
-			if (borrowNotes && borrowNotes.trim() !== '') {
-				borrowData.notes = borrowNotes;
-			}
+	// 		if (borrowNotes && borrowNotes.trim() !== '') {
+	// 			borrowData.notes = borrowNotes;
+	// 		}
 
-			console.log('Sending borrow data:', borrowData);
-			await apiClient.createBorrowRecord(borrowData);
+	// 		console.log('Sending borrow data:', borrowData);
+	// 		await apiClient.createBorrowRecord(borrowData);
 
-			toast({
-				title: 'Success',
-				description: 'Asset borrowed successfully',
-			});
+	// 		toast({
+	// 			title: 'Success',
+	// 			description: 'Asset borrowed successfully',
+	// 		});
 
-			setIsBorrowDialogOpen(false);
-			setBorrowDriverId('');
-			setBorrowQuantity('1');
-			setBorrowNotes('');
-			setBorrowDate(new Date());
-			refetchAssets();
-			refetchRecords();
-		} catch (error: any) {
-			console.error('Borrow error:', error.response?.data);
-			toast({
-				title: 'Error',
-				description:
-					error.response?.data?.detail || 'Failed to record borrow',
-				variant: 'destructive',
-			});
-		}
-	};
+	// 		setIsBorrowDialogOpen(false);
+	// 		setBorrowDriverId('');
+	// 		setBorrowQuantity('1');
+	// 		setBorrowNotes('');
+	// 		setBorrowDate(new Date());
+	// 		refetchAssets();
+	// 		refetchRecords();
+	// 	} catch (error: any) {
+	// 		console.error('Borrow error:', error.response?.data);
+	// 		toast({
+	// 			title: 'Error',
+	// 			description:
+	// 				error.response?.data?.detail || 'Failed to record borrow',
+	// 			variant: 'destructive',
+	// 		});
+	// 	}
+	// };
 
 	if (isLoading) {
 		return (
@@ -185,14 +185,14 @@ export default function BorrowsPage() {
 							Manage asset borrowing and track active borrows
 						</p>
 					</div>
-					<div className='flex gap-2'>
+					{/* <div className='flex gap-2'>
 						<Button
 							onClick={() => setIsBorrowDialogOpen(true)}
 							className='bg-blue-700 hover:bg-blue-800 w-40'>
 							<ShoppingCart className='h-4 w-4 mr-2' />
 							Lend Asset
 						</Button>
-					</div>
+					</div> */}
 				</div>
 
 				{/* Search */}
@@ -264,7 +264,7 @@ export default function BorrowsPage() {
 				</Card>
 
 				{/* Borrow Dialog */}
-				<BorrowDialog
+				{/* <BorrowDialog
 					open={isBorrowDialogOpen}
 					onOpenChange={setIsBorrowDialogOpen}
 					assets={assets}
@@ -273,7 +273,7 @@ export default function BorrowsPage() {
 						refetchAssets();
 						refetchRecords();
 					}}
-				/>
+				/> */}
 			</div>
 		</div>
 	);

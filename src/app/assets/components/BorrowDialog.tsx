@@ -30,6 +30,7 @@ import { Label } from '@/components/ui/label';
 import { apiClient } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useEffect } from 'react';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -45,6 +46,7 @@ interface BorrowDialogProps {
 	assets: Asset[];
 	drivers: Driver[];
 	onSuccess: () => void;
+	clickedAsset?: Asset;
 }
 
 export function BorrowDialog({
@@ -53,10 +55,12 @@ export function BorrowDialog({
 	assets,
 	drivers,
 	onSuccess,
+	clickedAsset,
 }: BorrowDialogProps) {
 	const { toast } = useToast();
 
 	const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+	console.log('🚀 => BorrowDialog => selectedAsset:', selectedAsset);
 	const [borrowDriverId, setBorrowDriverId] = useState('');
 	const [borrowQuantity, setBorrowQuantity] = useState('1');
 	const [borrowNotes, setBorrowNotes] = useState('');
@@ -65,7 +69,11 @@ export function BorrowDialog({
 	const availableAssets = assets.filter(
 		(asset) => asset.availableQuantity > 0
 	);
-
+	useEffect(() => {
+		if (open) {
+			setSelectedAsset(clickedAsset ?? null);
+		}
+	}, [open, clickedAsset]);
 	const resetState = () => {
 		setSelectedAsset(null);
 		setBorrowDriverId('');
@@ -131,6 +139,7 @@ export function BorrowDialog({
 						<Label>Select Asset</Label>
 						<Select
 							value={selectedAsset?.id || ''}
+							disabled
 							onValueChange={(value) => {
 								const asset = availableAssets.find(
 									(a) => a.id === value
@@ -160,7 +169,7 @@ export function BorrowDialog({
 							<SelectTrigger>
 								<SelectValue placeholder='Select driver' />
 							</SelectTrigger>
-							<SelectContent>
+							<SelectContent className='max-h-60 overflow-y-auto'>
 								{drivers.map((driver) => (
 									<SelectItem
 										key={driver.id}

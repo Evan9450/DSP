@@ -61,16 +61,16 @@ const DriverTable = ({
 		};
 	};
 	return (
-		<Card className='bg-white overflow-x-auto'>
+		<Card className='bg-white shadow-sm hover:shadow-md transition-shadow rounded-lg overflow-x-auto p-6'>
 			<Table>
 				<TableHeader>
 					<TableRow>
-						<TableHead>Driver Name</TableHead>
-						<TableHead>Amazon ID</TableHead>
-						<TableHead>Contact</TableHead>
-						<TableHead>Address</TableHead>
-						<TableHead>Documents</TableHead>
-						<TableHead>Status</TableHead>
+						<TableHead className='text-sm text-gray-500'>Driver Name</TableHead>
+						<TableHead className='text-sm text-gray-500'>Amazon ID</TableHead>
+						<TableHead className='text-sm text-gray-500'>Contact</TableHead>
+						<TableHead className='text-sm text-gray-500'>Address</TableHead>
+						<TableHead className='text-sm text-gray-500'>Documents</TableHead>
+						<TableHead className='text-sm text-gray-500'>Status</TableHead>
 						<TableHead className='w-[80px]'></TableHead>
 					</TableRow>
 				</TableHeader>
@@ -80,22 +80,20 @@ const DriverTable = ({
 						return (
 							<TableRow
 								key={driver.id}
-								className='cursor-pointer hover:bg-gray-50 transition-colors'
+								className='cursor-pointer hover:bg-zinc-50 transition-colors'
 								onClick={() => handleRowClick(driver.id)}>
-								{/* <TableCell></TableCell> */}
 								<TableCell className='flex flex-row'>
-									<div className='p-2 bg-blue-100 rounded-full inline-block'>
-										<User className='h-5 w-5 text-blue-700' />
+									<div className='p-2 bg-indigo-50 rounded-full inline-block'>
+										<User className='h-5 w-5 text-indigo-600' />
 									</div>
 									<div className='ml-2'>
-										<p className='font-semibold text-gray-900'>
+										<p className='font-semibold text-zinc-900'>
 											{driver.name}
 										</p>
 										<div className='flex items-center gap-1 mt-1'>
-											{/* <Key className='h-3 w-3 text-gray-400' /> */}
 											<div className='flex items-center gap-1'>
-												<div className='w-2 h-2 rounded-full bg-green-500'></div>
-												<span className='text-xs text-gray-600'>
+												<div className='w-2 h-2 rounded-full bg-emerald-500'></div>
+												<span className='text-sm text-gray-500'>
 													{driver.deputyId}
 												</span>
 											</div>
@@ -105,12 +103,12 @@ const DriverTable = ({
 								<TableCell>
 									<Badge
 										variant='outline'
-										className='font-mono text-xs'>
+										className='font-mono text-xs border-gray-300'>
 										{driver.amazonId}
 									</Badge>
 									{driver.amazonPassword && (
 										<div className='flex items-center gap-1 mt-1'>
-											<div className='w-2 h-2 rounded-full bg-green-500'></div>
+											<div className='w-2 h-2 rounded-full bg-emerald-500'></div>
 											<span className='text-xs text-gray-500'>
 												Has Password
 											</span>
@@ -156,8 +154,7 @@ const DriverTable = ({
 											</div>
 											{docStatus.expired > 0 && (
 												<Badge
-													variant='destructive'
-													className='text-xs'>
+													className='bg-rose-500 text-white text-xs hover:bg-rose-600'>
 													{docStatus.expired} Expired
 												</Badge>
 											)}
@@ -171,7 +168,7 @@ const DriverTable = ({
 								<TableCell>
 									<div className='flex items-center gap-1'>
 										<div
-											className={`w-2 h-2 rounded-full ${driver.isActive ? 'bg-green-500' : 'bg-red-500'}`}></div>
+											className={`w-2 h-2 rounded-full ${driver.isActive ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
 										<span className='text-xs text-gray-600'>
 											{driver.isActive
 												? 'Active'
@@ -184,7 +181,7 @@ const DriverTable = ({
 										<Button
 											variant='ghost'
 											size='sm'
-											className='text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0'
+											className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 p-0'
 											onClick={(e) => {
 												e.stopPropagation();
 												handleDeleteClick(

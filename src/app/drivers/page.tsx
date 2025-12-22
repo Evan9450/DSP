@@ -144,25 +144,25 @@ export default function DriversPage() {
 
 	if (isLoading) {
 		return (
-			<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center'>
+			<div className='min-h-screen bg-zinc-100 flex items-center justify-center'>
 				<div className='text-center'>
-					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto'></div>
-					<p className='mt-4 text-gray-600'>Loading drivers...</p>
+					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-zinc-900 mx-auto'></div>
+					<p className='mt-4 text-sm text-gray-500'>Loading drivers...</p>
 				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>
-			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl'>
-				<div className='mb-4 sm:mb-6'>
-					<div className='flex justify-between'>
+		<div className='min-h-screen bg-zinc-100'>
+			<div className='container mx-auto py-12 px-4 max-w-7xl'>
+				<div className='mb-8'>
+					<div className='flex justify-between items-start'>
 						<div>
-							<h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>
+							<h1 className='text-4xl font-bold tracking-tight text-zinc-900'>
 								Driver Management
 							</h1>
-							<p className='text-sm sm:text-base text-gray-600 mt-1'>
+							<p className='text-sm text-gray-500 mt-2'>
 								Manage drivers, Amazon credentials, and document
 								expiry tracking
 							</p>
@@ -171,12 +171,12 @@ export default function DriversPage() {
 						<div>
 							<Button
 								variant='outline'
-								className='border-green-600 text-green-700 hover:bg-green-200 hover:!text-green-700'
+								className='border-emerald-500 text-emerald-500 hover:bg-emerald-50 rounded-md'
 								onClick={handleSyncDeputy}
 								disabled={isSyncingDeputy}>
 								{isSyncingDeputy ? (
 									<>
-										<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-green-700 mr-2'></div>
+										<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500 mr-2'></div>
 										<span className='hidden sm:inline'>
 											Syncing...
 										</span>
@@ -198,19 +198,19 @@ export default function DriversPage() {
 					</div>
 				</div>
 
-				<div className='mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3 justify-between'>
+				<div className='mb-6 flex flex-col sm:flex-row gap-3 justify-between'>
 					<div className='relative flex-1 max-w-full sm:max-w-md'>
-						<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+						<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500' />
 						<Input
 							placeholder='Search by name, Amazon ID, or email...'
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
-							className='pl-10'
+							className='pl-10 rounded-md'
 						/>
 					</div>
-					<div className='flex gap-2 '>
+					<div className='flex gap-2'>
 						<Button
-							className='bg-blue-700 hover:bg-blue-800 text-white'
+							className='bg-zinc-900 hover:bg-zinc-800 text-white rounded-md'
 							onClick={() => setShowAddDialog(true)}>
 							<Plus className='h-4 w-4 mr-2' />
 							<span className='hidden sm:inline'>Add Driver</span>
@@ -227,8 +227,8 @@ export default function DriversPage() {
 
 				{filteredDrivers.length === 0 && (
 					<div className='text-center py-12'>
-						<User className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-						<p className='text-gray-600'>No drivers found</p>
+						<User className='h-12 w-12 text-gray-500 mx-auto mb-4' />
+						<p className='text-base leading-7 text-gray-700'>No drivers found</p>
 					</div>
 				)}
 			</div>

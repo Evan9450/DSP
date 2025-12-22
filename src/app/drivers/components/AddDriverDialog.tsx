@@ -88,10 +88,10 @@ export function AddDriverDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
+			<DialogContent className='bg-white'>
 				<DialogHeader>
-					<DialogTitle>Add New Driver</DialogTitle>
-					<DialogDescription>
+					<DialogTitle className='text-2xl font-bold text-zinc-900'>Add New Driver</DialogTitle>
+					<DialogDescription className='text-sm text-gray-500'>
 						Create a new driver profile. You can add more details
 						later.
 					</DialogDescription>
@@ -134,10 +134,10 @@ export function AddDriverDialog({
 								})
 							}
 							placeholder='04XX XXX XXX or +61 4XX XXX XXX'
-							className={validationErrors.phone ? 'border-red-500' : ''}
+							className={validationErrors.phone ? 'border-rose-500' : ''}
 						/>
 						{validationErrors.phone && (
-							<p className='text-red-500 text-xs mt-1'>
+							<p className='text-rose-500 text-xs mt-1'>
 								{validationErrors.phone}
 							</p>
 						)}
@@ -154,10 +154,10 @@ export function AddDriverDialog({
 								})
 							}
 							placeholder='email@example.com'
-							className={validationErrors.email ? 'border-red-500' : ''}
+							className={validationErrors.email ? 'border-rose-500' : ''}
 						/>
 						{validationErrors.email && (
-							<p className='text-red-500 text-xs mt-1'>
+							<p className='text-rose-500 text-xs mt-1'>
 								{validationErrors.email}
 							</p>
 						)}
@@ -183,7 +183,7 @@ export function AddDriverDialog({
 					</p>
 				</div>
 				<DialogFooter>
-					<Button variant='outline' onClick={handleCancel}>
+					<Button variant='outline' onClick={handleCancel} className='rounded-md'>
 						Cancel
 					</Button>
 					<Button
@@ -194,7 +194,7 @@ export function AddDriverDialog({
 							hasValidationErrors(validationErrors) ||
 							isSubmitting
 						}
-						className='disabled:opacity-50 disabled:cursor-not-allowed'>
+						className='bg-zinc-900 hover:bg-zinc-800 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed'>
 						{isSubmitting ? 'Adding...' : 'Add Driver'}
 					</Button>
 				</DialogFooter>

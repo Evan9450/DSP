@@ -123,7 +123,9 @@ export default function DriverInspectionPage() {
 					data.existing_inspection.mileage_at_inspection.toString()
 				);
 				setNotes(data.existing_inspection.notes || '');
-				setExistingPhotoUrls(data.existing_inspection.inspection_urls || []);
+				setExistingPhotoUrls(
+					data.existing_inspection.inspection_urls || []
+				);
 			} else {
 				// Create mode
 				setMode('create');
@@ -252,7 +254,9 @@ export default function DriverInspectionPage() {
 
 				// Type safety check (should already be validated above)
 				if (!schedule?.vehicle_id) {
-					throw new Error('No vehicle_id available for creating inspection');
+					throw new Error(
+						'No vehicle_id available for creating inspection'
+					);
 				}
 
 				const payload = {
@@ -568,7 +572,7 @@ export default function DriverInspectionPage() {
 					</Card>
 
 					{/* Notes Section */}
-					<Card className='p-6'>
+					{/* <Card className='p-6'>
 						<h3 className='text-lg font-semibold text-gray-900 mb-4'>
 							Additional Notes (Optional)
 						</h3>
@@ -583,7 +587,7 @@ export default function DriverInspectionPage() {
 						<p className='text-xs text-gray-500 mt-2'>
 							{notes.length}/500 characters
 						</p>
-					</Card>
+					</Card> */}
 
 					{/* Submit Button */}
 					<Button

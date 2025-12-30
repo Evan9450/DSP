@@ -5,7 +5,10 @@ import {
 	Calendar,
 	Car,
 	Check,
+	CheckCircle2,
+	Clock,
 	Edit,
+	Eye,
 	FileText,
 	Image as ImageIcon,
 	MapPin,
@@ -14,6 +17,7 @@ import {
 	Upload,
 	Wrench,
 	X,
+	XCircle,
 } from 'lucide-react';
 import {
 	Select,
@@ -443,7 +447,7 @@ export default function VehicleDetailPage({
 										</div>
 										<div className='space-y-2'>
 											<Label htmlFor='edit-alias'>
-												Vehicle Number
+												Alias
 											</Label>
 											<Input
 												id='edit-alias'
@@ -646,7 +650,7 @@ export default function VehicleDetailPage({
 										</div>
 										<div>
 											<p className='text-sm text-gray-600'>
-												Vehicle Number
+												Alias
 											</p>
 											<p className='font-semibold text-lg'>
 												{vehicle.alias}
@@ -919,8 +923,8 @@ export default function VehicleDetailPage({
 							)}
 						</Card>
 
-						{/* Photos */}
-						<Card className='p-6'>
+						{/* Inspection History - Removed Vehicle Photos section */}
+						{/* <Card className='p-6'>
 							<div className='flex items-center justify-between mb-4'>
 								<h2 className='text-xl font-semibold text-gray-900 flex items-center gap-2'>
 									<ImageIcon className='h-5 w-5' />
@@ -1016,14 +1020,14 @@ export default function VehicleDetailPage({
 										images
 									</p>
 								</div>
-							)}
-						</Card>
+							)} */}
+						{/* </Card> */}
 
-						{/* Recent Inspections */}
+						{/* Inspection History */}
 						<Card className='p-6'>
 							<h2 className='text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2'>
 								<FileText className='h-5 w-5' />
-								Recent Inspections
+								Inspection History
 							</h2>
 
 							{vehicle.recent_inspections &&
@@ -1034,13 +1038,34 @@ export default function VehicleDetailPage({
 											<TableHead>Date</TableHead>
 											<TableHead>Driver</TableHead>
 											<TableHead>Mileage</TableHead>
-											<TableHead>Reviewed</TableHead>
+											<TableHead>Photos</TableHead>
+											<TableHead>Status</TableHead>
+											<TableHead>Review</TableHead>
+											<TableHead className='text-center'>Actions</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
 										{vehicle.recent_inspections.map(
-											(inspection: any) => (
-												<TableRow key={inspection.id}>
+											(inspection: any) => {
+												// Parse photo URLs
+												const getPhotoCount = (urls: any): number => {
+													if (!urls) return 0;
+													if (Array.isArray(urls)) return urls.length;
+													if (typeof urls === 'string') {
+														try {
+															const parsed = JSON.parse(urls);
+															return Array.isArray(parsed) ? parsed.length : 0;
+														} catch (e) {
+															return 0;
+														}
+													}
+													return 0;
+												};
+
+												const photoCount = getPhotoCount(inspection.inspection_urls);
+
+												return (
+												<TableRow key={inspection.id} className='hover:bg-gray-50'>
 													<TableCell>
 														{inspection.inspection_date
 															? format(
@@ -1070,18 +1095,58 @@ export default function VehicleDetailPage({
 														)}
 													</TableCell>
 													<TableCell>
-														{inspection.reviewed_by_admin ? (
-															<span className='text-green-600'>
-																✓ Yes
-															</span>
+														{photoCount > 0 ? (
+															<div className='flex items-center gap-1'>
+																<ImageIcon className='h-4 w-4 text-blue-600' />
+																<span className='text-sm'>{photoCount}</span>
+															</div>
 														) : (
-															<span className='text-gray-400'>
-																Pending
-															</span>
+															<span className='text-gray-400'>No photos</span>
 														)}
 													</TableCell>
+													<TableCell>
+														{inspection.inspection_status === 0 && (
+															<Badge variant='outline' className='border-yellow-300 bg-yellow-50 text-yellow-800'>
+																<Clock className='h-3 w-3 mr-1' />
+																Pending
+															</Badge>
+														)}
+														{inspection.inspection_status === 1 && (
+															<Badge variant='outline' className='border-green-300 bg-green-50 text-green-800'>
+																<CheckCircle2 className='h-3 w-3 mr-1' />
+																Passed
+															</Badge>
+														)}
+														{inspection.inspection_status === 2 && (
+															<Badge variant='outline' className='border-red-300 bg-red-50 text-red-800'>
+																<XCircle className='h-3 w-3 mr-1' />
+																Failed
+															</Badge>
+														)}
+													</TableCell>
+													<TableCell>
+														{inspection.reviewed_by_admin ? (
+															<Badge className='bg-blue-100 text-blue-800 border-blue-300'>
+																Reviewed
+															</Badge>
+														) : (
+															<Badge variant='outline' className='border-gray-300 bg-gray-50 text-gray-800'>
+																Not Reviewed
+															</Badge>
+														)}
+													</TableCell>
+													<TableCell className='text-center'>
+														<Button
+															variant='ghost'
+															size='sm'
+															onClick={() => router.push(`/inspections/${vehicle.id}?inspection_id=${inspection.id}`)}>
+															<Eye className='h-4 w-4 mr-1' />
+															View
+														</Button>
+													</TableCell>
 												</TableRow>
-											)
+												);
+											}
 										)}
 									</TableBody>
 								</Table>

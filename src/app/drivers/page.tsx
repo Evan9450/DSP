@@ -147,7 +147,9 @@ export default function DriversPage() {
 			<div className='min-h-screen bg-zinc-100 flex items-center justify-center'>
 				<div className='text-center'>
 					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-zinc-900 mx-auto'></div>
-					<p className='mt-4 text-sm text-gray-500'>Loading drivers...</p>
+					<p className='mt-4 text-sm text-gray-500'>
+						Loading drivers...
+					</p>
 				</div>
 			</div>
 		);
@@ -171,7 +173,7 @@ export default function DriversPage() {
 						<div>
 							<Button
 								variant='outline'
-								className='border-emerald-500 text-emerald-500 hover:bg-emerald-50 rounded-md'
+								className='border-emerald-500 text-emerald-500 hover:bg-emerald-50 rounded-md hover:text-emerald-500'
 								onClick={handleSyncDeputy}
 								disabled={isSyncingDeputy}>
 								{isSyncingDeputy ? (
@@ -210,7 +212,7 @@ export default function DriversPage() {
 					</div>
 					<div className='flex gap-2'>
 						<Button
-							className='bg-zinc-900 hover:bg-zinc-800 text-white rounded-md'
+							className=' text-white rounded-md'
 							onClick={() => setShowAddDialog(true)}>
 							<Plus className='h-4 w-4 mr-2' />
 							<span className='hidden sm:inline'>Add Driver</span>
@@ -228,7 +230,9 @@ export default function DriversPage() {
 				{filteredDrivers.length === 0 && (
 					<div className='text-center py-12'>
 						<User className='h-12 w-12 text-gray-500 mx-auto mb-4' />
-						<p className='text-base leading-7 text-gray-700'>No drivers found</p>
+						<p className='text-base leading-7 text-gray-700'>
+							No drivers found
+						</p>
 					</div>
 				)}
 			</div>

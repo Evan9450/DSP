@@ -65,12 +65,24 @@ const DriverTable = ({
 			<Table>
 				<TableHeader>
 					<TableRow>
-						<TableHead className='text-sm text-gray-500'>Driver Name</TableHead>
-						<TableHead className='text-sm text-gray-500'>Amazon ID</TableHead>
-						<TableHead className='text-sm text-gray-500'>Contact</TableHead>
-						<TableHead className='text-sm text-gray-500'>Address</TableHead>
-						<TableHead className='text-sm text-gray-500'>Documents</TableHead>
-						<TableHead className='text-sm text-gray-500'>Status</TableHead>
+						<TableHead className='text-sm text-gray-500'>
+							Driver Name
+						</TableHead>
+						<TableHead className='text-sm text-gray-500'>
+							Amazon ID
+						</TableHead>
+						<TableHead className='text-sm text-gray-500'>
+							Contact
+						</TableHead>
+						<TableHead className='text-sm text-gray-500'>
+							Address
+						</TableHead>
+						<TableHead className='text-sm text-gray-500'>
+							Documents
+						</TableHead>
+						<TableHead className='text-sm text-gray-500'>
+							Status
+						</TableHead>
 						<TableHead className='w-[80px]'></TableHead>
 					</TableRow>
 				</TableHeader>
@@ -83,8 +95,8 @@ const DriverTable = ({
 								className='cursor-pointer hover:bg-zinc-50 transition-colors'
 								onClick={() => handleRowClick(driver.id)}>
 								<TableCell className='flex flex-row'>
-									<div className='p-2 bg-indigo-50 rounded-full inline-block'>
-										<User className='h-5 w-5 text-indigo-600' />
+									<div className='h-10 w-10 p-2 bg-indigo-50 rounded-full flex items-center justify-center'>
+										<User className='h-5 w-5 text-indigo-600  ' />
 									</div>
 									<div className='ml-2'>
 										<p className='font-semibold text-zinc-900'>
@@ -153,8 +165,7 @@ const DriverTable = ({
 												</span>
 											</div>
 											{docStatus.expired > 0 && (
-												<Badge
-													className='bg-rose-500 text-white text-xs hover:bg-rose-600'>
+												<Badge className='bg-rose-500 text-white text-xs hover:bg-rose-600'>
 													{docStatus.expired} Expired
 												</Badge>
 											)}

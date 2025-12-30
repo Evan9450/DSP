@@ -393,18 +393,12 @@ export default function VehiclesPage() {
 											<div className='font-semibold text-gray-900 font-mono'>
 												{vehicle.rego}
 											</div>
-											<div className='text-xs text-gray-500'>
-												{vehicle.alias}
-											</div>
 										</TableCell>
 										<TableCell>
-											{vehicle.brand && vehicle.model ? (
+											{vehicle.alias ? (
 												<div>
 													<p className='font-medium text-gray-900'>
-														{vehicle.brand}
-													</p>
-													<p className='text-xs text-gray-600'>
-														{vehicle.model}
+														{vehicle.alias}
 													</p>
 												</div>
 											) : (
@@ -458,7 +452,7 @@ export default function VehiclesPage() {
 															'MMM dd, yyyy'
 														)}
 													</p>
-													{maintenanceDays !==
+													{/* {maintenanceDays !==
 														null && (
 														<p
 															className={`text-xs ${isOverdue ? 'text-red-500' : isDueSoon ? 'text-orange-500' : 'text-gray-500'}`}>
@@ -466,7 +460,7 @@ export default function VehiclesPage() {
 																? `${Math.abs(maintenanceDays)} days overdue`
 																: `${maintenanceDays} days`}
 														</p>
-													)}
+													)} */}
 												</div>
 											) : (
 												<span className='text-gray-400'>

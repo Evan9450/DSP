@@ -40,6 +40,14 @@ export function convertDriver(apiDriver: DriverResponse): Driver {
 		amazonPassword: apiDriver.amazon_password,
 		deputyId: apiDriver.deputy_id,
 		isActive: apiDriver.is_active,
+		// License fields
+		license_number: apiDriver.license_number,
+		license_expiry_date: apiDriver.license_expiry_date,
+		license_file_url: apiDriver.license_file_url,
+		// Visa fields
+		visa_number: apiDriver.visa_number,
+		visa_expiry_date: apiDriver.visa_expiry_date,
+		visa_file_url: apiDriver.visa_file_url,
 	};
 }
 

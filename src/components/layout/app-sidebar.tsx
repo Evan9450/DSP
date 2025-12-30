@@ -6,6 +6,7 @@ import {
 	Car,
 	ChevronDown,
 	ClipboardCheck,
+	FolderOpen,
 	LayoutDashboard,
 	MessageSquare,
 	Package,
@@ -66,6 +67,7 @@ const menuItems: MenuItem[] = [
 			{ href: '/borrows', label: 'Borrow Record' },
 		],
 	},
+	{ href: '/files', label: 'Files', icon: FolderOpen },
 ];
 
 export function AppSidebar() {

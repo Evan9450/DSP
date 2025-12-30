@@ -1,17 +1,33 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { CalendarIcon, FileText } from 'lucide-react';
+import {
+	CalendarIcon,
+	ExternalLink,
+	Eye,
+	FileText,
+	Trash2,
+	X,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog';
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from '@/components/ui/popover';
+import { useEffect, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import FilePreviewDialog from './FilePreviewDialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { apiClient } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -24,6 +40,7 @@ export interface DocumentInfoCardProps {
 	isEditing: boolean;
 	getStatusBadge: (expiryDate: string) => JSX.Element;
 	onEdit: (field: string, value: string) => void;
+	onDeleteFile?: (type: 'license' | 'visa', fileUrl: string) => Promise<void>;
 }
 
 export function DocumentInfoCard({
@@ -35,6 +52,7 @@ export function DocumentInfoCard({
 	isEditing,
 	getStatusBadge,
 	onEdit,
+	onDeleteFile,
 }: DocumentInfoCardProps) {
 	const documentNumber =
 		type === 'license' ? driver?.license_number : driver?.visa_number;
@@ -43,7 +61,7 @@ export function DocumentInfoCard({
 			? driver?.license_expiry_date
 			: driver?.visa_expiry_date;
 	const fileUrls =
-		type === 'license' ? driver?.license_files : driver?.visa_files;
+		type === 'license' ? driver?.license_file_url : driver?.visa_file_url;
 
 	const editedDocNumber =
 		type === 'license'
@@ -64,6 +82,15 @@ export function DocumentInfoCard({
 		editedExpiryDate ? new Date(editedExpiryDate) : undefined
 	);
 
+	// Preview dialog state
+	const [previewOpen, setPreviewOpen] = useState(false);
+	const [previewUrl, setPreviewUrl] = useState('');
+	const [previewLoading, setPreviewLoading] = useState(false);
+	const [previewError, setPreviewError] = useState(false);
+
+	// Delete state
+	const [deletingFileUrl, setDeletingFileUrl] = useState<string | null>(null);
+
 	// Sync calendar date when editedDriver changes
 	useEffect(() => {
 		if (editedExpiryDate) {
@@ -72,6 +99,71 @@ export function DocumentInfoCard({
 			setCalendarDate(undefined);
 		}
 	}, [editedExpiryDate]);
+
+	// Handle file preview
+	const handlePreview = async (fileUrl: string) => {
+		setPreviewOpen(true);
+		setPreviewLoading(true);
+		setPreviewError(false);
+
+		try {
+			// Extract file ID from URL (e.g., http://localhost:8000/api/v1/files/download/20 -> 20)
+			const fileIdMatch = fileUrl.match(/\/files\/download\/(\d+)/);
+			if (!fileIdMatch) {
+				setPreviewError(true);
+				setPreviewLoading(false);
+				return;
+			}
+
+			const fileId = parseInt(fileIdMatch[1]);
+
+			// Fetch file as blob with authentication
+			const blob = await apiClient.viewFile(fileId);
+
+			// Create object URL for preview
+			const objectUrl = URL.createObjectURL(blob);
+			setPreviewUrl(objectUrl);
+			setPreviewLoading(false);
+		} catch (error) {
+			console.error('Failed to load preview:', error);
+			setPreviewError(true);
+			setPreviewLoading(false);
+		}
+	};
+
+	// Clean up object URL when dialog closes
+	useEffect(() => {
+		return () => {
+			if (previewUrl) {
+				URL.revokeObjectURL(previewUrl);
+			}
+		};
+	}, [previewUrl]);
+
+	// Handle file delete
+	const handleDelete = async (fileUrl: string) => {
+		console.log('🗑️ Delete button clicked!', {
+			type,
+			fileUrl,
+			hasHandler: !!onDeleteFile,
+		});
+
+		if (!onDeleteFile) {
+			console.warn('⚠️ No onDeleteFile handler provided!');
+			return;
+		}
+
+		try {
+			console.log('⏳ Starting delete process...');
+			setDeletingFileUrl(fileUrl);
+			await onDeleteFile(type, fileUrl);
+			console.log('✅ Delete completed successfully!');
+		} catch (error) {
+			console.error('❌ Failed to delete file:', error);
+		} finally {
+			setDeletingFileUrl(null);
+		}
+	};
 
 	return (
 		<Card>
@@ -125,7 +217,8 @@ export function DocumentInfoCard({
 											variant='outline'
 											className={cn(
 												'w-full justify-start text-left font-normal mt-1',
-												!calendarDate && 'text-muted-foreground'
+												!calendarDate &&
+													'text-muted-foreground'
 											)}>
 											<CalendarIcon className='mr-2 h-4 w-4' />
 											{calendarDate ? (
@@ -142,12 +235,19 @@ export function DocumentInfoCard({
 											onSelect={(date) => {
 												setCalendarDate(date);
 												if (date) {
-													const formattedDate = format(date, 'yyyy-MM-dd');
+													const formattedDate =
+														format(
+															date,
+															'yyyy-MM-dd'
+														);
 													console.log(
 														`📅 ${type} expiry date changed:`,
 														formattedDate
 													);
-													onEdit(expiryDateField, formattedDate);
+													onEdit(
+														expiryDateField,
+														formattedDate
+													);
 												}
 											}}
 											initialFocus
@@ -165,29 +265,73 @@ export function DocumentInfoCard({
 							)}
 						</div>
 						<div>
-							<Label>File URLs</Label>
+							<Label>
+								Uploaded Files ({fileUrls?.length || 0})
+							</Label>
 							{fileUrls && fileUrls.length > 0 ? (
-								<div className='space-y-1 mt-1'>
+								<div className='space-y-2 mt-2'>
 									{fileUrls.map(
 										(url: string, index: number) => (
-											<a
+											<div
 												key={index}
-												href={url}
-												target='_blank'
-												rel='noopener noreferrer'
-												className='text-blue-600 hover:underline text-sm break-all block'>
-												File {index + 1}: {url}
-											</a>
+												className='flex items-center justify-between p-2 bg-gray-50 rounded-md border border-gray-200 hover:border-indigo-300 transition-colors'>
+												<div className='flex items-center gap-2 flex-1 min-w-0'>
+													<FileText className='h-4 w-4 text-gray-500 shrink-0' />
+													<button
+														onClick={() =>
+															handlePreview(url)
+														}
+														className='text-indigo-600 hover:text-indigo-700 text-sm truncate flex-1 text-left'>
+														File {index + 1}
+													</button>
+												</div>
+												<div className='flex items-center gap-1 shrink-0 ml-2'>
+													{onDeleteFile && (
+														<Button
+															variant='ghost'
+															size='sm'
+															onClick={() =>
+																handleDelete(
+																	url
+																)
+															}
+															className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 p-0'
+															disabled={
+																deletingFileUrl ===
+																url
+															}>
+															{deletingFileUrl ===
+															url ? (
+																<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-rose-500'></div>
+															) : (
+																<Trash2 className='h-4 w-4' />
+															)}
+														</Button>
+													)}
+												</div>
+											</div>
 										)
 									)}
 								</div>
 							) : (
-								<p className='text-gray-900 mt-1'>-</p>
+								<p className='text-sm text-gray-500 mt-1'>
+									No files uploaded
+								</p>
 							)}
 						</div>
 					</div>
 				)}
 			</CardContent>
+
+			{/* Preview Dialog */}
+			<FilePreviewDialog
+				previewOpen={previewOpen}
+				setPreviewOpen={setPreviewOpen}
+				previewLoading={previewLoading}
+				previewError={previewError}
+				previewUrl={previewUrl}
+				setPreviewError={setPreviewError}
+			/>
 		</Card>
 	);
 }

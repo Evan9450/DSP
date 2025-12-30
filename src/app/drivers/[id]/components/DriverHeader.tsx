@@ -1,6 +1,7 @@
 'use client';
 
 import { ArrowLeft, Edit, Save, Shield, X } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 
 export interface DriverHeaderProps {
@@ -30,7 +31,7 @@ export function DriverHeader({
 				<Button
 					variant='outline'
 					onClick={onBack}
-					className='border-blue-600 text-blue-700 hover:bg-blue-50'>
+					className='border-blue-600 text-blue-700 hover:bg-blue-50 hover:text-blue-700'>
 					<ArrowLeft className='h-4 w-4 mr-2' />
 					Back
 				</Button>
@@ -45,7 +46,7 @@ export function DriverHeader({
 				<Button
 					variant='outline'
 					onClick={onSetPassword}
-					className='border-blue-600 text-blue-700 hover:bg-blue-50'>
+					className='border-blue-600 text-blue-700 hover:bg-blue-50 hover:text-blue-700'>
 					<Shield className='h-4 w-4 mr-2' />
 					Set Password
 				</Button>

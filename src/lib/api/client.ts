@@ -27,6 +27,12 @@ export interface TokenResponse {
 	user: UserResponse;
 }
 
+export interface DriverTokenResponse {
+	access_token: string;
+	token_type: string;
+	driver: DriverResponse;
+}
+
 // User Types
 export type UserRole = 0 | 1; // 0 = Admin (Superuser), 1 = Manager
 
@@ -74,11 +80,11 @@ export interface DriverResponse {
 	// License fields
 	license_number?: string;
 	license_expiry_date?: string;
-	license_files?: string[]; // Array of file URLs
+	license_file_url?: string[]; // Array of file URLs (allows multiple)
 	// Visa fields
 	visa_number?: string;
 	visa_expiry_date?: string;
-	visa_files?: string[]; // Array of file URLs
+	visa_file_url?: string[]; // Array of file URLs (single file, replaces on new upload)
 	created_at: string;
 	updated_at: string;
 }
@@ -102,6 +108,14 @@ export interface DriverUpdate {
 	amazon_password?: string;
 	deputy_id?: string;
 	is_active?: boolean;
+	// License fields
+	license_number?: string;
+	license_expiry_date?: string;
+	license_file_url?: string[]; // Array of file URLs (allows multiple)
+	// Visa fields
+	visa_number?: string;
+	visa_expiry_date?: string;
+	visa_file_url?: string[]; // Array of file URLs (single file, replaces on new upload)
 }
 
 // Driver File Types
@@ -200,7 +214,8 @@ export interface VehicleInspectionResponse {
 	driver_id: number;
 	inspection_date: string;
 	mileage_at_inspection: number;
-	photo_urls: string[];
+	notes?: string; // Driver's inspection notes
+	inspection_urls: string[]; // IMPORTANT: Backend uses inspection_urls, not photo_urls
 	inspection_status: 0 | 1 | 2; // 0=pending, 1=passed, 2=failed
 	reviewed_by_admin: boolean;
 	admin_notes?: string;
@@ -213,13 +228,13 @@ export interface VehicleInspectionCreate {
 	driver_id: number;
 	inspection_date: string;
 	mileage_at_inspection: number;
-	photo_urls?: string[];
+	inspection_urls?: string[]; // IMPORTANT: Backend uses inspection_urls, not photo_urls
 }
 
 export interface VehicleInspectionUpdate {
 	inspection_date?: string;
 	mileage_at_inspection?: number;
-	photo_urls?: string[];
+	inspection_urls?: string[]; // IMPORTANT: Backend uses inspection_urls, not photo_urls
 }
 
 export interface VehicleInspectionReview {
@@ -242,19 +257,19 @@ export interface VehicleInspectionPhotoResponse {
 // Schedule Types
 export interface ScheduleResponse {
 	id: number;
-	driver_id: number;
-	vehicle_id?: number;
-	date: string;
+	deputy_id: string;
+	driver_name: string;
+	amazon_id?: string | null;
+	schedule_date: string;
+	route?: string | null;
+	vehicle?: string | null;
+	deputy_schedule_id: string;
 	start_time: string;
 	end_time: string;
-	route?: string;
-	status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-	deputy_shift_id?: string;
-	sms_sent: boolean;
-	sms_sent_at?: string;
-	driver_confirmed: boolean;
-	driver_confirmed_at?: string;
-	notes?: string;
+	checkin_status: 'not_checked_in' | 'checked_in' | 'completed';
+	confirm_status: 'pending' | 'confirmed' | 'cancelled';
+	reminder_sms_sent: boolean;
+	assignment_sms_sent: boolean;
 	created_at: string;
 	updated_at: string;
 }
@@ -273,14 +288,11 @@ export interface ScheduleCreate {
 
 export interface ScheduleUpdate {
 	driver_id?: number;
-	vehicle_id?: number;
-	date?: string;
-	start_time?: string;
-	end_time?: string;
+	deputy_id?: string;
 	route?: string;
-	status?: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-	deputy_shift_id?: string;
-	notes?: string;
+	vehicle?: string;
+	checkin_status?: 'not_checked_in' | 'checked_in' | 'completed';
+	confirm_status?: 'pending' | 'confirmed' | 'cancelled';
 }
 
 // Product Types (replaced Asset)
@@ -369,11 +381,11 @@ export type BorrowRecordUpdate = ProductBorrowReturn;
 
 // Settings Types - System Configuration
 export interface SystemConfigResponse {
-	admin_phone?: string; // 管理员提醒电话
-	driver_file_reminder_days?: number; // 司机文件临期提醒周期（10/15/30天）
-	daily_sms_time?: string; // 司机每日确认短信时间（HH:MM格式）
-	maintenance_booking_reminder_days?: number; // 保养预约提醒周期（10/15/30天）
-	next_maintenance_reminder_days?: number; // 下次保养临近提醒周期（10/15/30天）
+	admin_phone?: string; // Admin reminder phone number
+	driver_file_reminder_days?: number; // Driver file expiry reminder cycle (10/15/30 days)
+	daily_sms_time?: string; // Daily driver confirmation SMS time (HH:MM format)
+	maintenance_booking_reminder_days?: number; // Maintenance booking reminder cycle (10/15/30 days)
+	next_maintenance_reminder_days?: number; // Next maintenance approaching reminder cycle (10/15/30 days)
 }
 
 export interface SystemConfigUpdate {
@@ -431,6 +443,22 @@ export interface DashboardAlertsResponse {
 	maintenance_due: any[];
 	unreviewed_inspections: any[];
 	low_stock_products: any[];
+}
+
+// File Management Types
+export interface FileRecordResponse {
+	id: number;
+	filename: string;
+	original_filename: string;
+	file_url: string;
+	file_size: number;
+	content_type: string;
+	folder: string;
+	uploaded_at: string;
+}
+
+export interface BatchDeleteFilesRequest {
+	file_ids: number[];
 }
 
 // ============================================================================
@@ -603,11 +631,11 @@ class APIClient {
 	async driverLogin(
 		amazonId: string,
 		password: string
-	): Promise<TokenResponse> {
-		const response = await this.client.post<TokenResponse>(
-			'/api/v1/auth/driver-login',
+	): Promise<DriverTokenResponse> {
+		const response = await this.client.post<DriverTokenResponse>(
+			'/api/v1/auth/driver/login',
 			{
-				username: amazonId,
+				amazon_id: amazonId,
 				password,
 			}
 		);
@@ -766,13 +794,33 @@ class APIClient {
 			console.log('  - License Expiry:', response.data.license_expiry_date);
 			console.log('  - Visa Number:', response.data.visa_number);
 			console.log('  - Visa Expiry:', response.data.visa_expiry_date);
-			console.log('  - License Files:', response.data.license_files);
-			console.log('  - Visa Files:', response.data.visa_files);
+			console.log('  - License Files:', response.data.license_file_url);
+			console.log('  - Visa Files:', response.data.visa_file_url);
 			return response.data;
 		} catch (error: any) {
 			console.error('❌ Failed to update driver:', error.response?.data);
 			throw error;
 		}
+	}
+
+	/**
+	 * Update driver with FormData (for file URL updates)
+	 * Backend expects license_file_url/visa_file_url as JSON strings
+	 */
+	async updateDriverWithFormData(
+		driverId: number,
+		formData: FormData
+	): Promise<DriverResponse> {
+		const response = await this.client.put<DriverResponse>(
+			`/api/v1/drivers/${driverId}`,
+			formData,
+			{
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			}
+		);
+		return response.data;
 	}
 
 	async deleteDriver(driverId: number): Promise<void> {
@@ -849,6 +897,13 @@ class APIClient {
 		const response =
 			await this.client.get<VehicleResponse[]>('/api/v1/vehicles/');
 		console.log('🚀 => APIClient => getVehicles => response:', response);
+		return response.data;
+	}
+
+	async getAvailableVehicles(): Promise<VehicleResponse[]> {
+		const response = await this.client.get<VehicleResponse[]>(
+			'/api/v1/vehicles/available'
+		);
 		return response.data;
 	}
 
@@ -1106,17 +1161,23 @@ class APIClient {
 	// Schedule API
 	// ============================================================================
 
-	async getSchedules(
-		startDate?: string,
-		endDate?: string
-	): Promise<ScheduleResponse[]> {
-		const params: Record<string, string> = {};
-		if (startDate) params.start_date = startDate;
-		if (endDate) params.end_date = endDate;
-
+	async getSchedules(params?: {
+		schedule_date?: string; // YYYY-MM-DD
+		deputy_id?: string;
+		checkin_status?: string;
+		auto_sync?: boolean;
+	}): Promise<ScheduleResponse[]> {
 		const response = await this.client.get<ScheduleResponse[]>(
 			'/api/v1/schedules/',
 			{ params }
+		);
+		return response.data;
+	}
+
+	async getTodaySchedules(autoSync: boolean = true): Promise<ScheduleResponse[]> {
+		const response = await this.client.get<ScheduleResponse[]>(
+			'/api/v1/schedules/today',
+			{ params: { auto_sync: autoSync } }
 		);
 		return response.data;
 	}
@@ -1177,6 +1238,40 @@ class APIClient {
 			synced_count: number;
 			new_schedules: ScheduleResponse[];
 		}>('/api/v1/schedules/sync-deputy');
+		return response.data;
+	}
+
+	// Deputy Roster API
+	async syncSpecificDate(syncDate: string): Promise<any> {
+		const response = await this.client.post(
+			'/api/v1/schedules/sync-date',
+			null,
+			{ params: { sync_date: syncDate } }
+		);
+		return response.data;
+	}
+
+	async syncToday(): Promise<any> {
+		const response = await this.client.post('/api/v1/schedules/sync-today');
+		return response.data;
+	}
+
+	async importRoutes(file: File, importDate?: string): Promise<any> {
+		const formData = new FormData();
+		formData.append('file', file);
+
+		const params = importDate ? { import_date: importDate } : {};
+
+		const response = await this.client.post(
+			'/api/v1/schedules/import-routes',
+			formData,
+			{
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+				params,
+			}
+		);
 		return response.data;
 	}
 
@@ -1336,8 +1431,7 @@ class APIClient {
 	// ============================================================================
 
 	/**
-	 * Get system configuration
-	 * 获取系统配置（所有用户可见）
+	 * Get system configuration (visible to all users)
 	 */
 	async getSystemConfig(): Promise<SystemConfigResponse> {
 		const response = await this.client.get<SystemConfigResponse>(
@@ -1347,8 +1441,7 @@ class APIClient {
 	}
 
 	/**
-	 * Create system configuration
-	 * 创建/初始化系统配置
+	 * Create/initialize system configuration
 	 */
 	async createSystemConfig(
 		data: SystemConfigUpdate
@@ -1362,7 +1455,6 @@ class APIClient {
 
 	/**
 	 * Update system configuration (batch update)
-	 * 更新系统配置（批量更新）
 	 */
 	async updateSystemConfig(
 		data: SystemConfigUpdate
@@ -1418,6 +1510,88 @@ class APIClient {
 	async getDashboardAlerts(): Promise<DashboardAlertsResponse> {
 		const response = await this.client.get<DashboardAlertsResponse>(
 			'/api/v1/dashboard/alerts'
+		);
+		return response.data;
+	}
+
+	// ============================================================================
+	// File Management API
+	// ============================================================================
+
+	async uploadFile(
+		file: File,
+		folder: string = 'uploads'
+	): Promise<FileRecordResponse> {
+		const formData = new FormData();
+		formData.append('file', file);
+		formData.append('folder', folder);
+
+		const response = await this.client.post<FileRecordResponse>(
+			'/api/v1/files/upload',
+			formData,
+			{
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			}
+		);
+		return response.data;
+	}
+
+	async batchUploadFiles(
+		files: File[],
+		folder: string = 'uploads'
+	): Promise<FileRecordResponse[]> {
+		const formData = new FormData();
+		files.forEach((file) => {
+			formData.append('files', file);
+		});
+		formData.append('folder', folder);
+
+		const response = await this.client.post<FileRecordResponse[]>(
+			'/api/v1/files/batch-upload',
+			formData,
+			{
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			}
+		);
+		return response.data;
+	}
+
+	async listFiles(folder?: string): Promise<FileRecordResponse[]> {
+		const params = folder ? { folder } : {};
+		const response = await this.client.get<FileRecordResponse[]>(
+			'/api/v1/files/list',
+			{ params }
+		);
+		return response.data;
+	}
+
+	async deleteFile(fileId: number): Promise<void> {
+		await this.client.delete(`/api/v1/files/delete/${fileId}`);
+	}
+
+	async batchDeleteFiles(fileIds: number[]): Promise<void> {
+		const formData = new FormData();
+		fileIds.forEach((id) => {
+			formData.append('file_ids', id.toString());
+		});
+
+		await this.client.post('/api/v1/files/batch-delete', formData, {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+		});
+	}
+
+	async viewFile(fileId: number): Promise<Blob> {
+		const response = await this.client.get(
+			`/api/v1/files/download/${fileId}`,
+			{
+				responseType: 'blob',
+			}
 		);
 		return response.data;
 	}

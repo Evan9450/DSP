@@ -212,48 +212,169 @@ export default function DriverDetailPage() {
 		expiryDate: string,
 		documentNumber?: string
 	) => {
-		if (!driverId || !file) return;
+		if (!driverId || !file) {
+			notify.error('Missing driver ID or file');
+			return;
+		}
 
 		console.log('🔄 handleFileUpload called:', {
 			type,
-			file,
+			file: file.name,
 			expiryDate,
 			documentNumber,
 		});
 
 		try {
-			// Use new unified update API
-			const updateData: any = {};
+			// Step 1: Upload file to MinIO/Wasabi using new file upload API
+			console.log('📤 Step 1: Uploading file to storage...');
+			const fileRecord = await apiClient.uploadFile(file, 'drivers');
+			console.log('✅ File uploaded successfully!');
+			console.log('📋 File record:', fileRecord);
+			console.log('🔗 File URL:', fileRecord.file_url);
 
+			// Step 2: Get current file URLs array
+			console.log('📤 Step 2: Getting current files...');
+			const currentFiles =
+				type === 'license'
+					? driver?.license_file_url || []
+					: driver?.visa_file_url || [];
+			console.log('📋 Current files:', currentFiles);
+
+			// Step 3: Prepare updated files array based on type
+			console.log('📤 Step 3: Preparing updated files array...');
+			// License: allows multiple files (add to array)
+			// Visa: only one file (replace array)
+			const updatedFiles =
+				type === 'license'
+					? [...currentFiles, fileRecord.file_url] // Add to existing
+					: [fileRecord.file_url]; // Replace with new file only
+			console.log('📋 Updated files array:', updatedFiles);
+
+			// Step 4: Prepare FormData for multipart/form-data request
+			console.log('📤 Step 4: Preparing FormData...');
+			const formData = new FormData();
+
+			// Backend expects JSON string for file URLs
 			if (type === 'license') {
-				if (file) updateData.license_file = file;
+				formData.append(
+					'license_file_url',
+					JSON.stringify(updatedFiles)
+				);
 				if (documentNumber !== undefined && documentNumber !== '') {
-					updateData.license_number = documentNumber;
+					formData.append('license_number', documentNumber);
 				}
-				if (expiryDate) updateData.license_expiry_date = expiryDate;
+				if (expiryDate) {
+					formData.append('license_expiry_date', expiryDate);
+				}
 			} else if (type === 'visa') {
-				if (file) updateData.visa_file = file;
+				formData.append('visa_file_url', JSON.stringify(updatedFiles));
 				if (documentNumber !== undefined && documentNumber !== '') {
-					updateData.visa_number = documentNumber;
+					formData.append('visa_number', documentNumber);
 				}
-				if (expiryDate) updateData.visa_expiry_date = expiryDate;
+				if (expiryDate) {
+					formData.append('visa_expiry_date', expiryDate);
+				}
 			}
 
-			console.log('📤 Calling updateDriverWithFiles with:', updateData);
-			const updatedDriver = await apiClient.updateDriverWithFiles(
+			console.log('📤 FormData prepared with:');
+			Array.from(formData.entries()).forEach(([key, value]) => {
+				console.log(`  ${key}:`, value);
+			});
+
+			// Step 5: Update driver record with new file URLs using FormData
+			console.log('📤 Step 5: Calling updateDriver API with FormData...');
+			console.log('🔍 Request details:', {
 				driverId,
-				updateData
+				contentType: 'multipart/form-data',
+			});
+
+			const updatedDriver = await apiClient.updateDriverWithFormData(
+				driverId,
+				formData
 			);
-			console.log(
-				'✅ updateDriverWithFiles completed, response:',
-				updatedDriver
+
+			console.log('✅ Driver updated successfully!');
+			console.log('📋 Response:', JSON.stringify(updatedDriver, null, 2));
+			console.log('🔍 File URLs in response:', {
+				license_file_url: updatedDriver.license_file_url,
+				visa_file_url: updatedDriver.visa_file_url,
+			});
+
+			// Step 6: Refetch driver data to update UI
+			console.log('📤 Step 6: Refetching driver data...');
+			await refetchDriver();
+			console.log('✅ Driver data refetched successfully!');
+
+			// Show success notification
+		} catch (error: any) {
+			console.error('❌ Upload failed:', error);
+			console.error('❌ Error details:', error.response?.data);
+			handleApiError(
+				error,
+				`Failed to upload ${type === 'license' ? 'license' : 'visa'} file`
 			);
+			throw error;
+		}
+	};
+
+	const handleDeleteFile = async (
+		type: 'license' | 'visa',
+		fileUrl: string
+	) => {
+		if (!driverId) return;
+
+		console.log('🗑️ handleDeleteFile called:', { type, fileUrl });
+
+		try {
+			// Get current files
+			const currentFiles =
+				type === 'license'
+					? driver?.license_file_url || []
+					: driver?.visa_file_url || [];
+			console.log('📋 Current files:', currentFiles);
+
+			// Remove the file URL from array
+			const updatedFiles = currentFiles.filter((url) => url !== fileUrl);
+			console.log('📋 Updated files after removal:', updatedFiles);
+
+			// Prepare FormData for multipart/form-data request
+			const formData = new FormData();
+
+			// Backend expects JSON string for file URLs
+			if (type === 'license') {
+				formData.append(
+					'license_file_url',
+					JSON.stringify(updatedFiles)
+				);
+			} else {
+				formData.append('visa_file_url', JSON.stringify(updatedFiles));
+			}
+
+			console.log('📤 Updating driver with FormData...');
+			Array.from(formData.entries()).forEach(([key, value]) => {
+				console.log(`  ${key}:`, value);
+			});
+
+			await apiClient.updateDriverWithFormData(driverId, formData);
 
 			console.log('🔄 Refetching driver data...');
 			await refetchDriver();
-			console.log('✅ Driver data refetched');
+
+			notify.success(
+				successMessages.driver.fileDeleted(
+					driver?.name,
+					type === 'license' ? 'license' : 'visa'
+				)
+			);
 		} catch (error) {
-			console.error('❌ Failed to upload file:', error);
+			console.error('❌ Failed to delete file:', error);
+			handleApiError(
+				error,
+				errorMessages.driver.fileDeleteFailed(
+					driver?.name,
+					type === 'license' ? 'license' : 'visa'
+				)
+			);
 			throw error;
 		}
 	};
@@ -384,6 +505,7 @@ export default function DriverDetailPage() {
 									[field]: value,
 								});
 							}}
+							onDeleteFile={handleDeleteFile}
 						/>
 						<DocumentInfoCard
 							type='visa'
@@ -405,6 +527,7 @@ export default function DriverDetailPage() {
 									[field]: value,
 								});
 							}}
+							onDeleteFile={handleDeleteFile}
 						/>
 					</div>
 

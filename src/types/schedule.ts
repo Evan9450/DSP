@@ -93,6 +93,14 @@ export interface Driver {
 	address?: string;
 	deputyId?: string; // Synced from Deputy
 	isActive?: boolean;
+	// License fields
+	license_number?: string;
+	license_expiry_date?: string;
+	license_file_url?: string[]; // Array of file URLs (allows multiple)
+	// Visa fields
+	visa_number?: string;
+	visa_expiry_date?: string;
+	visa_file_url?: string[]; // Array of file URLs (single file, replaces on new upload)
 	documents?: DriverDocument[];
 	kpi?: DriverKPI;
 	createdAt?: Date;

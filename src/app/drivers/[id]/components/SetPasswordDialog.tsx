@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import {
 	Dialog,
 	DialogContent,
@@ -9,10 +8,13 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useState } from 'react';
 
+const MIN_PASSWORD_LENGTH = 6;
 export interface SetPasswordDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
@@ -29,8 +31,10 @@ export function SetPasswordDialog({
 	const [newPassword, setNewPassword] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
+	const isPasswordValid = newPassword.length >= MIN_PASSWORD_LENGTH;
+
 	const handleSubmit = async () => {
-		if (!newPassword) return;
+		if (!isPasswordValid) return;
 
 		setIsSubmitting(true);
 		try {
@@ -38,7 +42,6 @@ export function SetPasswordDialog({
 			setNewPassword('');
 			onOpenChange(false);
 		} catch (error) {
-			// Error handling is done in the parent
 			console.error('Failed to set password:', error);
 		} finally {
 			setIsSubmitting(false);
@@ -68,6 +71,13 @@ export function SetPasswordDialog({
 							}
 						}}
 					/>
+					{/* Hint message */}
+					{newPassword.length > 0 && !isPasswordValid && (
+						<p className='text-sm text-destructive'>
+							Password must be at least {MIN_PASSWORD_LENGTH}{' '}
+							characters.
+						</p>
+					)}
 				</div>
 				<DialogFooter>
 					<Button

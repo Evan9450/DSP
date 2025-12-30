@@ -143,6 +143,10 @@ export const successMessages = {
 			type
 				? `${type} updated successfully`
 				: 'Document updated successfully',
+		fileDeleted: (name?: string, type?: string) =>
+			name && type
+				? `${type} file deleted for ${name}`
+				: 'File deleted successfully',
 	},
 	vehicle: {
 		created: (name?: string) =>
@@ -217,6 +221,10 @@ export const errorMessages = {
 				: 'Failed to set password',
 		documentFailed: (type?: string) =>
 			type ? `Failed to upload ${type}` : 'Failed to upload document',
+		fileDeleteFailed: (name?: string, type?: string) =>
+			name && type
+				? `Failed to delete ${type} file for ${name}`
+				: 'Failed to delete file',
 		notFound: (id?: string | number) =>
 			id ? `Driver with ID ${id} not found` : 'Driver not found',
 	},

@@ -60,6 +60,7 @@ export default function DriverInspectionPage() {
 	// UI State
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [submitError, setSubmitError] = useState('');
 
 	// ========================================================================
 	// Initialization
@@ -163,6 +164,9 @@ export default function DriverInspectionPage() {
 		// Generate previews
 		const newPreviews = files.map((file) => URL.createObjectURL(file));
 		setNewFilesPreviews([...newFilesPreviews, ...newPreviews]);
+
+		// Clear submit error when user adds photos
+		if (submitError) setSubmitError('');
 	};
 
 	const handleRemoveNewPhoto = (index: number) => {
@@ -184,6 +188,8 @@ export default function DriverInspectionPage() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		setSubmitError(''); // Clear previous errors
+
 		console.log('🔵 handleSubmit called');
 		console.log('Mode:', mode);
 		console.log('Existing photos:', existingPhotoUrls.length);
@@ -195,9 +201,11 @@ export default function DriverInspectionPage() {
 		const totalPhotos = existingPhotoUrls.length + newFiles.length;
 		if (totalPhotos === 0) {
 			console.log('❌ Validation failed: No photos');
+			const errorMsg = 'Please upload at least one photo of the vehicle';
+			setSubmitError(errorMsg);
 			toast({
 				title: 'Photos Required',
-				description: 'Please upload at least one photo of the vehicle',
+				description: errorMsg,
 				variant: 'destructive',
 			});
 			return;
@@ -205,20 +213,24 @@ export default function DriverInspectionPage() {
 
 		if (!mileage || parseInt(mileage) <= 0) {
 			console.log('❌ Validation failed: Invalid mileage');
+			const errorMsg = 'Please enter a valid odometer reading';
+			setSubmitError(errorMsg);
 			toast({
 				title: 'Mileage Required',
-				description: 'Please enter a valid odometer reading',
+				description: errorMsg,
 				variant: 'destructive',
 			});
 			return;
 		}
 
 		// Only validate vehicle_id in create mode (update mode doesn't need it)
-		if (mode === 'create' && !schedule?.vehicle_id) {
+		if (mode === 'create' && (!schedule?.vehicle_id || schedule.vehicle_id === null)) {
 			console.log('❌ Validation failed: No vehicle_id');
+			const errorMsg = 'ERROR: No vehicle assigned in your schedule. Please contact your manager to assign a vehicle before submitting inspection.';
+			setSubmitError(errorMsg);
 			toast({
-				title: 'Error',
-				description: 'No vehicle assigned in schedule',
+				title: 'Vehicle Not Assigned',
+				description: errorMsg,
 				variant: 'destructive',
 			});
 			return;
@@ -253,7 +265,7 @@ export default function DriverInspectionPage() {
 				console.log('🆕 Creating new inspection...');
 
 				// Type safety check (should already be validated above)
-				if (!schedule?.vehicle_id) {
+				if (!schedule?.vehicle_id || schedule.vehicle_id === null) {
 					throw new Error(
 						'No vehicle_id available for creating inspection'
 					);
@@ -270,6 +282,7 @@ export default function DriverInspectionPage() {
 				await driverApiClient.createInspection(payload);
 				console.log('✅ Inspection created');
 
+				setSubmitError(''); // Clear any previous errors
 				toast({
 					title: 'Inspection Submitted',
 					description:
@@ -287,6 +300,7 @@ export default function DriverInspectionPage() {
 				await driverApiClient.updateInspection(payload);
 				console.log('✅ Inspection updated');
 
+				setSubmitError(''); // Clear any previous errors
 				toast({
 					title: 'Inspection Updated',
 					description:
@@ -313,12 +327,16 @@ export default function DriverInspectionPage() {
 				status: error.response?.status,
 				data: error.response?.data,
 			});
+
+			const errorMsg =
+				error.response?.data?.detail ||
+				error.message ||
+				'Failed to submit inspection. Please try again.';
+
+			setSubmitError(errorMsg);
 			toast({
 				title: 'Submission Failed',
-				description:
-					error.response?.data?.detail ||
-					error.message ||
-					'Failed to submit inspection. Please try again.',
+				description: errorMsg,
 				variant: 'destructive',
 			});
 		} finally {
@@ -434,7 +452,7 @@ export default function DriverInspectionPage() {
 							<div>
 								<p className='text-xs text-gray-500'>Vehicle</p>
 								<p className='font-medium text-gray-900'>
-									{schedule.vehicle || 'Not assigned'}
+									{schedule.vehicle_alias || 'Not assigned'}
 								</p>
 							</div>
 						</div>
@@ -575,7 +593,10 @@ export default function DriverInspectionPage() {
 							type='number'
 							placeholder='Enter current odometer reading'
 							value={mileage}
-							onChange={(e) => setMileage(e.target.value)}
+							onChange={(e) => {
+								setMileage(e.target.value);
+								if (submitError) setSubmitError('');
+							}}
 							className='text-lg'
 							min='0'
 							required
@@ -603,6 +624,19 @@ export default function DriverInspectionPage() {
 							{notes.length}/500 characters
 						</p>
 					</Card> */}
+
+					{/* Error Display */}
+					{submitError && (
+						<div className='flex items-start gap-3 p-4 bg-red-50 border-2 border-red-300 rounded-lg'>
+							<AlertCircle className='h-6 w-6 text-red-600 flex-shrink-0 mt-0.5' />
+							<div>
+								<p className='font-semibold text-red-900 mb-1'>
+									Submission Error
+								</p>
+								<p className='text-sm text-red-700'>{submitError}</p>
+							</div>
+						</div>
+					)}
 
 					{/* Submit Button */}
 					<Button

@@ -34,13 +34,12 @@ export interface ScheduleInfo {
 	id: number;
 	deputy_id: string;
 	driver_name: string;
-	amazon_id?: string;
 	schedule_date: string;
-	route?: string;
-	vehicle?: string;
-	vehicle_id?: number;
 	start_time: string;
 	end_time: string;
+	vehicle_id: number | null;
+	vehicle_alias: string | null;
+	route: string | null;
 	checkin_status: 'not_checked_in' | 'checked_in' | 'completed';
 	confirm_status: 'pending' | 'confirmed' | 'cancelled';
 }

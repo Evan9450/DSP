@@ -8,8 +8,13 @@ import axios, {
 // API Configuration
 // ============================================================================
 
-const API_BASE_URL =
-	process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+// API Base URL configuration:
+// - Empty string ('') = use Next.js proxy (mobile-friendly, configured in next.config.js)
+// - Specific URL = direct API connection (development/production)
+// Note: Use ?? instead of || to preserve empty string for proxy mode
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL !== undefined
+	? process.env.NEXT_PUBLIC_API_BASE_URL
+	: 'http://localhost:8000';
 
 // ============================================================================
 // Request/Response Types (matching OpenAPI spec)

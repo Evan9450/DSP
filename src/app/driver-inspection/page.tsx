@@ -526,16 +526,31 @@ export default function DriverInspectionPage() {
 								</div>
 							))}
 
-							{/* Add Photo Button */}
-							<label className='aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-500 cursor-pointer flex flex-col items-center justify-center gap-2 transition-colors'>
-								<Upload className='h-8 w-8 text-gray-400' />
-								<span className='text-xs text-gray-600 text-center px-2'>
-									Add Photos
+							{/* Take Photo Button (Mobile Camera) */}
+							<label className='aspect-square rounded-lg border-2 border-dashed border-blue-400 hover:border-blue-600 bg-blue-50 cursor-pointer flex flex-col items-center justify-center gap-2 transition-colors'>
+								<Camera className='h-8 w-8 text-blue-600' />
+								<span className='text-xs text-blue-700 font-medium text-center px-2'>
+									Take Photo
 								</span>
 								<input
 									type='file'
 									accept='image/*'
 									capture='environment'
+									multiple
+									onChange={handleAddPhotos}
+									className='hidden'
+								/>
+							</label>
+
+							{/* Choose from Gallery Button */}
+							<label className='aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-500 cursor-pointer flex flex-col items-center justify-center gap-2 transition-colors'>
+								<Upload className='h-8 w-8 text-gray-400' />
+								<span className='text-xs text-gray-600 text-center px-2'>
+									From Gallery
+								</span>
+								<input
+									type='file'
+									accept='image/*'
 									multiple
 									onChange={handleAddPhotos}
 									className='hidden'

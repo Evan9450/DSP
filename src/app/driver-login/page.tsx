@@ -32,12 +32,11 @@ export default function DriverLoginPage() {
 		} catch (error: any) {
 			console.error('❌ Driver login error:', error);
 
-			// Handle specific error messages
+			// Display backend error message directly
 			const errorMessage =
 				error.response?.data?.detail ||
-				error.response?.status === 403
-					? 'No schedule found for today. Please contact your manager.'
-					: 'Invalid Amazon ID or password';
+				error.message ||
+				'Login failed. Please try again.';
 
 			setError(errorMessage);
 		} finally {
@@ -124,24 +123,6 @@ export default function DriverLoginPage() {
 						{isLoading ? 'Logging in...' : 'Login as Driver'}
 					</Button>
 				</form>
-
-				<div className='mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg'>
-					<p className='text-xs text-blue-900 font-semibold mb-2'>
-						Demo Credentials:
-					</p>
-					<div className='space-y-1'>
-						<p className='text-xs text-blue-800'>
-							Amazon ID:{' '}
-							<span className='font-mono'>AMZ-1001</span>
-						</p>
-						<p className='text-xs text-blue-800'>
-							Password:{' '}
-							<span className='font-mono'>
-								encrypted_password_1
-							</span>
-						</p>
-					</div>
-				</div>
 
 				<div className='mt-6 text-center'>
 					<p className='text-xs text-gray-500'>

@@ -131,8 +131,10 @@ class DriverAPIClient {
 	private baseURL: string;
 
 	constructor() {
-		this.baseURL =
-			process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+		// Use empty string for Next.js proxy mode, otherwise fallback to localhost
+		this.baseURL = process.env.NEXT_PUBLIC_API_BASE_URL !== undefined
+			? process.env.NEXT_PUBLIC_API_BASE_URL
+			: 'http://localhost:8000';
 
 		this.client = axios.create({
 			baseURL: this.baseURL,

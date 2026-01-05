@@ -1,8 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { apiClient, getTokenExpiration } from '@/lib/api/client';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface User {
 	id: number;
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	useEffect(() => {
 		// Public routes that don't require admin authentication
-		const publicRoutes = ['/login', '/driver-login', '/driver-inspection'];
+		const publicRoutes = ['/login', '/driver-login'];
 		const isPublicRoute = publicRoutes.includes(pathname);
 
 		// Redirect to login if not authenticated and not on a public route
@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		}
 		// Redirect to home if authenticated and on login page
 		if (!isLoading && user && pathname === '/login') {
-			router.push('/');
+			router.push('/schedules');
 		}
 	}, [user, isLoading, pathname, router]);
 
@@ -82,10 +82,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			console.log('Token:', response.access_token);
 			console.log('Token Type:', response.token_type);
 			if (tokenExpiration) {
-				console.log('Token Expires At:', tokenExpiration.toLocaleString());
+				console.log(
+					'Token Expires At:',
+					tokenExpiration.toLocaleString()
+				);
 				console.log(
 					'Token Valid For:',
-					Math.round((tokenExpiration.getTime() - Date.now()) / 1000 / 60),
+					Math.round(
+						(tokenExpiration.getTime() - Date.now()) / 1000 / 60
+					),
 					'minutes'
 				);
 			}

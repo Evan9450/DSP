@@ -149,14 +149,17 @@ export type DriverDocumentResponse = DriverFileResponse;
 export type DriverDocumentCreate = DriverFileCreate;
 
 // Vehicle Types
+export type VehicleStatus = 'in-use' | 'not-in-use';
+export type VehicleCondition = 'available' | 'need-repair' | 'unavailable';
+
 export interface VehicleResponse {
 	id: number;
 	rego: string;
 	alias: string;
 	brand?: string;
 	model?: string;
-	condition: number;
-	status: number;
+	condition: VehicleCondition;
+	status: VehicleStatus;
 	maintenance_cycle_days?: number;
 	maintenance_location?: string;
 	workshop_email?: string;
@@ -185,8 +188,8 @@ export interface VehicleCreate {
 	alias: string;
 	brand?: string;
 	model?: string;
-	condition?: number;
-	status?: number;
+	condition?: VehicleCondition;
+	status?: VehicleStatus;
 	maintenance_cycle_days?: number;
 	maintenance_location?: string;
 	workshop_email?: string;
@@ -201,8 +204,8 @@ export interface VehicleUpdate {
 	alias?: string;
 	brand?: string;
 	model?: string;
-	condition?: number;
-	status?: number;
+	condition?: VehicleCondition;
+	status?: VehicleStatus;
 	maintenance_cycle_days?: number;
 	maintenance_location?: string;
 	workshop_email?: string;
@@ -213,15 +216,20 @@ export interface VehicleUpdate {
 }
 
 // Vehicle Inspection Types
+export type InspectionStatus = 'pending' | 'passed' | 'failed';
+
 export interface VehicleInspectionResponse {
 	id: number;
 	vehicle_id: number;
 	driver_id: number;
+	driver_name?: string; // Driver name included in detail endpoint
 	inspection_date: string;
 	mileage_at_inspection: number;
 	notes?: string; // Driver's inspection notes
-	inspection_urls: string[]; // IMPORTANT: Backend uses inspection_urls, not photo_urls
-	inspection_status: 0 | 1 | 2; // 0=pending, 1=passed, 2=failed
+	photos: string[]; // Photo URLs returned by new API
+	photo_full_urls?: string[]; // Full photo URLs (optional, for compatibility)
+	inspection_urls?: string[]; // Legacy field name for backwards compatibility
+	inspection_status: InspectionStatus;
 	reviewed_by_admin: boolean;
 	admin_notes?: string;
 	created_at: string;
@@ -243,8 +251,23 @@ export interface VehicleInspectionUpdate {
 }
 
 export interface VehicleInspectionReview {
-	inspection_status: 0 | 1 | 2; // 0=pending, 1=passed, 2=failed
+	inspection_status: InspectionStatus;
 	admin_notes?: string;
+}
+
+// Simplified previous inspection data (only date, mileage, photos, driver name)
+export interface PreviousInspectionSummary {
+	inspection_date: string;
+	mileage_at_inspection: number;
+	photos: string[];
+	photo_full_urls?: string[];
+	driver_name: string;
+}
+
+// Detail response with flattened structure
+export interface VehicleInspectionDetailResponse
+	extends VehicleInspectionResponse {
+	previous: PreviousInspectionSummary | null;
 }
 
 export interface VehicleInspectionPhotoResponse {
@@ -253,7 +276,7 @@ export interface VehicleInspectionPhotoResponse {
 	inspection_date: string;
 	mileage_at_inspection: number;
 	photos: string[];
-	inspection_status: 0 | 1 | 2;
+	inspection_status: InspectionStatus;
 	reviewed_by_admin: boolean;
 	admin_notes?: string;
 	created_at: string;
@@ -898,9 +921,14 @@ class APIClient {
 	// Vehicle API
 	// ============================================================================
 
-	async getVehicles(): Promise<VehicleResponse[]> {
-		const response =
-			await this.client.get<VehicleResponse[]>('/api/v1/vehicles/');
+	async getVehicles(params?: {
+		status_filter?: VehicleStatus;
+		condition_filter?: VehicleCondition;
+	}): Promise<VehicleResponse[]> {
+		const response = await this.client.get<VehicleResponse[]>(
+			'/api/v1/vehicles/',
+			{ params }
+		);
 		console.log('🚀 => APIClient => getVehicles => response:', response);
 		return response.data;
 	}
@@ -989,7 +1017,7 @@ class APIClient {
 		vehicle_id?: number;
 		driver_id?: number;
 		reviewed?: boolean;
-		inspection_status?: 0 | 1 | 2;
+		inspection_status?: InspectionStatus;
 		inspection_date?: string; // YYYY-MM-DD
 		start_date?: string; // YYYY-MM-DD
 		end_date?: string; // YYYY-MM-DD
@@ -1078,15 +1106,15 @@ class APIClient {
 	}
 
 	/**
-	 * Get single inspection record by ID
+	 * Get single inspection record by ID with comparison to previous inspection
 	 * @param inspectionId Inspection ID
-	 * @returns Inspection record
+	 * @returns Flattened inspection detail with previous inspection summary
 	 */
 	async getInspection(
 		inspectionId: number
-	): Promise<VehicleInspectionResponse> {
-		const response = await this.client.get<VehicleInspectionResponse>(
-			`/api/v1/vehicles/inspections/${inspectionId}`
+	): Promise<VehicleInspectionDetailResponse> {
+		const response = await this.client.get<VehicleInspectionDetailResponse>(
+			`/api/v1/inspections/${inspectionId}`
 		);
 		return response.data;
 	}
@@ -1105,6 +1133,42 @@ class APIClient {
 		const response = await this.client.post<VehicleInspectionResponse>(
 			`/api/v1/vehicles/inspections/${inspectionId}/review`,
 			data
+		);
+		return response.data;
+	}
+
+	/**
+	 * Get inspections by date (optimized endpoint)
+	 * @param date Inspection date in YYYY-MM-DD format
+	 * @returns Array of inspection records
+	 */
+	async getInspectionsByDate(
+		date: string
+	): Promise<VehicleInspectionResponse[]> {
+		const response = await this.client.get<VehicleInspectionResponse[]>(
+			`/api/v1/inspections/by-date/${date}`
+		);
+		return response.data;
+	}
+
+	/**
+	 * Get inspections by vehicle (optimized endpoint)
+	 * @param vehicleId Vehicle ID
+	 * @param params Optional filter parameters (date range, pagination)
+	 * @returns Array of inspection records
+	 */
+	async getInspectionsByVehicle(
+		vehicleId: number,
+		params?: {
+			start_date?: string; // YYYY-MM-DD
+			end_date?: string; // YYYY-MM-DD
+			skip?: number;
+			limit?: number;
+		}
+	): Promise<VehicleInspectionResponse[]> {
+		const response = await this.client.get<VehicleInspectionResponse[]>(
+			`/api/v1/inspections/by-vehicle/${vehicleId}`,
+			{ params }
 		);
 		return response.data;
 	}

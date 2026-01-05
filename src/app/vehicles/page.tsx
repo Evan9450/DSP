@@ -36,7 +36,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { apiConditionToString, apiStatusToString } from '@/lib/helpers';
+import { apiConditionToString } from '@/lib/helpers';
 import {
 	errorMessages,
 	handleApiError,
@@ -66,9 +66,9 @@ export default function VehiclesPage() {
 	const router = useRouter();
 	const { vehicles: apiVehicles, isLoading, refetch } = useVehicles();
 	const [searchTerm, setSearchTerm] = useState('');
-	const [conditionFilter, setConditionFilter] = useState<number | 'all'>(
-		'all'
-	);
+	const [conditionFilter, setConditionFilter] = useState<
+		'available' | 'need-repair' | 'unavailable' | 'all'
+	>('all');
 	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [vehicleToDelete, setVehicleToDelete] = useState<{
@@ -92,13 +92,15 @@ export default function VehiclesPage() {
 	});
 
 	const conditionStats = {
-		green: vehicles.filter((v) => v.condition === 0).length,
-		yellow: vehicles.filter((v) => v.condition === 1).length,
-		red: vehicles.filter((v) => v.condition === 2).length,
+		available: vehicles.filter((v) => v.condition === 'available').length,
+		'need-repair': vehicles.filter((v) => v.condition === 'need-repair').length,
+		unavailable: vehicles.filter((v) => v.condition === 'unavailable').length,
 	};
 
-	const statusConfig = {
-		// available: { label: 'Available', className: 'bg-green-600 text-white' },
+	const statusConfig: Record<
+		'in-use' | 'not-in-use',
+		{ label: string; className: string }
+	> = {
 		'in-use': { label: 'In Use', className: 'bg-blue-600 text-white' },
 		'not-in-use': {
 			label: 'Not In Use',
@@ -293,34 +295,34 @@ export default function VehiclesPage() {
 						</Button>
 						<Button
 							variant={
-								conditionFilter === 0 ? 'default' : 'outline'
+								conditionFilter === 'available' ? 'default' : 'outline'
 							}
-							onClick={() => setConditionFilter(0)}
+							onClick={() => setConditionFilter('available')}
 							size='sm'
 							className={
-								conditionFilter === 0 ? 'bg-green-600' : ''
+								conditionFilter === 'available' ? 'bg-green-600' : ''
 							}>
 							Ready
 						</Button>
 						<Button
 							variant={
-								conditionFilter === 1 ? 'default' : 'outline'
+								conditionFilter === 'need-repair' ? 'default' : 'outline'
 							}
-							onClick={() => setConditionFilter(1)}
+							onClick={() => setConditionFilter('need-repair')}
 							size='sm'
 							className={
-								conditionFilter === 1 ? 'bg-yellow-600' : ''
+								conditionFilter === 'need-repair' ? 'bg-yellow-600' : ''
 							}>
 							Needs Repair
 						</Button>
 						<Button
 							variant={
-								conditionFilter === 2 ? 'default' : 'outline'
+								conditionFilter === 'unavailable' ? 'default' : 'outline'
 							}
-							onClick={() => setConditionFilter(2)}
+							onClick={() => setConditionFilter('unavailable')}
 							size='sm'
 							className={
-								conditionFilter === 2 ? 'bg-red-600' : ''
+								conditionFilter === 'unavailable' ? 'bg-red-600' : ''
 							}>
 							Unavailable
 						</Button>
@@ -373,9 +375,8 @@ export default function VehiclesPage() {
 								const conditionStr = apiConditionToString(
 									vehicle.condition
 								);
-								const statusStr = apiStatusToString(
-									vehicle.status
-								);
+								// vehicle.status is already a string: 'in-use' | 'not-in-use'
+								const statusStr = vehicle.status;
 
 								return (
 									<TableRow

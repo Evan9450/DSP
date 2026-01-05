@@ -67,7 +67,10 @@ const menuItems: MenuItem[] = [
 			{ href: '/borrows', label: 'Borrow Record' },
 		],
 	},
-	{ href: '/files', label: 'Files', icon: FolderOpen },
+	// Only show Files in development environment
+	...(process.env.NODE_ENV === 'development'
+		? [{ href: '/files', label: 'Files', icon: FolderOpen }]
+		: []),
 ];
 
 export function AppSidebar() {

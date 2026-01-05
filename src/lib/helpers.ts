@@ -176,41 +176,51 @@ export function formatScheduleDateTime(date: Date): string {
 }
 
 /**
- * Convert API condition number to VehicleCondition string
- * API: 0=green (available), 1=yellow (needs repair), 2=red (unavailable)
+ * Convert API condition string to VehicleCondition for display
+ * API: 'available'=green, 'need-repair'=yellow, 'unavailable'=red
  */
-export function apiConditionToString(condition: number): VehicleCondition {
-	if (condition === 0) return 'green';
-	if (condition === 1) return 'yellow';
-	if (condition === 2) return 'red';
+export function apiConditionToString(
+	condition: 'available' | 'need-repair' | 'unavailable'
+): VehicleCondition {
+	if (condition === 'available') return 'green';
+	if (condition === 'need-repair') return 'yellow';
+	if (condition === 'unavailable') return 'red';
 	return 'green'; // default fallback
 }
 
 /**
- * Convert VehicleCondition string to API number
+ * Convert VehicleCondition display string to API condition string
  */
-export function conditionToApiNumber(condition: VehicleCondition): number {
-	if (condition === 'green') return 0;
-	if (condition === 'yellow') return 1;
-	if (condition === 'red') return 2;
-	return 0; // default fallback
+export function conditionToApiString(
+	condition: VehicleCondition
+): 'available' | 'need-repair' | 'unavailable' {
+	if (condition === 'green') return 'available';
+	if (condition === 'yellow') return 'need-repair';
+	if (condition === 'red') return 'unavailable';
+	return 'available'; // default fallback
 }
 
 /**
- * Convert API status number to status string
- * API: 0=available, 1=in-use, 2=maintenance
+ * Convert API inspection status string to display-friendly format
+ * API: 'pending', 'passed', 'failed'
  */
-export function apiStatusToString(status: number): 'in-use' | 'not-in-use' {
-	if (status === 0) return 'in-use';
-	if (status === 1) return 'not-in-use';
-	return 'not-in-use'; // default fallback
+export function apiInspectionStatusToString(
+	status: 'pending' | 'passed' | 'failed'
+): string {
+	if (status === 'pending') return 'Pending Review';
+	if (status === 'passed') return 'Passed';
+	if (status === 'failed') return 'Failed';
+	return 'Pending Review'; // default fallback
 }
 
 /**
- * Convert status string to API number
+ * Get badge color for inspection status
  */
-export function statusToApiNumber(status: 'in-use' | 'not-in-use'): number {
-	if (status === 'in-use') return 0;
-	if (status === 'not-in-use') return 1;
-	return 0; // default fallback
+export function getInspectionStatusColor(
+	status: 'pending' | 'passed' | 'failed'
+): string {
+	if (status === 'pending') return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+	if (status === 'passed') return 'bg-green-100 text-green-800 border-green-300';
+	if (status === 'failed') return 'bg-red-100 text-red-800 border-red-300';
+	return 'bg-gray-100 text-gray-800 border-gray-300'; // default fallback
 }

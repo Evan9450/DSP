@@ -3859,6 +3859,65 @@
         ]
       }
     },
+    "/api/v1/notifications/sms/received": {
+      "get": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Get Received Sms",
+        "description": "Get received SMS messages from ClapSMS.\n\n**Permissions**: Requires authenticated user\n\n**Parameters**:\n- limit: Number of messages to retrieve per page (default: 10)\n- page: Page number (default: 1)\n\n**Returns**: List of received SMS messages with sender info and content\n\n**Note**: Only works with ClapSMS provider. Twilio does not support this feature.",
+        "operationId": "get_received_sms_api_v1_notifications_sms_received_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "title": "Page"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/notifications/sms/status": {
       "get": {
         "tags": [
@@ -4032,6 +4091,878 @@
             "HTTPBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/notifications/webhook/sms": {
+      "post": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Receive Sms Webhook",
+        "description": "Webhook endpoint for receiving SMS from ClapSMS.\n\n**IMPORTANT**: This endpoint does NOT require authentication as it's called by external service.\n\n**Setup Instructions**:\n1. Go to ClapSMS Dashboard: https://clapsms.com/dashboard/docs/webhooks\n2. Set webhook URL to: `https://your-ngrok-url.ngrok-free.dev/api/v1/notifications/webhook/sms`\n3. ClapSMS will POST form data to this endpoint when messages are received\n\n**Expected Payload** (from ClapSMS - Form Data):\n```\ndata[device]=f82b651a26ab99bc\ndata[id]=35\ndata[message]=Hello\ndata[phone]=+61451728450\ndata[timestamp]=1767132162\nsecret=your_api_secret\ntype=sms\n```\n\n**Returns**: Success acknowledgment",
+        "operationId": "receive_sms_webhook_api_v1_notifications_webhook_sms_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/sms/inbox": {
+      "get": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Get Sms Inbox",
+        "description": "Get received SMS messages from database (stored via webhook).\n\n**Permissions**: Requires authenticated user\n\n**Parameters**:\n- limit: Maximum number of messages to return (default: 50, max: 200)\n- offset: Number of messages to skip (for pagination)\n- unprocessed_only: If true, only return unprocessed messages\n\n**Returns**: List of received SMS messages with metadata",
+        "operationId": "get_sms_inbox_api_v1_notifications_sms_inbox_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "unprocessed_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Unprocessed Only"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivedSMSListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/sms/inbox/{sms_id}/mark-processed": {
+      "put": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Mark Sms Processed",
+        "description": "Mark a received SMS as processed.\n\n**Permissions**: Requires authenticated user\n\n**Parameters**:\n- sms_id: ID of the received SMS message\n\n**Returns**: Updated SMS record",
+        "operationId": "mark_sms_processed_api_v1_notifications_sms_inbox__sms_id__mark_processed_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sms_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sms Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivedSMSResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/sms/inbox/{sms_id}/process-confirmation": {
+      "post": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Process Confirmation Manually",
+        "description": "Manually process a received SMS as driver confirmation (Y/N).\n\n**Permissions**: Requires authenticated user\n\n**Parameters**:\n- sms_id: ID of the received SMS message\n\n**Workflow**:\n1. Retrieves the SMS from database\n2. Attempts to match phone number to a driver\n3. Finds today's schedule for the driver\n4. Updates schedule confirmation status based on message (Y=CONFIRMED, N=REJECTED)\n\n**Returns**: Processing result with schedule update details",
+        "operationId": "process_confirmation_manually_api_v1_notifications_sms_inbox__sms_id__process_confirmation_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sms_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sms Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inspections/": {
+      "get": {
+        "tags": [
+          "Inspection Management"
+        ],
+        "summary": "List Inspections",
+        "description": "获取 inspection 列表（支持多种过滤条件）\n\n**核心功能**：\n- 按日期查看某天所有 inspection\n- 按车辆查看 inspection 历史\n- 按司机查看 inspection 历史\n- 按状态过滤（待审核、通过、失败）\n- 日期范围查询\n\n**示例**：\n- 查看某天所有 inspection: `?inspection_date=2026-01-04`\n- 查看某车所有 inspection: `?vehicle_id=1`\n- 查看待审核的 inspection: `?inspection_status=0&reviewed=false`\n- 日期范围: `?start_date=2026-01-01&end_date=2026-01-31`",
+        "operationId": "list_inspections_api_v1_inspections__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "inspection_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按日期过滤（查看某天所有inspection）",
+              "title": "Inspection Date"
+            },
+            "description": "按日期过滤（查看某天所有inspection）"
+          },
+          {
+            "name": "vehicle_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按车辆过滤",
+              "title": "Vehicle Id"
+            },
+            "description": "按车辆过滤"
+          },
+          {
+            "name": "driver_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按司机过滤",
+              "title": "Driver Id"
+            },
+            "description": "按司机过滤"
+          },
+          {
+            "name": "inspection_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按状态过滤（0=pending, 1=passed, 2=failed）",
+              "title": "Inspection Status"
+            },
+            "description": "按状态过滤（0=pending, 1=passed, 2=failed）"
+          },
+          {
+            "name": "reviewed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按审核状态过滤",
+              "title": "Reviewed"
+            },
+            "description": "按审核状态过滤"
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "开始日期（日期范围查询）",
+              "title": "Start Date"
+            },
+            "description": "开始日期（日期范围查询）"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "结束日期（日期范围查询）",
+              "title": "End Date"
+            },
+            "description": "结束日期（日期范围查询）"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleInspectionResponse"
+                  },
+                  "title": "Response List Inspections Api V1 Inspections  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inspections/stats": {
+      "get": {
+        "tags": [
+          "Inspection Management"
+        ],
+        "summary": "Get Inspection Stats",
+        "description": "获取 inspection 统计数据\n\n**返回**：\n- total: 总数\n- pending: 待审核数量\n- passed: 通过数量\n- failed: 失败数量\n- pass_rate: 通过率（已审核中通过的比例）\n- reviewed_count: 已审核总数\n\n**示例**：\n- 查看某天统计: `?inspection_date=2026-01-04`\n- 查看某车统计: `?vehicle_id=1`\n- 日期范围统计: `?start_date=2026-01-01&end_date=2026-01-31`",
+        "operationId": "get_inspection_stats_api_v1_inspections_stats_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "inspection_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "查看某天的统计",
+              "title": "Inspection Date"
+            },
+            "description": "查看某天的统计"
+          },
+          {
+            "name": "vehicle_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "查看某车的统计",
+              "title": "Vehicle Id"
+            },
+            "description": "查看某车的统计"
+          },
+          {
+            "name": "driver_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "查看某司机的统计",
+              "title": "Driver Id"
+            },
+            "description": "查看某司机的统计"
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "统计范围开始日期",
+              "title": "Start Date"
+            },
+            "description": "统计范围开始日期"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "统计范围结束日期",
+              "title": "End Date"
+            },
+            "description": "统计范围结束日期"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inspections/{inspection_id}": {
+      "get": {
+        "tags": [
+          "Inspection Management"
+        ],
+        "summary": "Get Inspection Detail",
+        "description": "获取单个 inspection 详情（扁平化结构 + 简化的上一次inspection）\n\n**返回完整信息**：\n- 当前inspection的所有字段（包含driver_name）\n- previous: 上一次inspection的简化信息（只包含日期、里程、照片、司机名）",
+        "operationId": "get_inspection_detail_api_v1_inspections__inspection_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "inspection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Inspection Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleInspectionDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inspections/{inspection_id}/review": {
+      "post": {
+        "tags": [
+          "Inspection Management"
+        ],
+        "summary": "Review Inspection",
+        "description": "审核 inspection（管理员）\n\n**功能**：\n- 设置审核状态（0=pending, 1=passed, 2=failed）\n- 添加管理员备注\n- 标记为已审核\n\n**限制**：\n- 管理员不能修改 inspection 内容（日期、里程数、照片）\n- 只能审核和添加备注",
+        "operationId": "review_inspection_api_v1_inspections__inspection_id__review_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "inspection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Inspection Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VehicleInspectionReview"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleInspectionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inspections/batch-review": {
+      "post": {
+        "tags": [
+          "Inspection Management"
+        ],
+        "summary": "Batch Review Inspections",
+        "description": "批量审核 inspection\n\n**功能**：\n- 批量设置多个 inspection 的状态\n- 批量添加管理员备注\n\n**示例**：\n```\nPOST /api/v1/inspections/batch-review?inspection_ids=1&inspection_ids=2&inspection_ids=3&inspection_status=1&admin_notes=All good\n```",
+        "operationId": "batch_review_inspections_api_v1_inspections_batch_review_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "inspection_ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "description": "Inspection ID 列表",
+              "title": "Inspection Ids"
+            },
+            "description": "Inspection ID 列表"
+          },
+          {
+            "name": "inspection_status",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 2,
+              "minimum": 0,
+              "description": "批量设置的状态（0=pending, 1=passed, 2=failed）",
+              "title": "Inspection Status"
+            },
+            "description": "批量设置的状态（0=pending, 1=passed, 2=failed）"
+          },
+          {
+            "name": "admin_notes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "批量添加的管理员备注",
+              "title": "Admin Notes"
+            },
+            "description": "批量添加的管理员备注"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inspections/by-date/{inspection_date}": {
+      "get": {
+        "tags": [
+          "Inspection Management"
+        ],
+        "summary": "Get Inspections By Date",
+        "description": "获取某天的所有 inspection（带完整照片 URL）\n\n**专门优化的端点**：\n- 快速查看某天所有 inspection\n- 包含完整照片 URL\n- 包含里程数数据",
+        "operationId": "get_inspections_by_date_api_v1_inspections_by_date__inspection_date__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "inspection_date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Inspection Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleInspectionPhotoResponse"
+                  },
+                  "title": "Response Get Inspections By Date Api V1 Inspections By Date  Inspection Date  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inspections/by-vehicle/{vehicle_id}": {
+      "get": {
+        "tags": [
+          "Inspection Management"
+        ],
+        "summary": "Get Inspections By Vehicle",
+        "description": "获取某车辆的所有 inspection 历史（带完整照片 URL）\n\n**专门优化的端点**：\n- 查看车辆 inspection 历史\n- 支持日期范围过滤\n- 包含里程数趋势数据",
+        "operationId": "get_inspections_by_vehicle_api_v1_inspections_by_vehicle__vehicle_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vehicle Id"
+            }
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "开始日期",
+              "title": "Start Date"
+            },
+            "description": "开始日期"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "结束日期",
+              "title": "End Date"
+            },
+            "description": "结束日期"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleInspectionPhotoResponse"
+                  },
+                  "title": "Response Get Inspections By Vehicle Api V1 Inspections By Vehicle  Vehicle Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/": {
@@ -4386,8 +5317,7 @@
         "type": "string",
         "enum": [
           "not_checked_in",
-          "checked_in",
-          "checked_out"
+          "checked_in"
         ],
         "title": "CheckinStatus",
         "description": "Driver check-in status."
@@ -4922,6 +5852,52 @@
         "title": "InspectionPhotoWithDate",
         "description": "Inspection photo with date information."
       },
+      "PreviousInspectionSummary": {
+        "properties": {
+          "inspection_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Inspection Date"
+          },
+          "mileage_at_inspection": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mileage At Inspection"
+          },
+          "photo_full_urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Photo Full Urls",
+            "default": []
+          },
+          "driver_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "inspection_date",
+          "mileage_at_inspection"
+        ],
+        "title": "PreviousInspectionSummary",
+        "description": "Simplified previous inspection data (only key fields)."
+      },
       "ProductBorrowCreate": {
         "properties": {
           "quantity": {
@@ -5341,6 +6317,119 @@
         "type": "object",
         "title": "ProductUpdate",
         "description": "Schema for updating product."
+      },
+      "ReceivedSMSListResponse": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReceivedSMSResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "items"
+        ],
+        "title": "ReceivedSMSListResponse",
+        "description": "Schema for list of received SMS."
+      },
+      "ReceivedSMSResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "sender": {
+            "type": "string",
+            "title": "Sender"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "received_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received At"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "is_processed": {
+            "type": "boolean",
+            "title": "Is Processed"
+          },
+          "processed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "sender",
+          "message",
+          "device_id",
+          "received_at",
+          "external_id",
+          "is_processed",
+          "processed_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ReceivedSMSResponse",
+        "description": "Schema for ReceivedSMS response."
       },
       "RosterPreviewItem": {
         "properties": {
@@ -7111,6 +8200,138 @@
         ],
         "title": "VehicleDetailResponse",
         "description": "Schema for vehicle detail response with additional info."
+      },
+      "VehicleInspectionDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "vehicle_id": {
+            "type": "integer",
+            "title": "Vehicle Id"
+          },
+          "driver_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Id"
+          },
+          "driver_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Name"
+          },
+          "inspection_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Inspection Date"
+          },
+          "mileage_at_inspection": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mileage At Inspection"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "photos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Photos",
+            "default": []
+          },
+          "photo_full_urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Photo Full Urls",
+            "default": []
+          },
+          "inspection_status": {
+            "type": "integer",
+            "title": "Inspection Status"
+          },
+          "reviewed_by_admin": {
+            "type": "boolean",
+            "title": "Reviewed By Admin"
+          },
+          "admin_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admin Notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PreviousInspectionSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "vehicle_id",
+          "driver_id",
+          "inspection_date",
+          "mileage_at_inspection",
+          "notes",
+          "inspection_status",
+          "reviewed_by_admin",
+          "admin_notes",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "VehicleInspectionDetailResponse",
+        "description": "Flat inspection detail with current info + simplified previous."
       },
       "VehicleInspectionPhotoResponse": {
         "properties": {

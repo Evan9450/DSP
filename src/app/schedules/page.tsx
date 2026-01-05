@@ -428,37 +428,6 @@ export default function ScheduleTablePage() {
 		});
 	};
 
-	const formatTime = (timeStr: string) => {
-		if (!timeStr) return '';
-
-		try {
-			// Extract time part from ISO 8601 timestamp
-			// e.g., "2025-12-24T07:45:00+11:00" -> "07:45:00"
-			const timePart = timeStr.split('T')[1]?.split(/[+-]/)[0];
-			if (!timePart) {
-				console.log('⚠️ Invalid time format:', timeStr);
-				return timeStr;
-			}
-
-			const [hoursStr, minutesStr] = timePart.split(':');
-			const hours = parseInt(hoursStr);
-			const minutes = parseInt(minutesStr);
-
-			// Convert to 12-hour format
-			const period = hours >= 12 ? 'PM' : 'AM';
-			const displayHours =
-				hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-			const displayMinutes = minutes.toString().padStart(2, '0');
-
-			const result = `${displayHours}:${displayMinutes} ${period}`;
-
-			return result;
-		} catch (error) {
-			console.error('Failed to format time:', timeStr, error);
-			return timeStr;
-		}
-	};
-
 	const handleSyncToday = async () => {
 		try {
 			setIsSyncingToday(true);

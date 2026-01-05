@@ -71,16 +71,15 @@ export function convertDriverDocument(
 // ============================================================================
 
 export function convertVehicle(apiVehicle: VehicleResponse): Vehicle {
-	// API uses numbers: condition (0=green, 1=yellow, 2=red), status (0=available, 1=in-use, 2=maintenance)
-	// Frontend uses the numbers directly now
+	// API now uses strings that match frontend Vehicle type
 	return {
 		id: apiVehicle.id.toString(),
 		rego: apiVehicle.rego,
 		alias: apiVehicle.alias,
 		brand: apiVehicle.brand,
 		model: apiVehicle.model,
-		condition: apiVehicle.condition,
-		status: apiVehicle.status,
+		condition: apiVehicle.condition, // API strings: 'available', 'need-repair', 'unavailable'
+		status: apiVehicle.status, // API strings: 'in-use', 'not-in-use'
 		maintenanceCycle: apiVehicle.maintenance_cycle_days,
 		maintenanceLocation: apiVehicle.maintenance_location,
 		garageEmail: apiVehicle.workshop_email,
@@ -108,10 +107,11 @@ export function convertVehicleInspection(
 	}));
 
 	// Map inspection_status to VehicleInspectionStatus
+	// API now uses strings: 'pending', 'passed', 'failed'
 	let status: VehicleInspectionStatus;
-	if (apiInspection.inspection_status === 1) {
+	if (apiInspection.inspection_status === 'passed') {
 		status = 'normal'; // passed -> normal
-	} else if (apiInspection.inspection_status === 2) {
+	} else if (apiInspection.inspection_status === 'failed') {
 		status = 'needs-repair'; // failed -> needs-repair
 	} else {
 		status = 'has-issues'; // pending -> has-issues

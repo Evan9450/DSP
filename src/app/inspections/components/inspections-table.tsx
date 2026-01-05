@@ -38,9 +38,9 @@ const getPhotoUrls = (urls: any): string[] => {
 	return [];
 };
 
-const getInspectionStatusBadge = (status: number) => {
+const getInspectionStatusBadge = (status: 'pending' | 'passed' | 'failed') => {
 	switch (status) {
-		case 0:
+		case 'pending':
 			return (
 				<Badge
 					variant='outline'
@@ -49,7 +49,7 @@ const getInspectionStatusBadge = (status: number) => {
 					Pending
 				</Badge>
 			);
-		case 1:
+		case 'passed':
 			return (
 				<Badge
 					variant='outline'
@@ -58,7 +58,7 @@ const getInspectionStatusBadge = (status: number) => {
 					Passed
 				</Badge>
 			);
-		case 2:
+		case 'failed':
 			return (
 				<Badge
 					variant='outline'

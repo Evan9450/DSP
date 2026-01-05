@@ -37,8 +37,8 @@ export function AddVehicleDialog({
 	const { toast } = useToast();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [formData, setFormData] = useState<Partial<VehicleCreate>>({
-		condition: 0, // Default to green (available)
-		status: 0, // Default to available
+		condition: 'available', // Default to available
+		status: 'not-in-use', // Default to not-in-use
 		maintenance_cycle_days: 90, // Default 90 days
 	});
 
@@ -66,8 +66,8 @@ export function AddVehicleDialog({
 			onOpenChange(false);
 			// Reset form
 			setFormData({
-				condition: 0,
-				status: 0,
+				condition: 'available',
+				status: 'not-in-use',
 				maintenance_cycle_days: 90,
 			});
 		} catch (error) {
@@ -155,30 +155,30 @@ export function AddVehicleDialog({
 						<div className='space-y-2'>
 							<Label htmlFor='condition'>Condition</Label>
 							<Select
-								value={formData.condition?.toString() || '0'}
-								onValueChange={(value) =>
-									setFormData({ ...formData, condition: parseInt(value) })
+								value={formData.condition || 'available'}
+								onValueChange={(value: 'available' | 'need-repair' | 'unavailable') =>
+									setFormData({ ...formData, condition: value })
 								}>
 								<SelectTrigger>
 									<SelectValue placeholder='Select condition' />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value='0'>
+									<SelectItem value='available'>
 										<div className='flex items-center gap-2'>
 											<div className='w-3 h-3 rounded-full bg-green-500'></div>
-											<span>Ready (Green)</span>
+											<span>Available</span>
 										</div>
 									</SelectItem>
-									<SelectItem value='1'>
+									<SelectItem value='need-repair'>
 										<div className='flex items-center gap-2'>
 											<div className='w-3 h-3 rounded-full bg-yellow-500'></div>
-											<span>Needs Repair (Yellow)</span>
+											<span>Needs Repair</span>
 										</div>
 									</SelectItem>
-									<SelectItem value='2'>
+									<SelectItem value='unavailable'>
 										<div className='flex items-center gap-2'>
 											<div className='w-3 h-3 rounded-full bg-red-500'></div>
-											<span>Unavailable (Red)</span>
+											<span>Unavailable</span>
 										</div>
 									</SelectItem>
 								</SelectContent>
@@ -188,17 +188,16 @@ export function AddVehicleDialog({
 						<div className='space-y-2'>
 							<Label htmlFor='status'>Status</Label>
 							<Select
-								value={formData.status?.toString() || '0'}
-								onValueChange={(value) =>
-									setFormData({ ...formData, status: parseInt(value) })
+								value={formData.status || 'not-in-use'}
+								onValueChange={(value: 'in-use' | 'not-in-use') =>
+									setFormData({ ...formData, status: value })
 								}>
 								<SelectTrigger>
 									<SelectValue placeholder='Select status' />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value='0'>Available</SelectItem>
-									<SelectItem value='1'>In Use</SelectItem>
-									<SelectItem value='2'>Maintenance</SelectItem>
+									<SelectItem value='not-in-use'>Not In Use</SelectItem>
+									<SelectItem value='in-use'>In Use</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>

@@ -432,7 +432,7 @@ export default function DriverDetailPage() {
 					<Button
 						onClick={() => router.push('/drivers')}
 						className='mt-4'>
-						Back to Drivers
+						Back
 					</Button>
 				</div>
 			</div>

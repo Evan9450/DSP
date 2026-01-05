@@ -15,13 +15,13 @@ export interface Vehicle {
 	rego: string; // Registration number (primary identifier per PRD)
 	brand?: string;
 	model?: string;
-	condition: number; // red=unavailable, yellow=needs-repair, green=available
-	status: number;
+	condition: 'available' | 'need-repair' | 'unavailable'; // API strings: available, need-repair, unavailable
+	status: 'in-use' | 'not-in-use'; // API strings: in-use, not-in-use
 	maintenanceCycle?: number; // in days or km
 	maintenanceLocation?: string;
 	garageEmail?: string;
 	mileage?: number;
-	notes?: string; // Required when status is red/yellow
+	notes?: string; // Required when status is need-repair/unavailable
 	lastMaintenanceDate?: Date;
 	nextMaintenanceDate?: Date;
 }

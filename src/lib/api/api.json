@@ -1946,7 +1946,7 @@
           "Schedules"
         ],
         "summary": "Update Schedule",
-        "description": "更新排班信息\n\n可更新字段：route, vehicle, checkin_status, confirm_status",
+        "description": "更新排班信息\n\n可更新字段：driver_id, route, vehicle, checkin_status\n\n**注意**:\n- 如果提供了 driver_id，会自动从 Driver 表中查找并更新 deputy_id, driver_name, amazon_id\n- confirm_status 不能通过此端点修改，必须使用 POST /schedules/{id}/confirm 端点",
         "operationId": "update_schedule_api_v1_schedules__schedule_id__put",
         "security": [
           {
@@ -2166,6 +2166,54 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RouteImportResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedules/{schedule_id}/confirm": {
+      "post": {
+        "tags": [
+          "Schedules"
+        ],
+        "summary": "Confirm Schedule",
+        "description": "确认排班并发送SMS通知给司机\n\n**必填项检查**:\n- ✅ driver (amazon_id) - 司机的Amazon ID必须已分配\n- ✅ route - 路线必须已分配\n- ✅ vehicle - 车辆必须已分配\n\n**功能**:\n1. 验证所有必填项都已分配（司机Amazon ID、路线、车辆）\n2. 更新 confirm_status 为 CONFIRMED\n3. 查找对应的Driver（通过deputy_id）\n4. 发送SMS通知给司机，包含：\n   - 司机姓名\n   - 路线 (route)\n   - 车辆 (vehicle)\n   - 时间 (start_time ~ end_time)\n\n**SMS通知示例**:\n```\nHi John, your schedule confirmed!\nDate: 2025-12-30\nRoute: DBS7-01A\nVehicle: Van 10\nTime: 08:00 - 18:00\n```",
+        "operationId": "confirm_schedule_api_v1_schedules__schedule_id__confirm_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "schedule_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Schedule Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleResponse"
                 }
               }
             }
@@ -3305,60 +3353,6 @@
         }
       }
     },
-    "/api/v1/supervise/rosters/today": {
-      "get": {
-        "tags": [
-          "Deputy Integration"
-        ],
-        "summary": "Get Today Rosters",
-        "operationId": "get_today_rosters_api_v1_supervise_rosters_today_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "title": "Response Get Today Rosters Api V1 Supervise Rosters Today Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
-    "/api/v1/supervise/rosters/tomorrow": {
-      "get": {
-        "tags": [
-          "Deputy Integration"
-        ],
-        "summary": "Get Tomorrow Rosters",
-        "operationId": "get_tomorrow_rosters_api_v1_supervise_rosters_tomorrow_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "title": "Response Get Tomorrow Rosters Api V1 Supervise Rosters Tomorrow Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
     "/api/v1/supervise/rosters/preview": {
       "get": {
         "tags": [
@@ -3771,6 +3765,275 @@
         }
       }
     },
+    "/api/v1/notifications/send": {
+      "post": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Send Sms",
+        "description": "Send SMS to a single recipient.\n\n**Permissions**: Requires authenticated user\n\n**Parameters**:\n- phone: Recipient phone number with country code (e.g., +61451728450)\n- message: SMS message content (max 1600 characters)\n\n**Returns**: Success status and provider information",
+        "operationId": "send_sms_api_v1_notifications_send_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendSMSRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SMSResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/send-bulk": {
+      "post": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Send Bulk Sms",
+        "description": "Send SMS to multiple recipients.\n\n**Permissions**: Requires authenticated user\n\n**Parameters**:\n- phones: List of recipient phone numbers with country codes\n- message: SMS message content (max 1600 characters)\n\n**Returns**: Statistics on sent/failed messages",
+        "operationId": "send_bulk_sms_api_v1_notifications_send_bulk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendBulkSMSRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkSMSResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/sms/status": {
+      "get": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Get Sms Service Status",
+        "description": "Get SMS service configuration status.\n\n**Permissions**: Requires authenticated user\n\n**Returns**: Current SMS provider and service status",
+        "operationId": "get_sms_service_status_api_v1_notifications_sms_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/email/send": {
+      "post": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Send Email",
+        "description": "Send email to a single recipient.\n\n**Permissions**: Requires authenticated user\n\n**📧 IMPORTANT - Email Configuration Required:**\nTo enable email sending, you MUST configure SMTP settings in `.env` file:\n\n```env\n# Email Service (SMTP)\nSMTP_HOST=smtp.gmail.com           # CHANGE THIS to your SMTP server\nSMTP_PORT=587                      # CHANGE THIS if using different port (e.g., 465 for SSL)\nSMTP_USER=your-email@gmail.com     # CHANGE THIS to your email address\nSMTP_PASSWORD=your-app-password    # CHANGE THIS to your email password or app password\nSMTP_FROM=noreply@dspsystem.com    # CHANGE THIS to your sender email\n```\n\n**For Gmail:**\n1. Enable 2FA on your Google account\n2. Generate App Password: https://myaccount.google.com/apppasswords\n3. Use the 16-character app password as SMTP_PASSWORD\n\n**For other providers:**\n- Outlook/Office365: smtp.office365.com:587\n- Yahoo: smtp.mail.yahoo.com:587\n- Custom SMTP: Contact your email provider\n\n**Parameters**:\n- to_email: Recipient email address\n- subject: Email subject line\n- body: Email content (plain text or HTML)\n- html: Set to true if body contains HTML\n- cc: Optional CC recipients\n- bcc: Optional BCC recipients\n\n**Returns**: Success status and message",
+        "operationId": "send_email_api_v1_notifications_email_send_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/email/send-bulk": {
+      "post": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Send Bulk Email",
+        "description": "Send email to multiple recipients.\n\n**Permissions**: Requires authenticated user\n\n**📧 SMTP Configuration Required** - See `/email/send` endpoint documentation for setup instructions.\n\n**Parameters**:\n- recipients: List of recipient email addresses\n- subject: Email subject line\n- body: Email content (plain text or HTML)\n- html: Set to true if body contains HTML\n\n**Returns**: Statistics on sent/failed emails",
+        "operationId": "send_bulk_email_api_v1_notifications_email_send_bulk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendBulkEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkEmailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/email/status": {
+      "get": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Get Email Service Status",
+        "description": "Get email service configuration status.\n\n**Permissions**: Requires authenticated user\n\n**Returns**: Current email service status and configuration hints\n\n**If disabled, configure in .env:**\n```env\nSMTP_HOST=smtp.gmail.com\nSMTP_PORT=587\nSMTP_USER=your-email@gmail.com\nSMTP_PASSWORD=your-app-password\nSMTP_FROM=noreply@dspsystem.com\n```",
+        "operationId": "get_email_service_status_api_v1_notifications_email_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/status": {
+      "get": {
+        "tags": [
+          "Notifications (SMS & Email)"
+        ],
+        "summary": "Get All Notification Services Status",
+        "description": "Get overall notification services status.\n\n**Permissions**: Requires authenticated user\n\n**Returns**: Status of all notification services (SMS + Email)",
+        "operationId": "get_all_notification_services_status_api_v1_notifications_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/": {
       "get": {
         "summary": "Root",
@@ -4059,6 +4322,65 @@
           "file"
         ],
         "title": "Body_upload_file_api_v1_files_upload_post"
+      },
+      "BulkEmailResponse": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "sent": {
+            "type": "integer",
+            "title": "Sent"
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "sent",
+          "failed"
+        ],
+        "title": "BulkEmailResponse",
+        "description": "Response model for bulk email operations."
+      },
+      "BulkSMSResponse": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "sent": {
+            "type": "integer",
+            "title": "Sent"
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "sent",
+          "failed"
+        ],
+        "title": "BulkSMSResponse",
+        "description": "Response model for bulk SMS operations."
       },
       "CheckinStatus": {
         "type": "string",
@@ -4461,6 +4783,25 @@
         ],
         "title": "DriverToken",
         "description": "Schema for driver authentication token response."
+      },
+      "EmailResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "EmailResponse",
+        "description": "Response model for email operations."
       },
       "FileRecordResponse": {
         "properties": {
@@ -5223,6 +5564,36 @@
         "title": "RouteImportResponse",
         "description": "Response from importing routes and updating schedules."
       },
+      "SMSResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "SMSResponse",
+        "description": "Response model for SMS operations."
+      },
       "ScheduleConfirmStatus": {
         "type": "string",
         "enum": [
@@ -5399,6 +5770,19 @@
       },
       "ScheduleUpdate": {
         "properties": {
+          "driver_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Id",
+            "description": "Driver ID (integer, optional). When provided, automatically updates deputy_id, driver_name, and amazon_id from the driver record.",
+            "example": 137
+          },
           "deputy_id": {
             "anyOf": [
               {
@@ -5581,6 +5965,164 @@
         "type": "object",
         "title": "ScheduleUpdate",
         "description": "Schema for updating a schedule. All fields are optional - only include fields you want to update."
+      },
+      "SendBulkEmailRequest": {
+        "properties": {
+          "recipients": {
+            "items": {
+              "type": "string",
+              "format": "email"
+            },
+            "type": "array",
+            "title": "Recipients",
+            "description": "List of recipient email addresses"
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject",
+            "description": "Email subject"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Body",
+            "description": "Email body content"
+          },
+          "html": {
+            "type": "boolean",
+            "title": "Html",
+            "description": "If true, body is HTML content",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "recipients",
+          "subject",
+          "body"
+        ],
+        "title": "SendBulkEmailRequest",
+        "description": "Request model for sending bulk email."
+      },
+      "SendBulkSMSRequest": {
+        "properties": {
+          "phones": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Phones",
+            "description": "List of recipient phone numbers"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 1600,
+            "minLength": 1,
+            "title": "Message",
+            "description": "SMS message content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phones",
+          "message"
+        ],
+        "title": "SendBulkSMSRequest",
+        "description": "Request model for sending bulk SMS."
+      },
+      "SendEmailRequest": {
+        "properties": {
+          "to_email": {
+            "type": "string",
+            "format": "email",
+            "title": "To Email",
+            "description": "Recipient email address"
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject",
+            "description": "Email subject"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Body",
+            "description": "Email body content"
+          },
+          "html": {
+            "type": "boolean",
+            "title": "Html",
+            "description": "If true, body is HTML content",
+            "default": false
+          },
+          "cc": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cc",
+            "description": "CC recipients (optional)"
+          },
+          "bcc": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bcc",
+            "description": "BCC recipients (optional)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "to_email",
+          "subject",
+          "body"
+        ],
+        "title": "SendEmailRequest",
+        "description": "Request model for sending email."
+      },
+      "SendSMSRequest": {
+        "properties": {
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "description": "Recipient phone number (with country code, e.g., +61451728450)"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 1600,
+            "minLength": 1,
+            "title": "Message",
+            "description": "SMS message content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone",
+          "message"
+        ],
+        "title": "SendSMSRequest",
+        "description": "Request model for sending SMS."
       },
       "SkippedRosterInfo": {
         "properties": {

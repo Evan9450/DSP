@@ -39,6 +39,7 @@ export function AddDriverDialog({
 	const [newDriver, setNewDriver] = useState<DriverCreate>({
 		name: '',
 		amazon_id: '',
+		password: '',
 	});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [validationErrors, setValidationErrors] = useState<DriverValidationErrors>({});
@@ -64,7 +65,7 @@ export function AddDriverDialog({
 			await apiClient.createDriver(newDriver);
 			const driverName = newDriver.name;
 			// Reset form
-			setNewDriver({ name: '', amazon_id: '' });
+			setNewDriver({ name: '', amazon_id: '', password: '' });
 			setValidationErrors({});
 			onOpenChange(false);
 			await onSuccess();
@@ -81,7 +82,7 @@ export function AddDriverDialog({
 	};
 
 	const handleCancel = () => {
-		setNewDriver({ name: '', amazon_id: '' });
+		setNewDriver({ name: '', amazon_id: '', password: '' });
 		setValidationErrors({});
 		onOpenChange(false);
 	};
@@ -121,6 +122,20 @@ export function AddDriverDialog({
 								})
 							}
 							placeholder='e.g., DA123456'
+						/>
+					</div>
+					<div>
+						<Label>Password *</Label>
+						<Input
+							type='password'
+							value={newDriver.password}
+							onChange={(e) =>
+								setNewDriver({
+									...newDriver,
+									password: e.target.value,
+								})
+							}
+							placeholder='Enter login password'
 						/>
 					</div>
 					<div>
@@ -191,6 +206,7 @@ export function AddDriverDialog({
 						disabled={
 							!newDriver.name ||
 							!newDriver.amazon_id ||
+							!newDriver.password ||
 							hasValidationErrors(validationErrors) ||
 							isSubmitting
 						}

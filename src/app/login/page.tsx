@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { AlertCircle, Calendar, Eye, EyeOff } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
-import { Calendar, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function LoginPage() {
 	const { login } = useAuth();
@@ -83,7 +84,9 @@ export default function LoginPage() {
 							<p className='text-sm font-medium text-orange-900'>
 								Session Expired
 							</p>
-							<p className='text-sm text-orange-700 mt-1'>{logoutMessage}</p>
+							<p className='text-sm text-orange-700 mt-1'>
+								{logoutMessage}
+							</p>
 						</div>
 					</div>
 				)}
@@ -138,26 +141,6 @@ export default function LoginPage() {
 						{isLoading ? 'Signing in...' : 'Sign In'}
 					</Button>
 				</form>
-
-				<div className='mt-6 p-4 bg-gray-50 rounded-lg'>
-					<p className='text-xs font-semibold text-gray-700 mb-2'>
-						Demo Accounts:
-					</p>
-					<div className='space-y-1 text-xs text-gray-600'>
-						<p>
-							<span className='font-mono'>admin@dsp.com</span> /{' '}
-							<span className='font-mono'>admin123</span>
-						</p>
-						<p>
-							<span className='font-mono'>manager@dsp.com</span> /{' '}
-							<span className='font-mono'>manager123</span>
-						</p>
-						<p>
-							<span className='font-mono'>demo@dsp.com</span> /{' '}
-							<span className='font-mono'>demo123</span>
-						</p>
-					</div>
-				</div>
 			</Card>
 		</div>
 	);

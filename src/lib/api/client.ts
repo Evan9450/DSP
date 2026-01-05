@@ -100,7 +100,7 @@ export interface DriverCreate {
 	email?: string;
 	address?: string;
 	amazon_id: string;
-	amazon_password?: string;
+	password: string; // Required field for driver login
 	deputy_id?: string;
 }
 
@@ -1224,6 +1224,13 @@ class APIClient {
 		const response = await this.client.post<ScheduleResponse>(
 			`/api/v1/schedules/${scheduleId}/assign-vehicle`,
 			{ vehicle_id: vehicleId }
+		);
+		return response.data;
+	}
+
+	async confirmSchedule(scheduleId: number): Promise<ScheduleResponse> {
+		const response = await this.client.post<ScheduleResponse>(
+			`/api/v1/schedules/${scheduleId}/confirm`
 		);
 		return response.data;
 	}

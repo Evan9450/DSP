@@ -2,7 +2,7 @@
 
 import {
 	ArrowLeft,
-	Calendar,
+	Calendar as CalendarIcon,
 	Car,
 	Check,
 	CheckCircle2,
@@ -19,6 +19,11 @@ import {
 	X,
 	XCircle,
 } from 'lucide-react';
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from '@/components/ui/popover';
 import {
 	Select,
 	SelectContent,
@@ -45,6 +50,7 @@ import { useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -502,12 +508,16 @@ export default function VehicleDetailPage({
 											</Label>
 											<Select
 												value={
-													editForm.condition || 'available'
+													editForm.condition ||
+													'available'
 												}
 												onValueChange={(value) =>
 													setEditForm({
 														...editForm,
-														condition: value as 'available' | 'need-repair' | 'unavailable',
+														condition: value as
+															| 'available'
+															| 'need-repair'
+															| 'unavailable',
 													})
 												}>
 												<SelectTrigger>
@@ -547,14 +557,18 @@ export default function VehicleDetailPage({
 											</Label>
 											<Select
 												value={
-													editForm.status || 'not-in-use'
+													editForm.status ||
+													'not-in-use'
 												}
 												onValueChange={(value) =>
 													setEditForm({
 														...editForm,
-														status: value as 'in-use' | 'not-in-use',
+														status: value as
+															| 'in-use'
+															| 'not-in-use',
 													})
-												}>
+												}
+												disabled>
 												<SelectTrigger>
 													<SelectValue />
 												</SelectTrigger>
@@ -765,44 +779,96 @@ export default function VehicleDetailPage({
 							{isEditing ? (
 								<div className='grid grid-cols-2 gap-4'>
 									<div className='space-y-2'>
-										<Label htmlFor='edit-last-maintenance'>
-											Last Maintenance Date
-										</Label>
-										<Input
-											id='edit-last-maintenance'
-											type='date'
-											value={
-												editForm.last_maintenance_date ||
-												''
-											}
-											onChange={(e) =>
-												setEditForm({
-													...editForm,
-													last_maintenance_date:
-														e.target.value,
-												})
-											}
-										/>
+										<Label>Last Maintenance Date</Label>
+										<Popover>
+											<PopoverTrigger asChild>
+												<Button
+													variant='outline'
+													className='w-full justify-start text-left font-normal'>
+													<CalendarIcon className='mr-2 h-4 w-4' />
+													{editForm.last_maintenance_date ? (
+														format(
+															new Date(
+																editForm.last_maintenance_date
+															),
+															'PPP'
+														)
+													) : (
+														<span>Pick a date</span>
+													)}
+												</Button>
+											</PopoverTrigger>
+											<PopoverContent className='w-auto p-0'>
+												<Calendar
+													mode='single'
+													selected={
+														editForm.last_maintenance_date
+															? new Date(
+																	editForm.last_maintenance_date
+																)
+															: undefined
+													}
+													onSelect={(date) =>
+														setEditForm({
+															...editForm,
+															last_maintenance_date: date
+																? format(
+																		date,
+																		'yyyy-MM-dd'
+																	)
+																: undefined,
+														})
+													}
+													initialFocus
+												/>
+											</PopoverContent>
+										</Popover>
 									</div>
 									<div className='space-y-2'>
-										<Label htmlFor='edit-next-maintenance'>
-											Next Maintenance Date
-										</Label>
-										<Input
-											id='edit-next-maintenance'
-											type='date'
-											value={
-												editForm.next_maintenance_date ||
-												''
-											}
-											onChange={(e) =>
-												setEditForm({
-													...editForm,
-													next_maintenance_date:
-														e.target.value,
-												})
-											}
-										/>
+										<Label>Next Maintenance Date</Label>
+										<Popover>
+											<PopoverTrigger asChild>
+												<Button
+													variant='outline'
+													className='w-full justify-start text-left font-normal'>
+													<CalendarIcon className='mr-2 h-4 w-4' />
+													{editForm.next_maintenance_date ? (
+														format(
+															new Date(
+																editForm.next_maintenance_date
+															),
+															'PPP'
+														)
+													) : (
+														<span>Pick a date</span>
+													)}
+												</Button>
+											</PopoverTrigger>
+											<PopoverContent className='w-auto p-0'>
+												<Calendar
+													mode='single'
+													selected={
+														editForm.next_maintenance_date
+															? new Date(
+																	editForm.next_maintenance_date
+																)
+															: undefined
+													}
+													onSelect={(date) =>
+														setEditForm({
+															...editForm,
+															next_maintenance_date: date
+																? format(
+																		date,
+																		'yyyy-MM-dd'
+																	)
+																: undefined,
+														})
+													}
+													initialFocus
+												/>
+											</PopoverContent>
+										</Popover>
 									</div>
 									<div className='space-y-2'>
 										<Label htmlFor='edit-location'>

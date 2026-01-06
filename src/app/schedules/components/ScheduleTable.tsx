@@ -287,7 +287,8 @@ export function ScheduleTable({
 									{isEditable ? (
 										<Select
 											value={
-												schedule.vehicle || 'unassigned'
+												schedule.vehicle_alias ||
+												'unassigned'
 											}
 											onValueChange={(value) => {
 												if (
@@ -305,14 +306,14 @@ export function ScheduleTable({
 													<div className='flex items-center gap-2'>
 														<CarIcon className='h-4 w-4 text-gray-500' />
 														<span className='font-medium'>
-															{schedule.vehicle ||
+															{schedule.vehicle_alias ||
 																'Assign Vehicle'}
 														</span>
 													</div>
 												</SelectValue>
 											</SelectTrigger>
 											<SelectContent>
-												{!schedule.vehicle && (
+												{!schedule.vehicle_alias && (
 													<SelectItem
 														value='unassigned'
 														disabled>
@@ -362,9 +363,9 @@ export function ScheduleTable({
 												})()}
 											</SelectContent>
 										</Select>
-									) : schedule.vehicle ? (
+									) : schedule.vehicle_alias ? (
 										<span className='font-medium text-gray-900'>
-											{schedule.vehicle}
+											{schedule.vehicle_alias}
 										</span>
 									) : (
 										<span className='text-gray-400 text-sm'>

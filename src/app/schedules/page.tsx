@@ -63,12 +63,20 @@ export default function ScheduleTablePage() {
 		currentSchedule: ScheduleResponse
 	) => {
 		// Get all vehicle aliases that are already assigned to OTHER schedules
-		const assignedVehicles = scheduleData
-			.filter((s) => s.id !== currentSchedule.id && s.vehicle) // Exclude current schedule
-			.map((s) => s.vehicle);
+		const assignedVehicleAliases = scheduleData
+			.filter(
+				(s) =>
+					s.id !== currentSchedule.id &&
+					(s.vehicle_rego || s.vehicle_alias)
+			) // Exclude current schedule
+			.map((s) => s.vehicle_alias);
 
-		// Filter out vehicles that are already assigned
-		return allVehicles.filter((v) => !assignedVehicles.includes(v.alias));
+		// Filter out vehicles that are already assigned or unavailable
+		return allVehicles.filter(
+			(v) =>
+				!assignedVehicleAliases.includes(v.alias) &&
+				v.condition !== 'unavailable'
+		);
 	};
 
 	// Fetch all vehicles (including assigned ones)
@@ -252,6 +260,13 @@ export default function ScheduleTablePage() {
 		scheduleId: number,
 		vehicleAlias: string
 	) => {
+		// Find the vehicle object to get both rego and alias
+		const vehicle = allVehicles.find((v) => v.alias === vehicleAlias);
+		if (!vehicle) {
+			console.error('❌ Vehicle not found:', vehicleAlias);
+			return;
+		}
+
 		// Save previous state for manual revert
 		const previousSchedule = scheduleData.find((s) => s.id === scheduleId);
 		if (!previousSchedule) return;
@@ -262,7 +277,8 @@ export default function ScheduleTablePage() {
 				schedule.id === scheduleId
 					? {
 							...schedule,
-							vehicle: vehicleAlias,
+							vehicle_rego: vehicle.rego,
+							vehicle_alias: vehicle.alias,
 							confirm_status: 'pending' as const,
 						}
 					: schedule
@@ -271,7 +287,8 @@ export default function ScheduleTablePage() {
 
 		try {
 			await apiClient.updateSchedule(scheduleId, {
-				vehicle: vehicleAlias,
+				vehicle_rego: vehicle.rego,
+				vehicle_alias: vehicle.alias,
 				confirm_status: 'pending', // Reset to pending when vehicle changes
 			});
 			await fetchSchedules(); // Refresh schedules

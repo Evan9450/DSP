@@ -1,22 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { VehicleInspectionResponse, apiClient } from '@/lib/api/client';
+import { useEffect, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
-import { apiClient, VehicleInspectionResponse } from '@/lib/api/client';
 import { DateSelector } from './components/date-selector';
-import { VehicleSelector } from './components/vehicle-selector';
 import { InspectionsTable } from './components/inspections-table';
+import { VehicleSelector } from './components/vehicle-selector';
+import { format } from 'date-fns';
 
 export default function InspectionsPage() {
 	// Filter states
-	const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-	const [selectedVehicle, setSelectedVehicle] = useState<number | undefined>();
+	const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+		new Date()
+	);
+	const [selectedVehicle, setSelectedVehicle] = useState<
+		number | undefined
+	>();
 
 	// Data states
-	const [inspections, setInspections] = useState<VehicleInspectionResponse[]>([]);
+	const [inspections, setInspections] = useState<VehicleInspectionResponse[]>(
+		[]
+	);
 	const [isLoading, setIsLoading] = useState(false);
 
 	// Format date for API
@@ -49,7 +56,10 @@ export default function InspectionsPage() {
 					data = await apiClient.getInspectionsByDate(formattedDate);
 				} else if (selectedVehicle) {
 					// Only vehicle: use optimized by-vehicle endpoint
-					data = await apiClient.getInspectionsByVehicle(selectedVehicle);
+					data =
+						await apiClient.getInspectionsByVehicle(
+							selectedVehicle
+						);
 				} else {
 					data = [];
 				}
@@ -92,7 +102,7 @@ export default function InspectionsPage() {
 						selectedDate={selectedDate}
 						onDateChange={setSelectedDate}
 					/>
-					<VehicleSelector
+					{/* <VehicleSelector
 						selectedVehicle={selectedVehicle}
 						onVehicleChange={setSelectedVehicle}
 					/>
@@ -104,7 +114,7 @@ export default function InspectionsPage() {
 							<X className='h-4 w-4 mr-1' />
 							Clear Filters
 						</Button>
-					)}
+					)} */}
 				</div>
 
 				{/* Show prompt when no filters are active */}
@@ -117,7 +127,8 @@ export default function InspectionsPage() {
 									Please Select Filters
 								</h3>
 								<p className='text-gray-600'>
-									Choose a date or vehicle to view inspection records
+									Choose a date or vehicle to view inspection
+									records
 								</p>
 							</div>
 						</CardContent>
@@ -130,7 +141,9 @@ export default function InspectionsPage() {
 						<CardContent className='py-8'>
 							<div className='flex items-center justify-center'>
 								<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700'></div>
-								<p className='ml-4 text-gray-600'>Loading inspections...</p>
+								<p className='ml-4 text-gray-600'>
+									Loading inspections...
+								</p>
 							</div>
 						</CardContent>
 					</Card>

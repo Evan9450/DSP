@@ -1048,7 +1048,14 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Status Filter"
             }
           },
@@ -1057,7 +1064,14 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Condition Filter"
             }
           },
@@ -1161,7 +1175,7 @@
           "Vehicles"
         ],
         "summary": "List Available Vehicles",
-        "description": "List available vehicles (condition=0: available) for assignment.",
+        "description": "List available vehicles (condition=\"available\") for assignment.",
         "operationId": "list_available_vehicles_api_v1_vehicles_available_get",
         "responses": {
           "200": {
@@ -1192,7 +1206,7 @@
           "Vehicles"
         ],
         "summary": "Review Inspection",
-        "description": "Admin review/approve inspection (admin only).\n\nAdmins can:\n- Set inspection status (inspection_status: 0=pending, 1=passed, 2=failed)\n- Add review notes/feedback (admin_notes)\n\nAdmins CANNOT update the inspection content (date, mileage, photos).",
+        "description": "Admin review/approve inspection (admin only).\n\nAdmins can:\n- Set inspection status (inspection_status: \"pending\", \"passed\", \"failed\")\n- Add review notes/feedback (admin_notes)\n\nAdmins CANNOT update the inspection content (date, mileage, photos).",
         "operationId": "review_inspection_api_v1_vehicles_inspections__inspection_id__review_post",
         "security": [
           {
@@ -1250,7 +1264,7 @@
           "Vehicles"
         ],
         "summary": "List Inspections",
-        "description": "List vehicle inspection records with optional filters.\n\nQuery parameters:\n- vehicle_id: Filter by vehicle ID\n- driver_id: Filter by driver ID\n- reviewed: Filter by review status (true/false)\n- inspection_status: Filter by inspection status (0=pending, 1=passed, 2=failed)\n- inspection_date: Filter by specific date (YYYY-MM-DD)\n- start_date: Filter by date range start (YYYY-MM-DD)\n- end_date: Filter by date range end (YYYY-MM-DD)\n- skip: Pagination offset\n- limit: Maximum records to return\n\nExamples:\n- Get all inspections for vehicle 1: ?vehicle_id=1\n- Get inspections on specific date: ?inspection_date=2025-11-22\n- Get inspections in date range: ?start_date=2025-11-01&end_date=2025-11-30\n- Get unreviewed inspections: ?reviewed=false\n- Get pending inspections: ?inspection_status=0\n- Get passed inspections: ?inspection_status=1\n- Get failed inspections: ?inspection_status=2",
+        "description": "List vehicle inspection records with optional filters.\n\nQuery parameters:\n- vehicle_id: Filter by vehicle ID\n- driver_id: Filter by driver ID\n- reviewed: Filter by review status (true/false)\n- inspection_status: Filter by inspection status (\"pending\", \"passed\", \"failed\")\n- inspection_date: Filter by specific date (YYYY-MM-DD)\n- start_date: Filter by date range start (YYYY-MM-DD)\n- end_date: Filter by date range end (YYYY-MM-DD)\n- skip: Pagination offset\n- limit: Maximum records to return\n\nExamples:\n- Get all inspections for vehicle 1: ?vehicle_id=1\n- Get inspections on specific date: ?inspection_date=2025-11-22\n- Get inspections in date range: ?start_date=2025-11-01&end_date=2025-11-30\n- Get unreviewed inspections: ?reviewed=false\n- Get pending inspections: ?inspection_status=pending\n- Get passed inspections: ?inspection_status=passed\n- Get failed inspections: ?inspection_status=failed",
         "operationId": "list_inspections_api_v1_vehicles_inspections_get",
         "security": [
           {
@@ -1290,7 +1304,14 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Inspection Status"
             }
           },
@@ -1946,7 +1967,7 @@
           "Schedules"
         ],
         "summary": "Update Schedule",
-        "description": "更新排班信息\n\n可更新字段：driver_id, route, vehicle, checkin_status\n\n**注意**:\n- 如果提供了 driver_id，会自动从 Driver 表中查找并更新 deputy_id, driver_name, amazon_id\n- confirm_status 不能通过此端点修改，必须使用 POST /schedules/{id}/confirm 端点",
+        "description": "更新排班信息\n\n可更新字段：driver_id, route, vehicle_rego, checkin_status\n\n**注意**:\n- 如果提供了 driver_id，会自动从 Driver 表中查找并更新 deputy_id, driver_name, amazon_id\n- confirm_status 不能通过此端点修改，必须使用 POST /schedules/{id}/confirm 端点",
         "operationId": "update_schedule_api_v1_schedules__schedule_id__put",
         "security": [
           {
@@ -2189,7 +2210,7 @@
           "Schedules"
         ],
         "summary": "Confirm Schedule",
-        "description": "确认排班并发送SMS通知给司机\n\n**必填项检查**:\n- ✅ driver (amazon_id) - 司机的Amazon ID必须已分配\n- ✅ route - 路线必须已分配\n- ✅ vehicle - 车辆必须已分配\n\n**功能**:\n1. 验证所有必填项都已分配（司机Amazon ID、路线、车辆）\n2. 更新 confirm_status 为 CONFIRMED\n3. 查找对应的Driver（通过deputy_id）\n4. 发送SMS通知给司机，包含：\n   - 司机姓名\n   - 路线 (route)\n   - 车辆 (vehicle)\n   - 时间 (start_time ~ end_time)\n\n**SMS通知示例**:\n```\nHi John, your schedule confirmed!\nDate: 2025-12-30\nRoute: DBS7-01A\nVehicle: Van 10\nTime: 08:00 - 18:00\n```",
+        "description": "确认排班并发送SMS通知给司机\n\n**必填项检查**:\n- ✅ driver (amazon_id) - 司机的Amazon ID必须已分配\n- ✅ route - 路线必须已分配\n- ✅ vehicle_rego - 车辆必须已分配\n\n**功能**:\n1. 验证所有必填项都已分配（司机Amazon ID、路线、车辆）\n2. 更新 confirm_status 为 CONFIRMED\n3. 查找对应的Driver（通过deputy_id）\n4. 发送SMS通知给司机，包含：\n   - 司机姓名\n   - 路线 (route)\n   - 车辆 (vehicle_rego)\n   - 时间 (start_time ~ end_time)\n\n**SMS通知示例**:\n```\nHi John, your schedule confirmed!\nDate: 2025-12-30\nRoute: DBS7-01A\nVehicle: Van 10\nTime: 08:00 - 18:00\n```",
         "operationId": "confirm_schedule_api_v1_schedules__schedule_id__confirm_post",
         "security": [
           {
@@ -6746,7 +6767,7 @@
             "description": "Route assignment (string, optional). Route code or description.",
             "example": "Route A - North Zone"
           },
-          "vehicle": {
+          "vehicle_rego": {
             "anyOf": [
               {
                 "type": "string",
@@ -6756,9 +6777,23 @@
                 "type": "null"
               }
             ],
-            "title": "Vehicle",
-            "description": "Vehicle assignment (string, optional). Vehicle registration number or identifier.",
+            "title": "Vehicle Rego",
+            "description": "Vehicle registration number (rego, optional). Vehicle rego assigned to this schedule.",
             "example": "ABC123"
+          },
+          "vehicle_alias": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Alias",
+            "description": "Vehicle alias/nickname (optional). Vehicle display name for this schedule.",
+            "example": "Van001"
           },
           "id": {
             "type": "integer",
@@ -6944,7 +6979,7 @@
             "description": "Route assignment (string, optional). Route code or description.",
             "example": "Route B - South Zone"
           },
-          "vehicle": {
+          "vehicle_rego": {
             "anyOf": [
               {
                 "type": "string",
@@ -6954,9 +6989,23 @@
                 "type": "null"
               }
             ],
-            "title": "Vehicle",
-            "description": "Vehicle assignment (string, optional). Vehicle registration number or identifier.",
-            "example": "XYZ789"
+            "title": "Vehicle Rego",
+            "description": "Vehicle registration number (rego, optional). Vehicle rego to assign to this schedule.",
+            "example": "ABC123"
+          },
+          "vehicle_alias": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Alias",
+            "description": "Vehicle alias/nickname (optional). Vehicle display name to assign to this schedule.",
+            "example": "Van001"
           },
           "deputy_schedule_id": {
             "anyOf": [
@@ -7921,20 +7970,16 @@
             "description": "Vehicle model (e.g., Transit 2021)"
           },
           "status": {
-            "type": "integer",
-            "maximum": 1,
-            "minimum": 0,
+            "type": "string",
             "title": "Status",
-            "description": "0: in-use, 1: not-in-use",
-            "default": 0
+            "description": "Vehicle status: 'in-use' or 'not-in-use'",
+            "default": "in-use"
           },
           "condition": {
-            "type": "integer",
-            "maximum": 2,
-            "minimum": 0,
+            "type": "string",
             "title": "Condition",
-            "description": "0: available, 1: need-repair, 2: unavailable",
-            "default": 0
+            "description": "Vehicle condition: 'available', 'need-repair', or 'unavailable'",
+            "default": "available"
           },
           "mileage": {
             "type": "integer",
@@ -8050,11 +8095,11 @@
             "title": "Id"
           },
           "status": {
-            "type": "integer",
+            "type": "string",
             "title": "Status"
           },
           "condition": {
-            "type": "integer",
+            "type": "string",
             "title": "Condition"
           },
           "mileage": {
@@ -8554,11 +8599,9 @@
       "VehicleInspectionReview": {
         "properties": {
           "inspection_status": {
-            "type": "integer",
-            "maximum": 2,
-            "minimum": 0,
+            "type": "string",
             "title": "Inspection Status",
-            "description": "0: pending, 1: passed, 2: failed"
+            "description": "Inspection status: 'pending', 'passed', or 'failed'"
           },
           "admin_notes": {
             "anyOf": [
@@ -8713,11 +8756,11 @@
             "title": "Id"
           },
           "status": {
-            "type": "integer",
+            "type": "string",
             "title": "Status"
           },
           "condition": {
-            "type": "integer",
+            "type": "string",
             "title": "Condition"
           },
           "mileage": {
@@ -8908,30 +8951,26 @@
           "status": {
             "anyOf": [
               {
-                "type": "integer",
-                "maximum": 1,
-                "minimum": 0
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
             "title": "Status",
-            "description": "0: in-use, 1: not-in-use"
+            "description": "Vehicle status: 'in-use' or 'not-in-use'"
           },
           "condition": {
             "anyOf": [
               {
-                "type": "integer",
-                "maximum": 2,
-                "minimum": 0
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
             "title": "Condition",
-            "description": "0: available, 1: need-repair, 2: unavailable"
+            "description": "Vehicle condition: 'available', 'need-repair', or 'unavailable'"
           },
           "mileage": {
             "anyOf": [

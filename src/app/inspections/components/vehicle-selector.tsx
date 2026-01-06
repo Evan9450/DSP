@@ -7,6 +7,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+
 import { Car } from 'lucide-react';
 import { useVehicles } from '@/hooks/use-vehicles';
 
@@ -20,6 +21,7 @@ export function VehicleSelector({
 	onVehicleChange,
 }: VehicleSelectorProps) {
 	const { vehicles, isLoading } = useVehicles();
+	console.log('🚀 => VehicleSelector => vehicles:', vehicles);
 
 	return (
 		<div className='flex items-center gap-2'>
@@ -27,25 +29,31 @@ export function VehicleSelector({
 			<Select
 				value={selectedVehicle?.toString() || 'all'}
 				onValueChange={(value) => {
-					onVehicleChange(value === 'all' ? undefined : parseInt(value));
+					onVehicleChange(
+						value === 'all' ? undefined : parseInt(value)
+					);
 				}}
 				disabled={isLoading}>
 				<SelectTrigger className='w-[280px]'>
 					<SelectValue
-						placeholder={isLoading ? 'Loading vehicles...' : 'All Vehicles'}
+						placeholder={
+							isLoading ? 'Loading vehicles...' : 'All Vehicles'
+						}
 					/>
 				</SelectTrigger>
 				<SelectContent>
 					<SelectItem value='all'>All Vehicles</SelectItem>
 					{vehicles.map((vehicle) => (
-						<SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+						<SelectItem
+							key={vehicle.id}
+							value={vehicle.id.toString()}>
 							<div className='flex items-center gap-2'>
 								<span className='font-medium'>
 									{vehicle.alias || `Vehicle #${vehicle.id}`}
 								</span>
-								{vehicle.make && vehicle.model && (
+								{vehicle.brand && vehicle.model && (
 									<span className='text-sm text-gray-500'>
-										({vehicle.make} {vehicle.model})
+										({vehicle.brand} {vehicle.model})
 									</span>
 								)}
 							</div>

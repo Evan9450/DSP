@@ -202,7 +202,7 @@ const DriverTable = ({
 											}}>
 											<Trash2 className='h-4 w-4' />
 										</Button>
-										<ChevronRight className='h-5 w-5 text-gray-400' />
+										{/* <ChevronRight className='h-5 w-5 text-gray-400' /> */}
 									</div>
 								</TableCell>
 							</TableRow>

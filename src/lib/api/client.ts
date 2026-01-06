@@ -290,7 +290,8 @@ export interface ScheduleResponse {
 	amazon_id?: string | null;
 	schedule_date: string;
 	route?: string | null;
-	vehicle?: string | null;
+	vehicle_rego?: string | null;
+	vehicle_alias?: string | null;
 	deputy_schedule_id: string;
 	start_time: string;
 	end_time: string;
@@ -318,7 +319,8 @@ export interface ScheduleUpdate {
 	driver_id?: number;
 	deputy_id?: string;
 	route?: string;
-	vehicle?: string;
+	vehicle_rego?: string;
+	vehicle_alias?: string;
 	checkin_status?: 'not_checked_in' | 'checked_in' | 'completed';
 	confirm_status?: 'pending' | 'confirmed' | 'cancelled';
 }

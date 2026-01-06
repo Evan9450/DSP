@@ -36,7 +36,6 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { apiConditionToString } from '@/lib/helpers';
 import {
 	errorMessages,
 	handleApiError,
@@ -56,6 +55,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { VehicleCondition } from '@/types/schedule';
 import { apiClient } from '@/lib/api/client';
+import { apiConditionToString } from '@/lib/helpers';
 import { convertVehicle } from '@/lib/api/converters';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
@@ -93,8 +93,10 @@ export default function VehiclesPage() {
 
 	const conditionStats = {
 		available: vehicles.filter((v) => v.condition === 'available').length,
-		'need-repair': vehicles.filter((v) => v.condition === 'need-repair').length,
-		unavailable: vehicles.filter((v) => v.condition === 'unavailable').length,
+		'need-repair': vehicles.filter((v) => v.condition === 'need-repair')
+			.length,
+		unavailable: vehicles.filter((v) => v.condition === 'unavailable')
+			.length,
 	};
 
 	const statusConfig: Record<
@@ -295,34 +297,46 @@ export default function VehiclesPage() {
 						</Button>
 						<Button
 							variant={
-								conditionFilter === 'available' ? 'default' : 'outline'
+								conditionFilter === 'available'
+									? 'default'
+									: 'outline'
 							}
 							onClick={() => setConditionFilter('available')}
 							size='sm'
 							className={
-								conditionFilter === 'available' ? 'bg-green-600' : ''
+								conditionFilter === 'available'
+									? 'bg-green-600'
+									: ''
 							}>
 							Ready
 						</Button>
 						<Button
 							variant={
-								conditionFilter === 'need-repair' ? 'default' : 'outline'
+								conditionFilter === 'need-repair'
+									? 'default'
+									: 'outline'
 							}
 							onClick={() => setConditionFilter('need-repair')}
 							size='sm'
 							className={
-								conditionFilter === 'need-repair' ? 'bg-yellow-600' : ''
+								conditionFilter === 'need-repair'
+									? 'bg-yellow-600'
+									: ''
 							}>
 							Needs Repair
 						</Button>
 						<Button
 							variant={
-								conditionFilter === 'unavailable' ? 'default' : 'outline'
+								conditionFilter === 'unavailable'
+									? 'default'
+									: 'outline'
 							}
 							onClick={() => setConditionFilter('unavailable')}
 							size='sm'
 							className={
-								conditionFilter === 'unavailable' ? 'bg-red-600' : ''
+								conditionFilter === 'unavailable'
+									? 'bg-red-600'
+									: ''
 							}>
 							Unavailable
 						</Button>
@@ -349,7 +363,7 @@ export default function VehiclesPage() {
 								<TableHead>Status</TableHead>
 								<TableHead>Mileage</TableHead>
 								<TableHead>Next Maintenance</TableHead>
-								<TableHead>Notes</TableHead>
+								{/* <TableHead>Notes</TableHead> */}
 								<TableHead className='w-[50px]'></TableHead>
 							</TableRow>
 						</TableHeader>
@@ -469,7 +483,7 @@ export default function VehiclesPage() {
 												</span>
 											)}
 										</TableCell>
-										<TableCell>
+										{/* <TableCell>
 											{vehicle.notes ? (
 												<div
 													className='max-w-xs truncate text-sm text-gray-600'
@@ -481,12 +495,12 @@ export default function VehiclesPage() {
 													-
 												</span>
 											)}
-										</TableCell>
+										</TableCell> */}
 										<TableCell
 											onClick={(e) =>
 												e.stopPropagation()
 											}>
-											<DropdownMenu>
+											{/* <DropdownMenu>
 												<DropdownMenuTrigger asChild>
 													<Button
 														variant='ghost'
@@ -534,7 +548,23 @@ export default function VehiclesPage() {
 														Delete Vehicle
 													</DropdownMenuItem>
 												</DropdownMenuContent>
-											</DropdownMenu>
+											</DropdownMenu> */}
+											<div className='flex items-center justify-end gap-2'>
+												<Button
+													variant='ghost'
+													size='sm'
+													className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 p-0'
+													onClick={(e) =>
+														handleDeleteClick(
+															vehicle.id,
+															vehicle.rego,
+															e
+														)
+													}>
+													<Trash2 className='h-4 w-4  ' />
+												</Button>
+												{/* <ChevronRight className='h-5 w-5 text-gray-400' /> */}
+											</div>
 										</TableCell>
 									</TableRow>
 								);

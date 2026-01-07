@@ -161,11 +161,15 @@ class DriverAPIClient {
 			(response) => response,
 			(error) => {
 				if (error.response?.status === 401) {
-					console.error('❌ Driver unauthorized - redirecting to login');
+					console.error('❌ Driver unauthorized');
 					DriverTokenManager.clearToken();
 
-					// Only redirect if in browser
-					if (typeof window !== 'undefined') {
+					// Only redirect if NOT already on login page
+					// This prevents page refresh when login fails
+					if (
+						typeof window !== 'undefined' &&
+						!window.location.pathname.includes('/driver-login')
+					) {
 						window.location.href = '/driver-login';
 					}
 				}

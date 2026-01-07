@@ -200,12 +200,8 @@ export default function VehiclesPage() {
 			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl'>
 				<div className='mb-4 sm:mb-6'>
 					<h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>
-						Vehicle Fleet Management
+						Vehicle Management
 					</h1>
-					<p className='text-sm sm:text-base text-gray-600 mt-1'>
-						Manage vehicles, track condition status, and monitor
-						maintenance schedules
-					</p>
 				</div>
 
 				{/* Maintenance Alerts */}

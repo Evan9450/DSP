@@ -6,15 +6,15 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { useState } from 'react';
+import { ScheduleResponse, apiClient } from '@/lib/api/client';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
-import { ScheduleResponse, apiClient } from '@/lib/api/client';
-import { cn } from '@/lib/utils';
 import { ScheduleTable } from '../components/ScheduleTable';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { useState } from 'react';
 
 export default function ScheduleHistoryPage() {
 	const [schedules, setSchedules] = useState<ScheduleResponse[]>([]);
@@ -54,9 +54,6 @@ export default function ScheduleHistoryPage() {
 					<h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>
 						Schedule History
 					</h1>
-					<p className='text-sm sm:text-base text-gray-600 mt-1'>
-						View past schedule records
-					</p>
 				</div>
 
 				<div className='mb-6 flex items-center gap-4'>
@@ -65,7 +62,7 @@ export default function ScheduleHistoryPage() {
 							<Button
 								variant='outline'
 								className={cn(
-									'w-[280px] justify-start text-left font-normal',
+									'w-full justify-start text-left font-normal',
 									!selectedDate && 'text-muted-foreground'
 								)}>
 								<CalendarIcon className='mr-2 h-4 w-4' />

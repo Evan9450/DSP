@@ -42,7 +42,8 @@ export function AddDriverDialog({
 		password: '',
 	});
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [validationErrors, setValidationErrors] = useState<DriverValidationErrors>({});
+	const [validationErrors, setValidationErrors] =
+		useState<DriverValidationErrors>({});
 
 	// Validate fields whenever newDriver changes
 	useEffect(() => {
@@ -91,7 +92,9 @@ export function AddDriverDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className='bg-white'>
 				<DialogHeader>
-					<DialogTitle className='text-2xl font-bold text-zinc-900'>Add New Driver</DialogTitle>
+					<DialogTitle className='text-2xl font-bold text-zinc-900'>
+						Add New Driver
+					</DialogTitle>
 					<DialogDescription className='text-sm text-gray-500'>
 						Create a new driver profile. You can add more details
 						later.
@@ -149,7 +152,9 @@ export function AddDriverDialog({
 								})
 							}
 							placeholder='04XX XXX XXX or +61 4XX XXX XXX'
-							className={validationErrors.phone ? 'border-rose-500' : ''}
+							className={
+								validationErrors.phone ? 'border-rose-500' : ''
+							}
 						/>
 						{validationErrors.phone && (
 							<p className='text-rose-500 text-xs mt-1'>
@@ -169,7 +174,9 @@ export function AddDriverDialog({
 								})
 							}
 							placeholder='email@example.com'
-							className={validationErrors.email ? 'border-rose-500' : ''}
+							className={
+								validationErrors.email ? 'border-rose-500' : ''
+							}
 						/>
 						{validationErrors.email && (
 							<p className='text-rose-500 text-xs mt-1'>
@@ -191,14 +198,17 @@ export function AddDriverDialog({
 						/>
 					</div>
 				</div>
-				<div className='px-6 pb-2'>
+				{/* <div className='px-6 pb-2'>
 					<p className='text-sm text-gray-500 italic'>
 						* Deputy ID will be automatically assigned when syncing
 						with Deputy
 					</p>
-				</div>
+				</div> */}
 				<DialogFooter>
-					<Button variant='outline' onClick={handleCancel} className='rounded-md'>
+					<Button
+						variant='outline'
+						onClick={handleCancel}
+						className='rounded-md'>
 						Cancel
 					</Button>
 					<Button

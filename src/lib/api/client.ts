@@ -12,9 +12,10 @@ import axios, {
 // - Empty string ('') = use Next.js proxy (mobile-friendly, configured in next.config.js)
 // - Specific URL = direct API connection (development/production)
 // Note: Use ?? instead of || to preserve empty string for proxy mode
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL !== undefined
-	? process.env.NEXT_PUBLIC_API_BASE_URL
-	: 'http://localhost:8000';
+const API_BASE_URL =
+	process.env.NEXT_PUBLIC_API_BASE_URL !== undefined
+		? process.env.NEXT_PUBLIC_API_BASE_URL
+		: 'http://localhost:8000';
 
 // ============================================================================
 // Request/Response Types (matching OpenAPI spec)
@@ -221,6 +222,7 @@ export type InspectionStatus = 'pending' | 'passed' | 'failed';
 export interface VehicleInspectionResponse {
 	id: number;
 	vehicle_id: number;
+	vehicle_alias?: string;
 	driver_id: number;
 	driver_name?: string; // Driver name included in detail endpoint
 	inspection_date: string;
@@ -502,7 +504,9 @@ export function decodeJWT(token: string): any {
 		const jsonPayload = decodeURIComponent(
 			atob(base64)
 				.split('')
-				.map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+				.map(
+					(c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+				)
 				.join('')
 		);
 		return JSON.parse(jsonPayload);
@@ -604,7 +608,10 @@ class APIClient {
 					console.log('Status:', axiosError.response.status);
 					console.log('Status Text:', axiosError.response.statusText);
 					console.log('URL:', axiosError.config?.url);
-					console.log('Method:', axiosError.config?.method?.toUpperCase());
+					console.log(
+						'Method:',
+						axiosError.config?.method?.toUpperCase()
+					);
 					console.log('Response Data:', axiosError.response.data);
 					console.groupEnd();
 				}
@@ -700,7 +707,8 @@ class APIClient {
 	}
 
 	async getCurrentUser(): Promise<UserResponse> {
-		const response = await this.client.get<UserResponse>('/api/v1/users/me');
+		const response =
+			await this.client.get<UserResponse>('/api/v1/users/me');
 		return response.data;
 	}
 
@@ -787,23 +795,34 @@ class APIClient {
 		if (data.name !== undefined) formData.append('name', data.name);
 		if (data.phone !== undefined) formData.append('phone', data.phone);
 		if (data.email !== undefined) formData.append('email', data.email);
-		if (data.address !== undefined) formData.append('address', data.address);
-		if (data.amazon_id !== undefined) formData.append('amazon_id', data.amazon_id);
-		if (data.deputy_id !== undefined) formData.append('deputy_id', data.deputy_id);
+		if (data.address !== undefined)
+			formData.append('address', data.address);
+		if (data.amazon_id !== undefined)
+			formData.append('amazon_id', data.amazon_id);
+		if (data.deputy_id !== undefined)
+			formData.append('deputy_id', data.deputy_id);
 
 		// Add license fields if provided
-		if (data.license_file) formData.append('license_file', data.license_file);
-		if (data.license_number !== undefined) formData.append('license_number', data.license_number);
-		if (data.license_expiry_date !== undefined) formData.append('license_expiry_date', data.license_expiry_date);
+		if (data.license_file)
+			formData.append('license_file', data.license_file);
+		if (data.license_number !== undefined)
+			formData.append('license_number', data.license_number);
+		if (data.license_expiry_date !== undefined)
+			formData.append('license_expiry_date', data.license_expiry_date);
 
 		// Add visa fields if provided
 		if (data.visa_file) formData.append('visa_file', data.visa_file);
-		if (data.visa_number !== undefined) formData.append('visa_number', data.visa_number);
-		if (data.visa_expiry_date !== undefined) formData.append('visa_expiry_date', data.visa_expiry_date);
+		if (data.visa_number !== undefined)
+			formData.append('visa_number', data.visa_number);
+		if (data.visa_expiry_date !== undefined)
+			formData.append('visa_expiry_date', data.visa_expiry_date);
 
 		console.log('📦 FormData entries:');
 		formData.forEach((value, key) => {
-			console.log(`  ${key}:`, value instanceof File ? `File(${value.name})` : value);
+			console.log(
+				`  ${key}:`,
+				value instanceof File ? `File(${value.name})` : value
+			);
 		});
 
 		try {
@@ -816,12 +835,18 @@ class APIClient {
 					},
 				}
 			);
-			console.log('✅ Driver updated successfully, full response:', response);
+			console.log(
+				'✅ Driver updated successfully, full response:',
+				response
+			);
 			console.log('📋 Response data breakdown:');
 			console.log('  - Name:', response.data.name);
 			console.log('  - Deputy ID:', response.data.deputy_id);
 			console.log('  - License Number:', response.data.license_number);
-			console.log('  - License Expiry:', response.data.license_expiry_date);
+			console.log(
+				'  - License Expiry:',
+				response.data.license_expiry_date
+			);
 			console.log('  - Visa Number:', response.data.visa_number);
 			console.log('  - Visa Expiry:', response.data.visa_expiry_date);
 			console.log('  - License Files:', response.data.license_file_url);
@@ -913,11 +938,12 @@ class APIClient {
 		message?: string;
 		[key: string]: any;
 	}> {
-		const response = await this.client.post<any>('/api/v1/supervise/sync-employees');
+		const response = await this.client.post<any>(
+			'/api/v1/supervise/sync-employees'
+		);
 		console.log('🔄 Deputy sync response:', response.data);
 		return response.data;
 	}
-
 
 	// ============================================================================
 	// Vehicle API
@@ -1180,7 +1206,9 @@ class APIClient {
 	 * @param inspectionId Inspection ID
 	 */
 	async deleteInspection(inspectionId: number): Promise<void> {
-		await this.client.delete(`/api/v1/vehicles/inspections/${inspectionId}`);
+		await this.client.delete(
+			`/api/v1/vehicles/inspections/${inspectionId}`
+		);
 	}
 
 	/**
@@ -1211,10 +1239,11 @@ class APIClient {
 			});
 		}
 
-		const response = await this.client.get<VehicleInspectionPhotoResponse[]>(
-			`/api/v1/vehicles/${vehicleId}/inspection-photos`,
-			{ params: cleanParams }
-		);
+		const response = await this.client.get<
+			VehicleInspectionPhotoResponse[]
+		>(`/api/v1/vehicles/${vehicleId}/inspection-photos`, {
+			params: cleanParams,
+		});
 		return response.data;
 	}
 
@@ -1245,7 +1274,9 @@ class APIClient {
 		return response.data;
 	}
 
-	async getTodaySchedules(autoSync: boolean = true): Promise<ScheduleResponse[]> {
+	async getTodaySchedules(
+		autoSync: boolean = true
+	): Promise<ScheduleResponse[]> {
 		const response = await this.client.get<ScheduleResponse[]>(
 			'/api/v1/schedules/today',
 			{ params: { auto_sync: autoSync } }
@@ -1397,14 +1428,18 @@ class APIClient {
 	}
 
 	// Product Inventory
-	async getProductInventory(productId: number): Promise<ProductInventoryResponse[]> {
+	async getProductInventory(
+		productId: number
+	): Promise<ProductInventoryResponse[]> {
 		const response = await this.client.get<ProductInventoryResponse[]>(
 			`/api/v1/assets/products/${productId}/inventory`
 		);
 		return response.data;
 	}
 
-	async addInventory(data: ProductInventoryCreate): Promise<ProductInventoryResponse> {
+	async addInventory(
+		data: ProductInventoryCreate
+	): Promise<ProductInventoryResponse> {
 		const response = await this.client.post<ProductInventoryResponse>(
 			'/api/v1/assets/inventory',
 			data
@@ -1453,14 +1488,18 @@ class APIClient {
 		return response.data;
 	}
 
-	async listProductBorrowsForProduct(productId: number): Promise<ProductBorrowResponse[]> {
+	async listProductBorrowsForProduct(
+		productId: number
+	): Promise<ProductBorrowResponse[]> {
 		const response = await this.client.get<ProductBorrowResponse[]>(
 			`/api/v1/assets/products/${productId}/borrows`
 		);
 		return response.data;
 	}
 
-	async listProductBorrowsForDriver(driverId: number): Promise<ProductBorrowResponse[]> {
+	async listProductBorrowsForDriver(
+		driverId: number
+	): Promise<ProductBorrowResponse[]> {
 		const response = await this.client.get<ProductBorrowResponse[]>(
 			`/api/v1/assets/drivers/${driverId}/borrows`
 		);
@@ -1480,7 +1519,10 @@ class APIClient {
 		return this.createProduct(data);
 	}
 
-	async updateAsset(assetId: number, data: AssetUpdate): Promise<AssetResponse> {
+	async updateAsset(
+		assetId: number,
+		data: AssetUpdate
+	): Promise<AssetResponse> {
 		return this.updateProduct(assetId, data);
 	}
 
@@ -1488,15 +1530,26 @@ class APIClient {
 		return this.deleteProduct(assetId);
 	}
 
-	async getBorrowRecords(productId?: number, driverId?: number): Promise<BorrowRecordResponse[]> {
-		return this.getProductBorrows({ product_id: productId, driver_id: driverId });
+	async getBorrowRecords(
+		productId?: number,
+		driverId?: number
+	): Promise<BorrowRecordResponse[]> {
+		return this.getProductBorrows({
+			product_id: productId,
+			driver_id: driverId,
+		});
 	}
 
-	async createBorrowRecord(data: BorrowRecordCreate): Promise<BorrowRecordResponse> {
+	async createBorrowRecord(
+		data: BorrowRecordCreate
+	): Promise<BorrowRecordResponse> {
 		return this.createProductBorrow(data);
 	}
 
-	async returnBorrowRecord(recordId: number, notes?: string): Promise<BorrowRecordResponse> {
+	async returnBorrowRecord(
+		recordId: number,
+		notes?: string
+	): Promise<BorrowRecordResponse> {
 		return this.returnProductBorrow(recordId, { notes });
 	}
 

@@ -27,6 +27,7 @@ export default function DriversPage() {
 	const [driverDocuments, setDriverDocuments] = useState<
 		Record<string, any[]>
 	>({});
+	console.log('🚀 => DriversPage => driverDocuments:', driverDocuments);
 	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [isSyncingDeputy, setIsSyncingDeputy] = useState(false);
@@ -63,7 +64,14 @@ export default function DriversPage() {
 					document_number: driver.visa_number,
 				});
 			}
-
+			if (driver) {
+				docs.push({
+					type: 'total',
+					total:
+						(driver?.license_file_url?.length ?? 0) +
+						(driver?.visa_file_url?.length ?? 0),
+				});
+			}
 			docsMap[driver.id.toString()] = docs;
 		}
 
@@ -164,10 +172,6 @@ export default function DriversPage() {
 							<h1 className='text-4xl font-bold tracking-tight text-zinc-900'>
 								Driver Management
 							</h1>
-							<p className='text-sm text-gray-500 mt-2'>
-								Manage drivers, Amazon credentials, and document
-								expiry tracking
-							</p>
 						</div>
 
 						<div>
@@ -207,7 +211,7 @@ export default function DriversPage() {
 							placeholder='Search by name, Amazon ID, or email...'
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
-							className='pl-10 rounded-md'
+							className='pl-10 rounded-md '
 						/>
 					</div>
 					<div className='flex gap-2'>

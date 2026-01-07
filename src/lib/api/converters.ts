@@ -98,7 +98,7 @@ export function convertVehicleInspection(
 	apiInspection: VehicleInspectionResponse
 ): VehicleInspection {
 	// Convert photo URLs to VehiclePhoto objects
-	const photos: VehiclePhoto[] = (apiInspection.photo_urls || []).map((url, index) => ({
+	const photos: VehiclePhoto[] = (apiInspection.inspection_urls || []).map((url: string, index: number) => ({
 		id: `${apiInspection.id}-photo-${index}`,
 		vehicleId: apiInspection.vehicle_id.toString(),
 		url: url,
@@ -140,36 +140,25 @@ export function convertVehicleInspection(
 // ============================================================================
 
 export function convertSchedule(apiSchedule: ScheduleResponse): Schedule {
-	const [startHour, startMinute] = apiSchedule.start_time
-		.split(':')
-		.map(Number);
-	const [endHour, endMinute] = apiSchedule.end_time.split(':').map(Number);
-
-	const startDate = new Date(apiSchedule.date);
-	startDate.setHours(startHour, startMinute);
-
-	const endDate = new Date(apiSchedule.date);
-	endDate.setHours(endHour, endMinute);
+	// API now returns ISO datetime strings (YYYY-MM-DDTHH:MM:SS)
+	const startDate = new Date(apiSchedule.start_time);
+	const endDate = new Date(apiSchedule.end_time);
 
 	return {
 		id: apiSchedule.id.toString(),
-		driverId: apiSchedule.driver_id.toString(),
-		driverName: '', // Will need to be enriched from driver data
-		vehicleId: apiSchedule.vehicle_id?.toString(),
+		driverId: apiSchedule.deputy_id, // Use deputy_id as driverId
+		driverName: apiSchedule.driver_name,
+		vehicleId: undefined, // No vehicle_id in new API
 		startTime: startDate,
 		endTime: endDate,
-		route: apiSchedule.route,
-		status: apiSchedule.status as 'pending' | 'confirmed' | 'completed',
-		deputyShiftId: apiSchedule.deputy_shift_id,
-		smsSent: apiSchedule.sms_sent,
-		smsSentAt: apiSchedule.sms_sent_at
-			? new Date(apiSchedule.sms_sent_at)
-			: undefined,
-		driverConfirmed: apiSchedule.driver_confirmed,
-		driverConfirmedAt: apiSchedule.driver_confirmed_at
-			? new Date(apiSchedule.driver_confirmed_at)
-			: undefined,
-		notes: apiSchedule.notes,
+		route: apiSchedule.route ?? undefined,
+		status: apiSchedule.confirm_status as 'pending' | 'confirmed' | 'completed',
+		deputyShiftId: apiSchedule.deputy_schedule_id,
+		smsSent: apiSchedule.reminder_sms_sent || apiSchedule.assignment_sms_sent,
+		smsSentAt: undefined, // No longer tracked separately
+		driverConfirmed: apiSchedule.confirm_status === 'confirmed',
+		driverConfirmedAt: undefined, // No longer tracked separately
+		notes: undefined, // No notes field in new API
 		isNew: false, // Backend doesn't track this, it's a frontend-only flag
 	};
 }

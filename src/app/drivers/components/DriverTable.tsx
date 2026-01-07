@@ -46,6 +46,7 @@ const DriverTable = ({
 	// Get document stats for alerts
 	const getDriverDocumentStatus = (driverId: string) => {
 		const docs = driverDocuments[driverId] || [];
+		console.log('🚀 => getDriverDocumentStatus => docs:', docs);
 		const expiring = docs.filter((d) => {
 			const status = calculateDocumentStatus(new Date(d.expiry_date));
 			return status === 'expiring';
@@ -55,16 +56,20 @@ const DriverTable = ({
 			return status === 'expired';
 		});
 		return {
-			total: docs.length,
+			total: docs.find((x) => x.type === 'total')?.total,
 			expiring: expiring.length,
 			expired: expired.length,
 		};
 	};
+
 	return (
 		<Card className='bg-white shadow-sm hover:shadow-md transition-shadow rounded-lg overflow-x-auto p-6'>
 			<Table>
 				<TableHeader>
 					<TableRow>
+						<TableHead className='text-sm text-gray-500 '>
+							ID
+						</TableHead>
 						<TableHead className='text-sm text-gray-500'>
 							Driver Name
 						</TableHead>
@@ -74,9 +79,9 @@ const DriverTable = ({
 						<TableHead className='text-sm text-gray-500'>
 							Contact
 						</TableHead>
-						<TableHead className='text-sm text-gray-500'>
+						{/* <TableHead className='text-sm text-gray-500'>
 							Address
-						</TableHead>
+						</TableHead> */}
 						<TableHead className='text-sm text-gray-500'>
 							Documents
 						</TableHead>
@@ -94,22 +99,30 @@ const DriverTable = ({
 								key={driver.id}
 								className='cursor-pointer hover:bg-zinc-50 transition-colors'
 								onClick={() => handleRowClick(driver.id)}>
+								<TableCell className='text-gray-600 text-sm'>
+									{driver.deputyId ? (
+										<div className='flex items-start gap-1 max-w-sm'>
+											<span className='text-xs'>
+												{driver.deputyId}
+											</span>
+										</div>
+									) : (
+										<span className='text-gray-400'>-</span>
+									)}
+								</TableCell>
 								<TableCell className='flex flex-row'>
-									<div className='h-10 w-10 p-2 bg-indigo-50 rounded-full flex items-center justify-center'>
-										<User className='h-5 w-5 text-indigo-600  ' />
-									</div>
 									<div className='ml-2'>
 										<p className='font-semibold text-zinc-900'>
 											{driver.name}
 										</p>
-										<div className='flex items-center gap-1 mt-1'>
+										{/* <div className='flex items-center gap-1 mt-1'>
 											<div className='flex items-center gap-1'>
 												<div className='w-2 h-2 rounded-full bg-emerald-500'></div>
 												<span className='text-sm text-gray-500'>
 													{driver.deputyId}
 												</span>
 											</div>
-										</div>
+										</div> */}
 									</div>
 								</TableCell>
 								<TableCell>
@@ -143,7 +156,7 @@ const DriverTable = ({
 										</div>
 									)}
 								</TableCell>
-								<TableCell className='text-gray-600 text-sm'>
+								{/* <TableCell className='text-gray-600 text-sm'>
 									{driver.address ? (
 										<div className='flex items-start gap-1 max-w-xs'>
 											<MapPin className='h-3 w-3 text-gray-500 mt-0.5 flex-shrink-0' />
@@ -154,14 +167,14 @@ const DriverTable = ({
 									) : (
 										<span className='text-gray-400'>-</span>
 									)}
-								</TableCell>
+								</TableCell> */}
 								<TableCell>
 									{docStatus.total > 0 ? (
 										<div className='space-y-1'>
 											<div className='flex items-center gap-1'>
 												<FileText className='h-3 w-3 text-gray-500' />
 												<span className='text-xs text-gray-600'>
-													{docStatus.total} documents
+													{docStatus.total}
 												</span>
 											</div>
 											{docStatus.expired > 0 && (

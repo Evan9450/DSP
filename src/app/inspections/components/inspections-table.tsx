@@ -137,105 +137,74 @@ export function InspectionsTable({
 						<Table>
 							<TableHeader>
 								<TableRow>
-									<TableHead>Vehicle ID</TableHead>
-									<TableHead>Driver ID</TableHead>
+									<TableHead>ID</TableHead>
+									<TableHead>Vehicle</TableHead>
+									<TableHead>Driver </TableHead>
 									<TableHead>Inspection Date</TableHead>
 									<TableHead>Mileage</TableHead>
-									<TableHead>Photos</TableHead>
 									<TableHead>Status</TableHead>
 									<TableHead>Review Status</TableHead>
-									<TableHead>Notes</TableHead>
-									<TableHead className='text-center'>
-										Actions
-									</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
 								{inspections.map((inspection) => {
-									const photoUrls = getPhotoUrls(inspection.inspection_urls);
+									const photoUrls = getPhotoUrls(
+										inspection.inspection_urls
+									);
 									return (
-									<TableRow
-										key={inspection.id}
-										className='hover:bg-gray-50 transition-colors'>
-										<TableCell className='font-medium'>
-											Vehicle #{inspection.vehicle_id}
-										</TableCell>
-										<TableCell>
-											{inspection.driver_id ? (
-												`Driver #${inspection.driver_id}`
-											) : (
-												<span className='text-gray-400'>
-													-
-												</span>
-											)}
-										</TableCell>
-										<TableCell>
-											{format(
-												new Date(
-													inspection.inspection_date
-												),
-												'MMM dd, yyyy'
-											)}
-										</TableCell>
-										<TableCell className='font-mono'>
-											{inspection.mileage_at_inspection ? (
-												`${inspection.mileage_at_inspection.toLocaleString()} km`
-											) : (
-												<span className='text-gray-400'>
-													-
-												</span>
-											)}
-										</TableCell>
-										<TableCell>
-											{photoUrls && photoUrls.length > 0 ? (
-												<div className='flex items-center gap-1'>
-													<Image className='h-4 w-4 text-blue-600' />
-													<span className='text-sm'>
-														{photoUrls.length}
+										<TableRow
+											key={inspection.id}
+											className='hover:bg-gray-50 transition-colors cursor-pointer'
+											onClick={() =>
+												handleViewDetails(
+													inspection.id,
+													inspection.vehicle_id
+												)
+											}>
+											<TableCell className='font-medium'>
+												{inspection.id}
+											</TableCell>
+											<TableCell className='font-medium'>
+												{inspection.vehicle_alias}
+											</TableCell>
+											<TableCell>
+												{inspection.driver_id ? (
+													inspection.driver_name
+												) : (
+													<span className='text-gray-400'>
+														-
 													</span>
-												</div>
-											) : (
-												<span className='text-gray-400'>
-													No photos
-												</span>
-											)}
-										</TableCell>
-										<TableCell>
-											{getInspectionStatusBadge(
-												inspection.inspection_status
-											)}
-										</TableCell>
-										<TableCell>
-											{getReviewStatusBadge(
-												inspection.reviewed_by_admin
-											)}
-										</TableCell>
-										<TableCell className='max-w-xs'>
-											{inspection.notes ? (
-												<div className='truncate text-sm text-gray-700'>
-													{inspection.notes}
-												</div>
-											) : (
-												<span className='text-gray-400'>
-													-
-												</span>
-											)}
-										</TableCell>
-										<TableCell className='text-center'>
-											<Button
-												variant='ghost'
-												size='sm'
-												onClick={() =>
-													handleViewDetails(
-														inspection.id,
-														inspection.vehicle_id
-													)
-												}>
-												<Eye className='h-4 w-4 mr-1' />
-												View
-											</Button>
-										</TableCell>
-									</TableRow>
+												)}
+											</TableCell>
+											<TableCell>
+												{format(
+													new Date(
+														inspection.inspection_date
+													),
+													'MMM dd, yyyy'
+												)}
+											</TableCell>
+											<TableCell className='font-mono'>
+												{inspection.mileage_at_inspection ? (
+													`${inspection.mileage_at_inspection.toLocaleString()} km`
+												) : (
+													<span className='text-gray-400'>
+														-
+													</span>
+												)}
+											</TableCell>
+
+											<TableCell>
+												{getInspectionStatusBadge(
+													inspection.inspection_status
+												)}
+											</TableCell>
+											<TableCell>
+												{getReviewStatusBadge(
+													inspection.reviewed_by_admin
+												)}
+											</TableCell>
+										</TableRow>
 									);
 								})}
 							</TableBody>

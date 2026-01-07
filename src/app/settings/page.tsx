@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+	Bell,
+	Clock,
+	Loader2,
+	Save,
+	Settings as SettingsIcon,
+	Wrench,
+} from 'lucide-react';
 import {
 	Select,
 	SelectContent,
@@ -12,17 +15,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import {
-	Settings as SettingsIcon,
-	Bell,
-	Clock,
-	Wrench,
-	Save,
-	Loader2,
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { SystemConfigUpdate, apiClient } from '@/lib/api/client';
+import { useEffect, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useSettings } from '@/hooks/use-settings';
-import { apiClient, SystemConfigUpdate } from '@/lib/api/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SettingsPage() {
 	const { toast } = useToast();
@@ -43,7 +44,8 @@ export default function SettingsPage() {
 		if (settings) {
 			setFormData({
 				admin_phone: settings.admin_phone || '',
-				driver_file_reminder_days: settings.driver_file_reminder_days || 15,
+				driver_file_reminder_days:
+					settings.driver_file_reminder_days || 15,
 				daily_sms_time: settings.daily_sms_time || '08:00',
 				maintenance_booking_reminder_days:
 					settings.maintenance_booking_reminder_days || 15,
@@ -71,14 +73,16 @@ export default function SettingsPage() {
 				await apiClient.updateSystemConfig(formData);
 				toast({
 					title: 'Settings Updated',
-					description: 'System configuration has been updated successfully',
+					description:
+						'System configuration has been updated successfully',
 				});
 			} else {
 				// Create new settings
 				await apiClient.createSystemConfig(formData);
 				toast({
 					title: 'Settings Created',
-					description: 'System configuration has been created successfully',
+					description:
+						'System configuration has been created successfully',
 				});
 			}
 
@@ -87,7 +91,8 @@ export default function SettingsPage() {
 			toast({
 				title: 'Error',
 				description:
-					err.response?.data?.detail || 'Failed to save settings. Please try again.',
+					err.response?.data?.detail ||
+					'Failed to save settings. Please try again.',
 				variant: 'destructive',
 			});
 		} finally {
@@ -101,7 +106,9 @@ export default function SettingsPage() {
 				<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl'>
 					<div className='flex items-center justify-center py-12'>
 						<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700'></div>
-						<p className='ml-4 text-gray-600'>Loading settings...</p>
+						<p className='ml-4 text-gray-600'>
+							Loading settings...
+						</p>
 					</div>
 				</div>
 			</div>
@@ -114,7 +121,9 @@ export default function SettingsPage() {
 				<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl'>
 					<div className='text-center py-12'>
 						<p className='text-red-600'>Failed to load settings</p>
-						<p className='text-sm text-gray-500 mt-2'>{error.message}</p>
+						<p className='text-sm text-gray-500 mt-2'>
+							{error.message}
+						</p>
 						<Button onClick={() => refetch()} className='mt-4'>
 							Retry
 						</Button>
@@ -129,7 +138,9 @@ export default function SettingsPage() {
 			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl'>
 				<div className='mb-6 flex items-center justify-between'>
 					<div>
-						<h1 className='text-3xl font-bold text-gray-900'>System Settings</h1>
+						<h1 className='text-3xl font-bold text-gray-900'>
+							System Settings
+						</h1>
 						<p className='text-gray-600 mt-1'>
 							Configure global system parameters and preferences
 						</p>
@@ -164,7 +175,8 @@ export default function SettingsPage() {
 									Admin Contact
 								</h2>
 								<p className='text-sm text-gray-500'>
-									Administrator contact information and reminder settings
+									Administrator contact information and
+									reminder settings
 								</p>
 							</div>
 						</div>
@@ -173,22 +185,23 @@ export default function SettingsPage() {
 							<div>
 								<Label htmlFor='adminPhone'>
 									Admin Notification Phone{' '}
-									<span className='text-gray-500 font-normal'>
-										(Admin notification phone)
-									</span>
 								</Label>
 								<Input
 									id='adminPhone'
 									type='tel'
 									value={formData.admin_phone}
 									onChange={(e) =>
-										setFormData({ ...formData, admin_phone: e.target.value })
+										setFormData({
+											...formData,
+											admin_phone: e.target.value,
+										})
 									}
 									placeholder='+61400000000'
 									className='mt-2'
 								/>
 								<p className='text-xs text-gray-500 mt-1'>
-									Phone number to receive system notifications and alerts
+									Phone number to receive system notifications
+									and alerts
 								</p>
 							</div>
 						</div>
@@ -205,7 +218,8 @@ export default function SettingsPage() {
 									Driver & Document Reminders
 								</h2>
 								<p className='text-sm text-gray-500'>
-									Driver files and daily confirmation reminder settings
+									Driver files and daily confirmation reminder
+									settings
 								</p>
 							</div>
 						</div>
@@ -216,29 +230,34 @@ export default function SettingsPage() {
 								<div>
 									<Label htmlFor='driverFileReminderDays'>
 										Driver File Reminder{' '}
-										<span className='text-gray-500 font-normal'>
-											(Driver file expiry reminder)
-										</span>
 									</Label>
 									<Select
 										value={formData.driver_file_reminder_days?.toString()}
 										onValueChange={(value) =>
 											setFormData({
 												...formData,
-												driver_file_reminder_days: parseInt(value),
+												driver_file_reminder_days:
+													parseInt(value),
 											})
 										}>
 										<SelectTrigger className='mt-2'>
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value='10'>10 days before expiry</SelectItem>
-											<SelectItem value='15'>15 days before expiry</SelectItem>
-											<SelectItem value='30'>30 days before expiry</SelectItem>
+											<SelectItem value='10'>
+												10 days before expiry
+											</SelectItem>
+											<SelectItem value='15'>
+												15 days before expiry
+											</SelectItem>
+											<SelectItem value='30'>
+												30 days before expiry
+											</SelectItem>
 										</SelectContent>
 									</Select>
 									<p className='text-xs text-gray-500 mt-1'>
-										Remind drivers before license/document expiry
+										Remind drivers before license/document
+										expiry
 									</p>
 								</div>
 
@@ -246,21 +265,22 @@ export default function SettingsPage() {
 								<div>
 									<Label htmlFor='dailySmsTime'>
 										Daily SMS Time{' '}
-										<span className='text-gray-500 font-normal'>
-											(Daily confirmation SMS time)
-										</span>
 									</Label>
 									<Input
 										id='dailySmsTime'
 										type='time'
 										value={formData.daily_sms_time}
 										onChange={(e) =>
-											setFormData({ ...formData, daily_sms_time: e.target.value })
+											setFormData({
+												...formData,
+												daily_sms_time: e.target.value,
+											})
 										}
 										className='mt-2'
 									/>
 									<p className='text-xs text-gray-500 mt-1'>
-										Time to send daily schedule confirmation SMS (24-hour format)
+										Time to send daily schedule confirmation
+										SMS (24-hour format)
 									</p>
 								</div>
 							</div>
@@ -277,7 +297,9 @@ export default function SettingsPage() {
 								<h2 className='text-xl font-bold text-gray-900'>
 									Vehicle Maintenance Reminders
 								</h2>
-								<p className='text-sm text-gray-500'>Vehicle maintenance reminder settings</p>
+								<p className='text-sm text-gray-500'>
+									Vehicle maintenance reminder settings
+								</p>
 							</div>
 						</div>
 
@@ -287,25 +309,29 @@ export default function SettingsPage() {
 								<div>
 									<Label htmlFor='maintenanceBookingReminderDays'>
 										Maintenance Booking Reminder{' '}
-										<span className='text-gray-500 font-normal'>
-											(Maintenance booking reminder)
-										</span>
 									</Label>
 									<Select
 										value={formData.maintenance_booking_reminder_days?.toString()}
 										onValueChange={(value) =>
 											setFormData({
 												...formData,
-												maintenance_booking_reminder_days: parseInt(value),
+												maintenance_booking_reminder_days:
+													parseInt(value),
 											})
 										}>
 										<SelectTrigger className='mt-2'>
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value='10'>10 days before</SelectItem>
-											<SelectItem value='15'>15 days before</SelectItem>
-											<SelectItem value='30'>30 days before</SelectItem>
+											<SelectItem value='10'>
+												10 days before
+											</SelectItem>
+											<SelectItem value='15'>
+												15 days before
+											</SelectItem>
+											<SelectItem value='30'>
+												30 days before
+											</SelectItem>
 										</SelectContent>
 									</Select>
 									<p className='text-xs text-gray-500 mt-1'>
@@ -317,29 +343,34 @@ export default function SettingsPage() {
 								<div>
 									<Label htmlFor='nextMaintenanceReminderDays'>
 										Next Maintenance Reminder{' '}
-										<span className='text-gray-500 font-normal'>
-											(Next maintenance reminder)
-										</span>
 									</Label>
 									<Select
 										value={formData.next_maintenance_reminder_days?.toString()}
 										onValueChange={(value) =>
 											setFormData({
 												...formData,
-												next_maintenance_reminder_days: parseInt(value),
+												next_maintenance_reminder_days:
+													parseInt(value),
 											})
 										}>
 										<SelectTrigger className='mt-2'>
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value='10'>10 days before</SelectItem>
-											<SelectItem value='15'>15 days before</SelectItem>
-											<SelectItem value='30'>30 days before</SelectItem>
+											<SelectItem value='10'>
+												10 days before
+											</SelectItem>
+											<SelectItem value='15'>
+												15 days before
+											</SelectItem>
+											<SelectItem value='30'>
+												30 days before
+											</SelectItem>
 										</SelectContent>
 									</Select>
 									<p className='text-xs text-gray-500 mt-1'>
-										Remind when next maintenance is approaching
+										Remind when next maintenance is
+										approaching
 									</p>
 								</div>
 							</div>
@@ -356,17 +387,20 @@ export default function SettingsPage() {
 								</h3>
 								<ul className='text-sm text-blue-800 space-y-1'>
 									<li>
-										• All reminder days settings accept values: 10, 15, or 30 days
+										• All reminder days settings accept
+										values: 10, 15, or 30 days
 									</li>
 									<li>
-										• Daily SMS time is in 24-hour format (e.g., 08:00 for 8 AM)
+										• Daily SMS time is in 24-hour format
+										(e.g., 08:00 for 8 AM)
 									</li>
 									<li>
-										• Admin phone should include country code (e.g., +61 for
-										Australia)
+										• Admin phone should include country
+										code (e.g., +61 for Australia)
 									</li>
 									<li>
-										• Changes take effect immediately after saving
+										• Changes take effect immediately after
+										saving
 									</li>
 								</ul>
 							</div>

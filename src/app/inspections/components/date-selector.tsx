@@ -26,7 +26,7 @@ export function DateSelector({
 	const [open, setOpen] = useState(false);
 
 	return (
-		<Card className='mb-6'>
+		<Card className='mb-6 w-full'>
 			<CardHeader>
 				<CardTitle>Select Date</CardTitle>
 			</CardHeader>

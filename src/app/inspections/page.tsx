@@ -91,9 +91,6 @@ export default function InspectionsPage() {
 					<h1 className='text-3xl font-bold text-gray-900'>
 						Vehicle Inspection Records
 					</h1>
-					<p className='text-gray-600 mt-2'>
-						View and manage daily vehicle inspections
-					</p>
 				</div>
 
 				{/* Filters */}

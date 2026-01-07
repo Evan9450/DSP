@@ -127,36 +127,47 @@ const { documents, isLoading, error, refetch } = useDriverDocuments(123);
 
 ### 2. `use-schedules.ts`
 
-Manages schedule data and date-range queries.
+Manages schedule data with flexible filtering options.
 
-#### `useSchedules(startDate?, endDate?)`
+#### `useSchedules(params?)`
 
-Fetches schedules, optionally filtered by date range.
+Fetches schedules, optionally filtered by date, driver, or status.
 
 ```typescript
 // All schedules
 const { schedules, isLoading, error, refetch } = useSchedules();
 
-// Schedules for a specific date range
-const { schedules } = useSchedules('2024-01-01', '2024-01-31');
+// Schedules for a specific date
+const { schedules } = useSchedules({ schedule_date: '2024-01-01' });
+
+// Schedules for a specific driver
+const { schedules } = useSchedules({ deputy_id: '123' });
+
+// With auto-sync enabled
+const { schedules } = useSchedules({
+  schedule_date: '2024-01-01',
+  auto_sync: true
+});
 ```
 
 **Parameters:**
-- `startDate?: string` - Start date in YYYY-MM-DD format
-- `endDate?: string` - End date in YYYY-MM-DD format
+- `params?: object` - Optional filter parameters
+  - `schedule_date?: string` - Date in YYYY-MM-DD format
+  - `deputy_id?: string` - Filter by Deputy employee ID
+  - `checkin_status?: string` - Filter by check-in status
+  - `auto_sync?: boolean` - Auto-sync from Deputy if no data found
 
 **Returns:**
 - `schedules: ScheduleResponse[]` - Array of schedules
 
-**Why date parameters are optional?**
-- Allows fetching all schedules when no filter is needed
-- React automatically refetches when date parameters change
-- Simplifies calendar/date-picker integration
+**Note:**
+- New API only supports single date filter, not date ranges
+- React automatically refetches when params change
 
 **Use case:**
-- Schedule calendar view
+- Schedule calendar view (single date)
 - Driver assignments for a specific date
-- Weekly/monthly schedule planning
+- Daily schedule planning
 
 #### `useSchedule(scheduleId)`
 
@@ -589,24 +600,21 @@ function ScheduleDetail({ scheduleId }: { scheduleId: number }) {
 }
 ```
 
-### Pattern 5: Date-Range Filtering
+### Pattern 5: Date Filtering
 
 ```typescript
 function ScheduleCalendar() {
-  const [dateRange, setDateRange] = useState({
-    start: '2024-01-01',
-    end: '2024-01-31'
+  const [selectedDate, setSelectedDate] = useState('2024-01-01');
+
+  const { schedules, isLoading } = useSchedules({
+    schedule_date: selectedDate,
+    auto_sync: true
   });
 
-  const { schedules, isLoading } = useSchedules(
-    dateRange.start,
-    dateRange.end
-  );
-
-  // Automatically refetches when dateRange changes
+  // Automatically refetches when selectedDate changes
   return (
     <div>
-      <DateRangePicker onChange={setDateRange} />
+      <DatePicker value={selectedDate} onChange={setSelectedDate} />
       <ScheduleList schedules={schedules} />
     </div>
   );

@@ -1,11 +1,16 @@
-import { useState, useEffect } from 'react';
-import { apiClient, VehicleInspectionResponse, VehicleInspectionPhotoResponse } from '@/lib/api/client';
+import {
+	InspectionStatus,
+	VehicleInspectionPhotoResponse,
+	VehicleInspectionResponse,
+	apiClient,
+} from '@/lib/api/client';
+import { useEffect, useState } from 'react';
 
 interface UseInspectionsParams {
 	vehicle_id?: number;
 	driver_id?: number;
 	reviewed?: boolean;
-	inspection_status?: 0 | 1 | 2; // 0=pending, 1=passed, 2=failed
+	inspection_status?: InspectionStatus; // 'pending' | 'passed' | 'failed'
 	inspection_date?: string; // YYYY-MM-DD
 	start_date?: string; // YYYY-MM-DD
 	end_date?: string; // YYYY-MM-DD
@@ -19,7 +24,9 @@ interface UseInspectionsParams {
  * @returns Inspections data, loading state, error, and refetch function
  */
 export function useInspections(params?: UseInspectionsParams) {
-	const [inspections, setInspections] = useState<VehicleInspectionResponse[]>([]);
+	const [inspections, setInspections] = useState<VehicleInspectionResponse[]>(
+		[]
+	);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
 
@@ -86,7 +93,10 @@ export function useVehicleInspectionPhotos(
 
 		try {
 			setIsLoading(true);
-			const data = await apiClient.getVehicleInspectionPhotos(vehicleId, params);
+			const data = await apiClient.getVehicleInspectionPhotos(
+				vehicleId,
+				params
+			);
 			setPhotos(data);
 			setError(null);
 		} catch (err) {
@@ -115,7 +125,8 @@ export function useVehicleInspectionPhotos(
  * @returns Single inspection data, loading state, error, and refetch function
  */
 export function useInspection(inspectionId: number | null) {
-	const [inspection, setInspection] = useState<VehicleInspectionResponse | null>(null);
+	const [inspection, setInspection] =
+		useState<VehicleInspectionResponse | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
 

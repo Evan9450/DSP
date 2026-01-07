@@ -415,7 +415,7 @@
           "Users"
         ],
         "summary": "Update User",
-        "description": "Update user.\n\nUser roles:\n- 0 (Admin): Superuser - only ONE allowed in the system\n- 1 (Manager): Manager - can have multiple\n\nPassword change:\n- To change password, MUST provide both old_password and password fields\n- old_password will be verified before allowing password change\n\nRestrictions:\n- Cannot change role to admin (0) if another admin already exists\n- Cannot remove admin role from the only admin",
+        "description": "Update user.\n\nUser roles:\n- 0 (Admin): Superuser - only ONE allowed in the system\n- 1 (Manager): Manager - can have multiple\n\nPassword change:\n- To change password, simply provide the new password in the 'password' field\n- No old password verification required (admin can reset any user's password)\n\nRestrictions:\n- Cannot change role to admin (0) if another admin already exists\n- Cannot remove admin role from the only admin",
         "operationId": "update_user_api_v1_users__user_id__put",
         "security": [
           {
@@ -4307,7 +4307,7 @@
           "Inspection Management"
         ],
         "summary": "List Inspections",
-        "description": "获取 inspection 列表（支持多种过滤条件）\n\n**核心功能**：\n- 按日期查看某天所有 inspection\n- 按车辆查看 inspection 历史\n- 按司机查看 inspection 历史\n- 按状态过滤（待审核、通过、失败）\n- 日期范围查询\n\n**示例**：\n- 查看某天所有 inspection: `?inspection_date=2026-01-04`\n- 查看某车所有 inspection: `?vehicle_id=1`\n- 查看待审核的 inspection: `?inspection_status=0&reviewed=false`\n- 日期范围: `?start_date=2026-01-01&end_date=2026-01-31`",
+        "description": "获取 inspection 列表（支持多种过滤条件）\n\n**核心功能**：\n- 按日期查看某天所有 inspection\n- 按车辆查看 inspection 历史\n- 按司机查看 inspection 历史\n- 按状态过滤（待审核、通过、失败）\n- 日期范围查询\n\n**示例**：\n- 查看某天所有 inspection: `?inspection_date=2026-01-04`\n- 查看某车所有 inspection: `?vehicle_id=1`\n- 查看待审核的 inspection: `?inspection_status=pending&reviewed=false`\n- 日期范围: `?start_date=2026-01-01&end_date=2026-01-31`",
         "operationId": "list_inspections_api_v1_inspections__get",
         "security": [
           {
@@ -4377,18 +4377,17 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "integer",
-                  "maximum": 2,
-                  "minimum": 0
+                  "type": "string",
+                  "pattern": "^(pending|passed|failed)$"
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "按状态过滤（0=pending, 1=passed, 2=failed）",
+              "description": "按状态过滤（pending/passed/failed）",
               "title": "Inspection Status"
             },
-            "description": "按状态过滤（0=pending, 1=passed, 2=failed）"
+            "description": "按状态过滤（pending/passed/failed）"
           },
           {
             "name": "reviewed",
@@ -4742,7 +4741,7 @@
           "Inspection Management"
         ],
         "summary": "Batch Review Inspections",
-        "description": "批量审核 inspection\n\n**功能**：\n- 批量设置多个 inspection 的状态\n- 批量添加管理员备注\n\n**示例**：\n```\nPOST /api/v1/inspections/batch-review?inspection_ids=1&inspection_ids=2&inspection_ids=3&inspection_status=1&admin_notes=All good\n```",
+        "description": "批量审核 inspection\n\n**功能**：\n- 批量设置多个 inspection 的状态\n- 批量添加管理员备注\n\n**示例**：\n```\nPOST /api/v1/inspections/batch-review?inspection_ids=1&inspection_ids=2&inspection_ids=3&inspection_status=passed&admin_notes=All good\n```",
         "operationId": "batch_review_inspections_api_v1_inspections_batch_review_post",
         "security": [
           {
@@ -4769,13 +4768,12 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "integer",
-              "maximum": 2,
-              "minimum": 0,
-              "description": "批量设置的状态（0=pending, 1=passed, 2=failed）",
+              "type": "string",
+              "pattern": "^(pending|passed|failed)$",
+              "description": "批量设置的状态（pending/passed/failed）",
               "title": "Inspection Status"
             },
-            "description": "批量设置的状态（0=pending, 1=passed, 2=failed）"
+            "description": "批量设置的状态（pending/passed/failed）"
           },
           {
             "name": "admin_notes",
@@ -8267,6 +8265,17 @@
             ],
             "title": "Driver Id"
           },
+          "vehicle_alias": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Alias"
+          },
           "driver_name": {
             "anyOf": [
               {
@@ -8322,7 +8331,7 @@
             "default": []
           },
           "inspection_status": {
-            "type": "integer",
+            "type": "string",
             "title": "Inspection Status"
           },
           "reviewed_by_admin": {
@@ -8399,6 +8408,28 @@
             ],
             "title": "Driver Id"
           },
+          "vehicle_alias": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Alias"
+          },
+          "driver_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Name"
+          },
           "inspection_date": {
             "type": "string",
             "format": "date",
@@ -8443,7 +8474,7 @@
             "default": []
           },
           "inspection_status": {
-            "type": "integer",
+            "type": "string",
             "title": "Inspection Status"
           },
           "reviewed_by_admin": {
@@ -8539,6 +8570,28 @@
             ],
             "title": "Driver Id"
           },
+          "vehicle_alias": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Alias"
+          },
+          "driver_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Name"
+          },
           "inspection_urls": {
             "anyOf": [
               {
@@ -8551,7 +8604,7 @@
             "title": "Inspection Urls"
           },
           "inspection_status": {
-            "type": "integer",
+            "type": "string",
             "title": "Inspection Status"
           },
           "reviewed_by_admin": {
@@ -8600,6 +8653,7 @@
         "properties": {
           "inspection_status": {
             "type": "string",
+            "pattern": "^(pending|passed|failed)$",
             "title": "Inspection Status",
             "description": "Inspection status: 'pending', 'passed', or 'failed'"
           },

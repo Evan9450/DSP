@@ -618,29 +618,39 @@ class APIClient {
 
 				// Handle 401 Unauthorized (token expired/invalid)
 				// Only logout on 401, not 403 (which might be permissions issue)
+				// IMPORTANT: Exclude login APIs - login failures should be handled by the login page
 				if (axiosError.response?.status === 401) {
-					console.warn('⚠️ Token expired or invalid - logging out');
+					const requestUrl = axiosError.config?.url || '';
+					const isLoginRequest =
+						requestUrl.includes('/api/v1/auth/login') ||
+						requestUrl.includes('/api/v1/auth/driver/login') ||
+						requestUrl.includes('/api/v1/driver/login');
 
-					// Clear all authentication data
-					TokenManager.clearAdminToken();
-					TokenManager.clearDriverToken();
+					// Skip logout logic for login API failures (invalid credentials)
+					if (!isLoginRequest) {
+						console.warn('⚠️ Token expired or invalid - logging out');
 
-					// Clear user data from localStorage
-					if (typeof window !== 'undefined') {
-						localStorage.removeItem('user');
+						// Clear all authentication data
+						TokenManager.clearAdminToken();
+						TokenManager.clearDriverToken();
 
-						// Store logout reason for displaying on login page
-						sessionStorage.setItem(
-							'logout_reason',
-							'Session expired. Please login again.'
-						);
+						// Clear user data from localStorage
+						if (typeof window !== 'undefined') {
+							localStorage.removeItem('user');
 
-						// Redirect to appropriate login page
-						const isDriverPage =
-							window.location.pathname.startsWith('/driver');
-						window.location.href = isDriverPage
-							? '/driver-login'
-							: '/login';
+							// Store logout reason for displaying on login page
+							sessionStorage.setItem(
+								'logout_reason',
+								'Session expired. Please login again.'
+							);
+
+							// Redirect to appropriate login page
+							const isDriverPage =
+								window.location.pathname.startsWith('/driver');
+							window.location.href = isDriverPage
+								? '/driver-login'
+								: '/login';
+						}
 					}
 				}
 

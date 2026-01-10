@@ -18,6 +18,7 @@ export default function LoginPage() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const [logoutMessage, setLogoutMessage] = useState<string | null>(null);
+	const [error, setError] = useState('');
 
 	useEffect(() => {
 		// Check for logout reason in sessionStorage
@@ -37,6 +38,7 @@ export default function LoginPage() {
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
+		setError('');
 		setIsLoading(true);
 
 		try {
@@ -49,13 +51,16 @@ export default function LoginPage() {
 			});
 
 			// Navigation will be handled by AuthContext
-		} catch (error) {
-			console.error('Login error:', error);
-			toast({
-				title: 'Login Failed',
-				description: 'Invalid email or password',
-				variant: 'destructive',
-			});
+		} catch (error: any) {
+			console.error('❌ Admin login error:', error);
+
+			// Extract backend error message (consistent with driver-login)
+			const errorMessage =
+				error.response?.data?.detail ||
+				error.message ||
+				'Login failed. Please try again.';
+
+			setError(errorMessage);
 		} finally {
 			setIsLoading(false);
 		}
@@ -88,6 +93,14 @@ export default function LoginPage() {
 								{logoutMessage}
 							</p>
 						</div>
+					</div>
+				)}
+
+				{/* Login error message */}
+				{error && (
+					<div className='mb-6 flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg'>
+						<AlertCircle className='h-4 w-4 text-red-600 flex-shrink-0' />
+						<p className='text-sm text-red-700'>{error}</p>
 					</div>
 				)}
 

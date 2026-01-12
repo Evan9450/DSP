@@ -144,12 +144,17 @@ export default function VehiclesPage() {
 	};
 
 	const handleRowClick = (vehicleId: string) => {
-		console.log('🚗 Clicking vehicle with ID:', vehicleId);
+		console.log('🚗 Clicking vehicle with ID:', vehicleId, 'type:', typeof vehicleId);
+
 		if (!vehicleId || vehicleId === 'undefined') {
 			console.error('❌ Invalid vehicle ID:', vehicleId);
 			return;
 		}
-		router.push(`/vehicles/${vehicleId}`);
+
+		// Ensure vehicleId is a string
+		const idStr = String(vehicleId);
+		console.log('🔗 Navigating to:', `/vehicles/${idStr}`);
+		router.push(`/vehicles/${idStr}`);
 	};
 
 	const handleScheduleMaintenance = (

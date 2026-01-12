@@ -80,6 +80,7 @@ export default function VehicleDetailPage({
 	);
 
 	useEffect(() => {
+		console.log('🔍 Vehicle Detail - params.id:', params.id, 'type:', typeof params.id);
 		fetchVehicleDetail();
 	}, [params.id]);
 
@@ -104,7 +105,21 @@ export default function VehicleDetailPage({
 	const fetchVehicleDetail = async () => {
 		try {
 			setIsLoading(true);
-			const data = await apiClient.getVehicleDetail(parseInt(params.id));
+
+			// Parse ID safely
+			const vehicleId = parseInt(params.id);
+			console.log('📊 Parsing vehicle ID:', {
+				raw: params.id,
+				rawType: typeof params.id,
+				parsed: vehicleId,
+				isNaN: isNaN(vehicleId)
+			});
+
+			if (isNaN(vehicleId)) {
+				throw new Error(`Invalid vehicle ID: ${params.id}`);
+			}
+
+			const data = await apiClient.getVehicleDetail(vehicleId);
 			setVehicle(data);
 			setEditForm(data);
 		} catch (error) {

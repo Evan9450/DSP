@@ -46,7 +46,7 @@ import {
 	isMaintenanceDueSoon,
 	isMaintenanceOverdue,
 } from '@/lib/helpers';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,8 +63,11 @@ import { useToast } from '@/components/ui/use-toast';
 export default function VehicleDetailPage({
 	params,
 }: {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }) {
+	// Resolve async params using React's use() hook (Next.js 15+)
+	const resolvedParams = use(params);
+
 	const router = useRouter();
 	const { toast } = useToast();
 	const [vehicle, setVehicle] = useState<VehicleDetailResponse | null>(null);
@@ -80,9 +83,12 @@ export default function VehicleDetailPage({
 	);
 
 	useEffect(() => {
-		console.log('🔍 Vehicle Detail - params.id:', params.id, 'type:', typeof params.id);
-		fetchVehicleDetail();
-	}, [params.id]);
+		console.log('🔍 Vehicle Detail - Resolved params:', resolvedParams);
+		console.log('🔍 Vehicle Detail - params.id:', resolvedParams.id, 'type:', typeof resolvedParams.id);
+		if (resolvedParams.id) {
+			fetchVehicleDetail();
+		}
+	}, [resolvedParams.id]);
 
 	// Keyboard navigation for photo viewer
 	useEffect(() => {
@@ -106,17 +112,21 @@ export default function VehicleDetailPage({
 		try {
 			setIsLoading(true);
 
+			if (!resolvedParams.id) {
+				throw new Error('No vehicle ID provided');
+			}
+
 			// Parse ID safely
-			const vehicleId = parseInt(params.id);
+			const vehicleId = parseInt(resolvedParams.id);
 			console.log('📊 Parsing vehicle ID:', {
-				raw: params.id,
-				rawType: typeof params.id,
+				raw: resolvedParams.id,
+				rawType: typeof resolvedParams.id,
 				parsed: vehicleId,
 				isNaN: isNaN(vehicleId)
 			});
 
 			if (isNaN(vehicleId)) {
-				throw new Error(`Invalid vehicle ID: ${params.id}`);
+				throw new Error(`Invalid vehicle ID: ${resolvedParams.id}`);
 			}
 
 			const data = await apiClient.getVehicleDetail(vehicleId);

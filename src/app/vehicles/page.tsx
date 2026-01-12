@@ -76,7 +76,22 @@ export default function VehiclesPage() {
 		rego: string;
 	} | null>(null);
 
+	// Debug: Log API response
+	if (apiVehicles && apiVehicles.length > 0) {
+		console.log('📡 API Vehicle (raw):', apiVehicles[0]);
+	}
+
 	const vehicles = apiVehicles?.map(convertVehicle) || [];
+
+	// Debug: Log converted vehicle to check ID
+	if (vehicles.length > 0) {
+		console.log('🔄 Converted vehicle:', {
+			id: vehicles[0].id,
+			idType: typeof vehicles[0].id,
+			rego: vehicles[0].rego,
+			alias: vehicles[0].alias
+		});
+	}
 
 	const filteredVehicles = vehicles.filter((v) => {
 		const matchesSearch =
@@ -129,6 +144,11 @@ export default function VehiclesPage() {
 	};
 
 	const handleRowClick = (vehicleId: string) => {
+		console.log('🚗 Clicking vehicle with ID:', vehicleId);
+		if (!vehicleId || vehicleId === 'undefined') {
+			console.error('❌ Invalid vehicle ID:', vehicleId);
+			return;
+		}
 		router.push(`/vehicles/${vehicleId}`);
 	};
 

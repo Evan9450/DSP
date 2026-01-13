@@ -1,16 +1,19 @@
 'use client';
 
-import { Key, Mail, MapPin, Phone, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Key, Mail, MapPin, Phone, User } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 export interface BasicInformationCardProps {
 	driver: any;
 	editedDriver: any;
 	isEditing: boolean;
 	onEdit: (field: string, value: string) => void;
+	onToggleActive?: (checked: boolean) => void;
 	validationErrors?: {
 		email?: string;
 		phone?: string;
@@ -22,6 +25,7 @@ export function BasicInformationCard({
 	editedDriver,
 	isEditing,
 	onEdit,
+	onToggleActive,
 	validationErrors = {},
 }: BasicInformationCardProps) {
 	return (
@@ -74,8 +78,14 @@ export function BasicInformationCard({
 							<>
 								<Input
 									value={editedDriver?.phone || ''}
-									onChange={(e) => onEdit('phone', e.target.value)}
-									className={validationErrors.phone ? 'border-red-500' : ''}
+									onChange={(e) =>
+										onEdit('phone', e.target.value)
+									}
+									className={
+										validationErrors.phone
+											? 'border-red-500'
+											: ''
+									}
 									placeholder='04XX XXX XXX or +61 4XX XXX XXX'
 								/>
 								{validationErrors.phone && (
@@ -85,7 +95,9 @@ export function BasicInformationCard({
 								)}
 							</>
 						) : (
-							<p className='text-gray-900'>{driver.phone || '-'}</p>
+							<p className='text-gray-900'>
+								{driver.phone || '-'}
+							</p>
 						)}
 					</div>
 					<div>
@@ -98,8 +110,14 @@ export function BasicInformationCard({
 								<Input
 									type='email'
 									value={editedDriver?.email || ''}
-									onChange={(e) => onEdit('email', e.target.value)}
-									className={validationErrors.email ? 'border-red-500' : ''}
+									onChange={(e) =>
+										onEdit('email', e.target.value)
+									}
+									className={
+										validationErrors.email
+											? 'border-red-500'
+											: ''
+									}
 									placeholder='example@email.com'
 								/>
 								{validationErrors.email && (
@@ -109,7 +127,9 @@ export function BasicInformationCard({
 								)}
 							</>
 						) : (
-							<p className='text-gray-900'>{driver.email || '-'}</p>
+							<p className='text-gray-900'>
+								{driver.email || '-'}
+							</p>
 						)}
 					</div>
 					<div>
@@ -128,13 +148,27 @@ export function BasicInformationCard({
 					</div>
 					<div>
 						<Label className='mb-2 block'>Status</Label>
-						<p>
-							{driver.is_active ? (
-								<Badge className='bg-green-500'>Active</Badge>
-							) : (
-								<Badge variant='destructive'>Inactive</Badge>
-							)}
-						</p>
+						<div className='flex items-center gap-3'>
+							<Switch
+								checked={driver.is_active}
+								onCheckedChange={onToggleActive}
+								disabled={!onToggleActive}
+							/>
+							<div className='flex items-center gap-2'>
+								{driver.is_active ? (
+									<Badge className='bg-green-500'>
+										Active
+									</Badge>
+								) : (
+									<Badge variant='destructive'>
+										Inactive
+									</Badge>
+								)}
+								<span className='text-sm text-gray-600'>
+									{driver.is_active}
+								</span>
+							</div>
+						</div>
 					</div>
 					<div className='md:col-span-2'>
 						<Label className='flex items-center gap-2 mb-2'>
@@ -144,10 +178,14 @@ export function BasicInformationCard({
 						{isEditing ? (
 							<Input
 								value={editedDriver?.address || ''}
-								onChange={(e) => onEdit('address', e.target.value)}
+								onChange={(e) =>
+									onEdit('address', e.target.value)
+								}
 							/>
 						) : (
-							<p className='text-gray-900'>{driver.address || '-'}</p>
+							<p className='text-gray-900'>
+								{driver.address || '-'}
+							</p>
 						)}
 					</div>
 				</div>

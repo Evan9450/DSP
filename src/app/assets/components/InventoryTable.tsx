@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, TrendingDown } from 'lucide-react';
+import { AlertCircle, Package, TrendingDown } from 'lucide-react';
 import {
 	Table,
 	TableBody,
@@ -19,11 +19,15 @@ interface InventoryTableProps {
 	filteredAssets: Asset[];
 	setIsBorrowDialogOpen: (open: boolean) => void;
 	setSelectedAsset: (asset: Asset) => void;
+	setIsAddInventoryDialogOpen: (open: boolean) => void;
+	setSelectedInventoryAsset: (asset: Asset) => void;
 }
 const InventoryTable = ({
 	filteredAssets,
 	setIsBorrowDialogOpen,
 	setSelectedAsset,
+	setIsAddInventoryDialogOpen,
+	setSelectedInventoryAsset,
 }: InventoryTableProps) => {
 	const getStatusBadge = (asset: Asset) => {
 		const available = asset.availableQuantity;
@@ -34,7 +38,6 @@ const InventoryTable = ({
 				<Badge
 					variant='destructive'
 					className='flex items-center gap-1'>
-					<AlertCircle className='h-3 w-3' />
 					Out of Stock
 				</Badge>
 			);
@@ -42,7 +45,6 @@ const InventoryTable = ({
 		if (available <= threshold) {
 			return (
 				<Badge className='bg-orange-500 text-white flex items-center gap-1'>
-					<TrendingDown className='h-3 w-3' />
 					Low Stock
 				</Badge>
 			);
@@ -102,14 +104,32 @@ const InventoryTable = ({
 											{getStatusBadge(asset)}
 										</TableCell>
 										<TableCell>
-											<Button
-												onClick={() => {
-													setIsBorrowDialogOpen(true);
-													setSelectedAsset(asset);
-												}}
-												className='bg-blue-700 hover:bg-blue-800 w-32 h-8'>
-												Lend Asset
-											</Button>
+											<div className='flex gap-2'>
+												<Button
+													onClick={() => {
+														setIsAddInventoryDialogOpen(
+															true
+														);
+														setSelectedInventoryAsset(
+															asset
+														);
+													}}
+													variant='outline'
+													className='border-green-600 text-green-700 hover:bg-green-50 hover:text-green-700 w-28 h-8'>
+													<Package className='h-3 w-3 mr-1' />
+													Add Stock
+												</Button>
+												<Button
+													onClick={() => {
+														setIsBorrowDialogOpen(
+															true
+														);
+														setSelectedAsset(asset);
+													}}
+													className='bg-blue-700 hover:bg-blue-800 w-28 h-8'>
+													Lend Asset
+												</Button>
+											</div>
 										</TableCell>
 									</TableRow>
 								);

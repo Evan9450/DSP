@@ -3,6 +3,7 @@
 import { AlertCircle, PackageCheck, Search, TrendingDown } from 'lucide-react';
 
 import AddAssetDialog from './components/AddAssetDialog';
+import { AddInventoryDialog } from './components/AddInventoryDialog';
 import type { Asset } from '@/types/schedule';
 import { BorrowDialog } from './components/BorrowDialog';
 import { Button } from '@/components/ui/button';
@@ -13,8 +14,8 @@ import { apiClient } from '@/lib/api/client';
 import { convertAsset } from '@/lib/api/converters';
 import { useAssets } from '@/hooks/use-assets';
 import { useDrivers } from '@/hooks/use-drivers';
-import { useToast } from '@/components/ui/use-toast';
 import { useState } from 'react';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AssetsPage() {
 	const { toast } = useToast();
@@ -34,6 +35,10 @@ export default function AssetsPage() {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [isBorrowDialogOpen, setIsBorrowDialogOpen] = useState(false);
 	const [selectedAsset, setSelectedAsset] = useState<Asset>();
+	const [isAddInventoryDialogOpen, setIsAddInventoryDialogOpen] =
+		useState(false);
+	const [selectedInventoryAsset, setSelectedInventoryAsset] =
+		useState<Asset | null>(null);
 	const [isCheckingStock, setIsCheckingStock] = useState(false);
 	// Convert API data to frontend types
 	const assets = apiAssets?.map(convertAsset) || [];
@@ -170,9 +175,10 @@ export default function AssetsPage() {
 				{/* Assets Inventory */}
 				<InventoryTable
 					filteredAssets={filteredAssets}
-					// getStatusBadge,
 					setIsBorrowDialogOpen={setIsBorrowDialogOpen}
 					setSelectedAsset={setSelectedAsset}
+					setIsAddInventoryDialogOpen={setIsAddInventoryDialogOpen}
+					setSelectedInventoryAsset={setSelectedInventoryAsset}
 				/>
 
 				<BorrowDialog
@@ -183,7 +189,15 @@ export default function AssetsPage() {
 					clickedAsset={selectedAsset}
 					onSuccess={() => {
 						refetchAssets();
-						// refetchRecords();
+					}}
+				/>
+
+				<AddInventoryDialog
+					open={isAddInventoryDialogOpen}
+					onOpenChange={setIsAddInventoryDialogOpen}
+					asset={selectedInventoryAsset}
+					onSuccess={() => {
+						refetchAssets();
 					}}
 				/>
 			</div>

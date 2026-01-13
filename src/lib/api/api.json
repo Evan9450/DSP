@@ -573,7 +573,7 @@
           "Drivers (Admin)"
         ],
         "summary": "Create Driver",
-        "description": "Create new driver.\n\nRequired fields:\n- name: Driver name\n- amazon_id: Amazon ID\n- password: Login password for driver app",
+        "description": "Create new driver.\n\nRequired fields:\n- name: Driver name (required)\n\nOptional fields:\n- amazon_id: Amazon ID (optional)\n- password: Login password (optional)\n- phone, email, address, deputy_id\n\nActivation logic:\n- Only activated (is_active=True) if BOTH amazon_id AND password are provided\n- Otherwise created as inactive (is_active=False)",
         "operationId": "create_driver_api_v1_drivers__post",
         "security": [
           {
@@ -620,7 +620,7 @@
           "Drivers (Admin)"
         ],
         "summary": "List Loginable Drivers",
-        "description": "List all drivers that can login to driver app.\n\nA driver can login if:\n- amazon_id is set\n- hashed_password is set\n- is_active property returns True\n\nReturns amazon_id, hashed_password, and other basic info for debugging.",
+        "description": "List all drivers that can login to driver app.\n\nA driver can login if:\n- is_active is True (manually set by admin)\n- amazon_id is set\n- hashed_password is set\n\nReturns amazon_id, hashed_password, and other basic info for debugging.",
         "operationId": "list_loginable_drivers_api_v1_drivers_loginable_get",
         "responses": {
           "200": {
@@ -693,7 +693,7 @@
           "Drivers (Admin)"
         ],
         "summary": "Update Driver",
-        "description": "更新司机信息（支持同时更新基本信息和文件）\n\n- 可以只更新基本信息\n- 可以通过license_file_url/visa_file_url直接传URL数组（JSON字符串格式）\n- 可以通过license_files/visa_files上传新文件\n- 也可以同时更新\n\n示例：\n- license_file_url: '[\"http://localhost:8000/api/v1/files/download/1\", \"http://localhost:8000/api/v1/files/download/2\"]'",
+        "description": "更新司机信息（支持同时更新基本信息和文件）\n\n- 可以只更新基本信息\n- 可以手动设置 is_active 状态（控制司机是否可以登录）\n- 可以通过license_file_url/visa_file_url直接传URL数组（JSON字符串格式）\n- 可以通过license_files/visa_files上传新文件\n- 也可以同时更新\n\n自动激活/禁用逻辑：\n1. 设置 amazon_id（当 hashed_password 存在且未手动设置过 is_active）→ 自动激活\n2. 删除 amazon_id（清空或设为空字符串）→ 强制禁用\n3. 手动设置 is_active → 标记为手动设置，后续自动逻辑不会覆盖\n\n示例：\n- license_file_url: '[\"http://localhost:8000/api/v1/files/download/1\", \"http://localhost:8000/api/v1/files/download/2\"]'\n- is_active: true/false (手动控制)\n- amazon_id: \"\" (删除 amazon_id，强制禁用)",
         "operationId": "update_driver_api_v1_drivers__driver_id__put",
         "security": [
           {
@@ -841,7 +841,7 @@
           "Drivers (Admin)"
         ],
         "summary": "Set Driver Password",
-        "description": "Set or reset password for driver app login (Admin only).",
+        "description": "Set or reset password for driver app login (Admin only).\n\nAuto-enable logic:\n- If amazon_id exists AND admin has NOT manually set is_active → auto-enable (is_active=True)\n- If admin previously manually disabled the driver → preserves manual setting",
         "operationId": "set_driver_password_api_v1_drivers__driver_id__set_password_post",
         "security": [
           {
@@ -5373,6 +5373,17 @@
             ],
             "title": "Amazon Id"
           },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
           "license_file_url": {
             "anyOf": [
               {
@@ -5577,17 +5588,31 @@
             "description": "Driver name (required)"
           },
           "amazon_id": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Amazon Id",
-            "description": "Amazon ID (required)"
+            "description": "Amazon ID (optional)"
           },
           "password": {
-            "type": "string",
-            "minLength": 6,
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Password",
-            "description": "Login password (required, min 6 characters)"
+            "description": "Login password (optional, min 6 characters if provided)"
           },
           "phone": {
             "anyOf": [
@@ -5638,12 +5663,10 @@
         },
         "type": "object",
         "required": [
-          "name",
-          "amazon_id",
-          "password"
+          "name"
         ],
         "title": "DriverCreate",
-        "description": "Schema for creating a driver - name, amazon_id and password are required."
+        "description": "Schema for creating a driver - only name is required, credentials are optional."
       },
       "DriverInspectionCreate": {
         "properties": {
@@ -5817,6 +5840,11 @@
           "is_active": {
             "type": "boolean",
             "title": "Is Active",
+            "default": false
+          },
+          "can_login": {
+            "type": "boolean",
+            "title": "Can Login",
             "default": false
           },
           "has_password": {

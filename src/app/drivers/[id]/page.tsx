@@ -379,6 +379,34 @@ export default function DriverDetailPage() {
 		}
 	};
 
+	const handleToggleActive = async (checked: boolean) => {
+		if (!driverId) return;
+
+		console.log('🔄 handleToggleActive called:', checked);
+
+		try {
+			const formData = new FormData();
+			formData.append('is_active', checked.toString());
+
+			console.log('📤 Updating driver is_active status...');
+			await apiClient.updateDriverWithFormData(driverId, formData);
+
+			console.log('🔄 Refetching driver data...');
+			await refetchDriver();
+
+			notify.success(
+				`Driver ${driver?.name} has been ${checked ? 'activated' : 'deactivated'}`
+			);
+		} catch (error) {
+			console.error('❌ Failed to update driver status:', error);
+			handleApiError(
+				error,
+				`Failed to ${checked ? 'activate' : 'deactivate'} driver ${driver?.name}`
+			);
+			throw error;
+		}
+	};
+
 	const getStatusBadge = (expiryDate: string) => {
 		const status = calculateDocumentStatus(new Date(expiryDate));
 		if (status === 'expired') {
@@ -481,6 +509,7 @@ export default function DriverDetailPage() {
 								[field]: value,
 							});
 						}}
+						onToggleActive={handleToggleActive}
 					/>
 
 					{/* Documents Information */}

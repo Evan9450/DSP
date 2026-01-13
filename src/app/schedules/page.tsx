@@ -1,6 +1,7 @@
 'use client';
 
 import {
+	Bell,
 	CalendarIcon,
 	Car as CarIcon,
 	MapPin,
@@ -40,6 +41,7 @@ export default function ScheduleTablePage() {
 	const [isLoadingSchedules, setIsLoadingSchedules] = useState(false);
 	const [isSyncingToday, setIsSyncingToday] = useState(false);
 	const [isSyncingDate, setIsSyncingDate] = useState(false);
+	const [isSendingReminders, setIsSendingReminders] = useState(false);
 
 	// Handle URL date parameter on mount
 	useEffect(() => {
@@ -524,6 +526,29 @@ export default function ScheduleTablePage() {
 		}
 	};
 
+	const handleSendReminders = async () => {
+		try {
+			setIsSendingReminders(true);
+			const result = await apiClient.sendScheduleReminders(selectedDate);
+
+			console.log('✅ Send reminders result:', result);
+
+			toast({
+				title: 'Reminders Sent',
+				description: `Successfully sent reminders. Sent: ${result.sent || 0}, Failed: ${result.failed || 0}, Skipped: ${result.skipped || 0}`,
+			});
+		} catch (error) {
+			console.error('Failed to send reminders:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to send schedule reminders',
+				variant: 'destructive',
+			});
+		} finally {
+			setIsSendingReminders(false);
+		}
+	};
+
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50'>
 			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl'>
@@ -573,6 +598,14 @@ export default function ScheduleTablePage() {
 							disabled={isSyncingToday || isLoadingSchedules}
 							className='border-indigo-600 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-600'>
 							{isSyncingToday ? 'Syncing...' : 'Sync Today'}
+						</Button>
+						<Button
+							variant='outline'
+							onClick={handleSendReminders}
+							disabled={isSendingReminders || isLoadingSchedules}
+							className='border-orange-600 text-orange-600 hover:bg-orange-50 hover:text-orange-600'>
+							<Bell className='h-4 w-4 mr-2' />
+							{isSendingReminders ? 'Sending...' : 'Send Reminders'}
 						</Button>
 						{/* <Button
 							variant='outline'

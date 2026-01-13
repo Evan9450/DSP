@@ -9,6 +9,7 @@ import {
 	Package,
 	Plus,
 	Search,
+	Settings,
 	Trash2,
 	Wrench,
 } from 'lucide-react';
@@ -60,10 +61,12 @@ import { convertVehicle } from '@/lib/api/converters';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useToast } from '@/components/ui/use-toast';
 import { useVehicles } from '@/hooks/use-vehicles';
 
 export default function VehiclesPage() {
 	const router = useRouter();
+	const { toast } = useToast();
 	const { vehicles: apiVehicles, isLoading, refetch } = useVehicles();
 	const [searchTerm, setSearchTerm] = useState('');
 	const [conditionFilter, setConditionFilter] = useState<
@@ -71,6 +74,7 @@ export default function VehiclesPage() {
 	>('all');
 	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [isCheckingMaintenance, setIsCheckingMaintenance] = useState(false);
 	const [vehicleToDelete, setVehicleToDelete] = useState<{
 		id: string;
 		rego: string;
@@ -198,6 +202,29 @@ export default function VehiclesPage() {
 				error,
 				errorMessages.vehicle.deleteFailed(vehicleToDelete?.rego)
 			);
+		}
+	};
+
+	const handleCheckMaintenance = async () => {
+		try {
+			setIsCheckingMaintenance(true);
+			const result = await apiClient.checkVehicleMaintenance();
+
+			console.log('✅ Check maintenance result:', result);
+
+			toast({
+				title: 'Maintenance Check Complete',
+				description: `Emails sent: ${result.emails_sent || 0}, SMS sent: ${result.sms_sent || 0}`,
+			});
+		} catch (error) {
+			console.error('Failed to check maintenance:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to check vehicle maintenance',
+				variant: 'destructive',
+			});
+		} finally {
+			setIsCheckingMaintenance(false);
 		}
 	};
 
@@ -363,13 +390,28 @@ export default function VehiclesPage() {
 						</Button>
 					</div>
 
-					<Button
-						className='bg-blue-700 hover:bg-blue-800 text-white'
-						onClick={() => setShowAddDialog(true)}>
-						<Plus className='h-4 w-4 mr-2' />
-						<span className='hidden sm:inline'>Add Vehicle</span>
-						<span className='sm:hidden'>Add</span>
-					</Button>
+					<div className='flex gap-2'>
+						<Button
+							variant='outline'
+							className='border-purple-600 text-purple-600 hover:bg-purple-50 hover:text-purple-600'
+							onClick={handleCheckMaintenance}
+							disabled={isCheckingMaintenance}>
+							<Settings className='h-4 w-4 mr-2' />
+							<span className='hidden sm:inline'>
+								{isCheckingMaintenance ? 'Checking...' : 'Check Maintenance'}
+							</span>
+							<span className='sm:hidden'>
+								{isCheckingMaintenance ? 'Check...' : 'Check'}
+							</span>
+						</Button>
+						<Button
+							className='bg-blue-700 hover:bg-blue-800 text-white'
+							onClick={() => setShowAddDialog(true)}>
+							<Plus className='h-4 w-4 mr-2' />
+							<span className='hidden sm:inline'>Add Vehicle</span>
+							<span className='sm:hidden'>Add</span>
+						</Button>
+					</div>
 				</div>
 
 				{/* Vehicles Table */}

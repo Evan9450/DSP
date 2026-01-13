@@ -645,9 +645,12 @@ class APIClient {
 							);
 
 							// Redirect to appropriate login page
-							const isDriverPage =
-								window.location.pathname.startsWith('/driver');
-							window.location.href = isDriverPage
+							// Only redirect to driver-login for actual driver app pages
+							const currentPath = window.location.pathname;
+							const isDriverAppPage =
+								currentPath === '/driver-login' ||
+								currentPath === '/driver-inspection';
+							window.location.href = isDriverAppPage
 								? '/driver-login'
 								: '/login';
 						}
@@ -1733,6 +1736,57 @@ class APIClient {
 			{
 				responseType: 'blob',
 			}
+		);
+		return response.data;
+	}
+
+	// ============================================================================
+	// Manual Tasks API
+	// ============================================================================
+
+	/**
+	 * Manually trigger send schedule reminders (1st SMS)
+	 * Auto runs daily at 04:00 AM
+	 */
+	async sendScheduleReminders(targetDate?: string): Promise<any> {
+		const params = targetDate ? { target_date: targetDate } : {};
+		const response = await this.client.post(
+			'/api/v1/tasks/send-schedule-reminders',
+			null,
+			{ params }
+		);
+		return response.data;
+	}
+
+	/**
+	 * Manually trigger check document expiry
+	 * Auto runs daily at 09:00 AM
+	 */
+	async checkDocumentExpiry(): Promise<any> {
+		const response = await this.client.post(
+			'/api/v1/tasks/check-document-expiry'
+		);
+		return response.data;
+	}
+
+	/**
+	 * Manually trigger check vehicle maintenance
+	 * Auto runs daily at 10:00 AM
+	 */
+	async checkVehicleMaintenance(): Promise<any> {
+		const response = await this.client.post(
+			'/api/v1/tasks/check-vehicle-maintenance'
+		);
+		return response.data;
+	}
+
+	/**
+	 * Manually trigger check low stock
+	 * Auto runs daily at 11:00 AM
+	 */
+	async checkLowStock(): Promise<any> {
+		const response = await this.client.post(
+			'/api/v1/tasks/check-low-stock'
 		);
 		return response.data;
 	}

@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, RefreshCw, Search, User } from 'lucide-react';
+import { FileCheck, Plus, RefreshCw, Search, User } from 'lucide-react';
 import {
 	errorMessages,
 	handleApiError,
@@ -19,9 +19,11 @@ import { calculateDocumentStatus } from '@/lib/helpers';
 import { convertDriver } from '@/lib/api/converters';
 import { useDrivers } from '@/hooks/use-drivers';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function DriversPage() {
 	const router = useRouter();
+	const { toast } = useToast();
 	const { drivers: apiDrivers, isLoading, refetch } = useDrivers();
 	const [searchTerm, setSearchTerm] = useState('');
 	const [driverDocuments, setDriverDocuments] = useState<
@@ -31,6 +33,7 @@ export default function DriversPage() {
 	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [isSyncingDeputy, setIsSyncingDeputy] = useState(false);
+	const [isCheckingDocuments, setIsCheckingDocuments] = useState(false);
 	const [driverToDelete, setDriverToDelete] = useState<{
 		id: string;
 		name: string;
@@ -150,6 +153,29 @@ export default function DriversPage() {
 		}
 	};
 
+	const handleCheckDocuments = async () => {
+		try {
+			setIsCheckingDocuments(true);
+			const result = await apiClient.checkDocumentExpiry();
+
+			console.log('✅ Check documents result:', result);
+
+			toast({
+				title: 'Document Check Complete',
+				description: `License alerts: ${result.license_alerts || 0}, Visa alerts: ${result.visa_alerts || 0}`,
+			});
+		} catch (error) {
+			console.error('Failed to check documents:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to check document expiry',
+				variant: 'destructive',
+			});
+		} finally {
+			setIsCheckingDocuments(false);
+		}
+	};
+
 	if (isLoading) {
 		return (
 			<div className='min-h-screen bg-zinc-100 flex items-center justify-center'>
@@ -197,6 +223,31 @@ export default function DriversPage() {
 											Sync Deputy
 										</span>
 										<span className='sm:hidden'>Sync</span>
+									</>
+								)}
+							</Button>
+							<Button
+								variant='outline'
+								className='border-blue-600 text-blue-600 hover:bg-blue-50 rounded-md hover:text-blue-600'
+								onClick={handleCheckDocuments}
+								disabled={isCheckingDocuments}>
+								{isCheckingDocuments ? (
+									<>
+										<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2'></div>
+										<span className='hidden sm:inline'>
+											Checking...
+										</span>
+										<span className='sm:hidden'>
+											Check...
+										</span>
+									</>
+								) : (
+									<>
+										<FileCheck className='h-4 w-4 mr-2' />
+										<span className='hidden sm:inline'>
+											Check Documents
+										</span>
+										<span className='sm:hidden'>Check</span>
 									</>
 								)}
 							</Button>

@@ -1,19 +1,23 @@
 'use client';
 
-import { AlertCircle, Search, TrendingDown } from 'lucide-react';
+import { AlertCircle, PackageCheck, Search, TrendingDown } from 'lucide-react';
 
 import AddAssetDialog from './components/AddAssetDialog';
 import type { Asset } from '@/types/schedule';
 import { BorrowDialog } from './components/BorrowDialog';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import InventoryTable from './components/InventoryTable';
+import { apiClient } from '@/lib/api/client';
 import { convertAsset } from '@/lib/api/converters';
 import { useAssets } from '@/hooks/use-assets';
 import { useDrivers } from '@/hooks/use-drivers';
+import { useToast } from '@/components/ui/use-toast';
 import { useState } from 'react';
 
 export default function AssetsPage() {
+	const { toast } = useToast();
 	const {
 		assets: apiAssets,
 		isLoading: assetsLoading,
@@ -30,6 +34,7 @@ export default function AssetsPage() {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [isBorrowDialogOpen, setIsBorrowDialogOpen] = useState(false);
 	const [selectedAsset, setSelectedAsset] = useState<Asset>();
+	const [isCheckingStock, setIsCheckingStock] = useState(false);
 	// Convert API data to frontend types
 	const assets = apiAssets?.map(convertAsset) || [];
 
@@ -44,6 +49,29 @@ export default function AssetsPage() {
 		return a.availableQuantity > 0 && a.availableQuantity <= threshold;
 	});
 	const outOfStockAssets = assets.filter((a) => a.availableQuantity === 0);
+
+	const handleCheckLowStock = async () => {
+		try {
+			setIsCheckingStock(true);
+			const result = await apiClient.checkLowStock();
+
+			console.log('✅ Check low stock result:', result);
+
+			toast({
+				title: 'Stock Check Complete',
+				description: `Alerts sent: ${result.alerts_sent || 0}`,
+			});
+		} catch (error) {
+			console.error('Failed to check low stock:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to check low stock',
+				variant: 'destructive',
+			});
+		} finally {
+			setIsCheckingStock(false);
+		}
+	};
 
 	if (isLoading) {
 		return (
@@ -118,15 +146,25 @@ export default function AssetsPage() {
 					</div>
 				)}
 
-				{/* Search */}
-				<div className='relative mb-6'>
-					<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
-					<Input
-						placeholder='Search assets by name or category...'
-						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
-						className='pl-10'
-					/>
+				{/* Search and Actions */}
+				<div className='mb-6 flex flex-col sm:flex-row gap-3 justify-between'>
+					<div className='relative flex-1 max-w-full sm:max-w-md'>
+						<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+						<Input
+							placeholder='Search assets by name or category...'
+							value={searchTerm}
+							onChange={(e) => setSearchTerm(e.target.value)}
+							className='pl-10'
+						/>
+					</div>
+					<Button
+						variant='outline'
+						className='border-red-600 text-red-600 hover:bg-red-50 hover:text-red-600'
+						onClick={handleCheckLowStock}
+						disabled={isCheckingStock}>
+						<PackageCheck className='h-4 w-4 mr-2' />
+						{isCheckingStock ? 'Checking...' : 'Check Low Stock'}
+					</Button>
 				</div>
 
 				{/* Assets Inventory */}

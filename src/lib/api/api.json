@@ -614,6 +614,33 @@
         }
       }
     },
+    "/api/v1/drivers/loginable": {
+      "get": {
+        "tags": [
+          "Drivers (Admin)"
+        ],
+        "summary": "List Loginable Drivers",
+        "description": "List all drivers that can login to driver app.\n\nA driver can login if:\n- amazon_id is set\n- hashed_password is set\n- is_active property returns True\n\nReturns amazon_id, hashed_password, and other basic info for debugging.",
+        "operationId": "list_loginable_drivers_api_v1_drivers_loginable_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/drivers/{driver_id}": {
       "get": {
         "tags": [
@@ -4982,6 +5009,205 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/tasks/send-schedule-reminders": {
+      "post": {
+        "tags": [
+          "Manual Tasks"
+        ],
+        "summary": "Manual Send Schedule Reminders",
+        "description": "手动触发：发送排班提醒短信（第1次短信）\n\n**自动执行时间**: 每天 04:00 AM\n\n**功能**:\n- 查找指定日期的所有排班（未发送提醒的）\n- 发送简单提醒短信：\"你有排班 for [日期]\"\n- 不包含路线和车辆信息\n- 设置 reminder_sms_sent = True\n\n**短信内容**: \"Hi {name}, you have a shift scheduled for {date}, Please reply Y to confirm or N to decline.\"\n\n**返回**: 发送统计（sent, failed, skipped）",
+        "operationId": "manual_send_schedule_reminders_api_v1_tasks_send_schedule_reminders_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "target_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "目标日期（默认今天）",
+              "title": "Target Date"
+            },
+            "description": "目标日期（默认今天）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Manual Send Schedule Reminders Api V1 Tasks Send Schedule Reminders Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/check-document-expiry": {
+      "post": {
+        "tags": [
+          "Manual Tasks"
+        ],
+        "summary": "Manual Check Document Expiry",
+        "description": "手动触发：检查司机证件到期\n\n**自动执行时间**: 每天 09:00 AM\n\n**功能**:\n- 检查所有司机的驾照和签证到期日期\n- 如果在提醒天数范围内（默认15天）且未提醒过，发送SMS给管理员\n- 设置 license_reminder_sent / visa_reminder_sent = True\n\n**提醒范围**: today ≤ expiry_date ≤ today + 15天\n\n**返回**: 提醒统计（license_alerts, visa_alerts）",
+        "operationId": "manual_check_document_expiry_api_v1_tasks_check_document_expiry_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Manual Check Document Expiry Api V1 Tasks Check Document Expiry Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tasks/check-vehicle-maintenance": {
+      "post": {
+        "tags": [
+          "Manual Tasks"
+        ],
+        "summary": "Manual Check Vehicle Maintenance",
+        "description": "手动触发：检查车辆维护到期\n\n**自动执行时间**: 每天 10:00 AM\n\n**功能**:\n- 查找今天需要维护的车辆（next_maintenance_date == today）\n- 发送邮件给Workshop\n- 发送SMS给管理员\n\n**重要**: 只检查今天到期的车辆，不提前发送\n\n**返回**: 维护提醒统计（emails_sent, sms_sent）",
+        "operationId": "manual_check_vehicle_maintenance_api_v1_tasks_check_vehicle_maintenance_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Manual Check Vehicle Maintenance Api V1 Tasks Check Vehicle Maintenance Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tasks/check-low-stock": {
+      "post": {
+        "tags": [
+          "Manual Tasks"
+        ],
+        "summary": "Manual Check Low Stock",
+        "description": "手动触发：检查低库存产品\n\n**自动执行时间**: 每天 11:00 AM\n\n**功能**:\n- 查找库存低于阈值的产品（current_stock \u003C min_stock_threshold）\n- 发送SMS给管理员\n- 设置 low_stock_alert_sent = True\n\n**返回**: 低库存警报统计（alerts_sent）",
+        "operationId": "manual_check_low_stock_api_v1_tasks_check_low_stock_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Manual Check Low Stock Api V1 Tasks Check Low Stock Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tasks/reset-vehicle-status": {
+      "post": {
+        "tags": [
+          "Manual Tasks"
+        ],
+        "summary": "Manual Reset Vehicle Status",
+        "description": "手动触发：重置所有车辆状态为 not-in-use\n\n**自动执行时间**: 每天 00:00 AM (午夜)\n\n**功能**:\n- 将所有车辆的 status 重置为 \"not-in-use\"\n- 通常在每日开始时执行\n\n**返回**: 重置统计（vehicles_reset）",
+        "operationId": "manual_reset_vehicle_status_api_v1_tasks_reset_vehicle_status_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Manual Reset Vehicle Status Api V1 Tasks Reset Vehicle Status Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tasks/run-all-tasks": {
+      "post": {
+        "tags": [
+          "Manual Tasks"
+        ],
+        "summary": "Manual Run All Tasks",
+        "description": "手动触发：运行所有自动化任务（按顺序）\n\n**执行顺序**:\n1. 发送排班提醒（04:00）\n2. 检查证件到期（09:00）\n3. 检查车辆维护（10:00）\n4. 检查低库存（11:00）\n\n**注意**:\n- 不包括同步排班（请使用 POST /api/v1/schedules/sync-today）\n- 不包括重置车辆状态（通常在午夜执行）\n\n**返回**: 所有任务的执行结果",
+        "operationId": "manual_run_all_tasks_api_v1_tasks_run_all_tasks_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Manual Run All Tasks Api V1 Tasks Run All Tasks Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/": {

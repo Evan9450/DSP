@@ -187,7 +187,7 @@ export function BorrowDialog({
 						/>
 					</div>
 
-					<div className='space-y-2'>
+					{/* <div className='space-y-2'>
 						<Label>Borrow Date</Label>
 						<Popover>
 							<PopoverTrigger asChild>
@@ -212,16 +212,16 @@ export function BorrowDialog({
 								/>
 							</PopoverContent>
 						</Popover>
-					</div>
+					</div> */}
 
-					<div className='space-y-2'>
+					{/* <div className='space-y-2'>
 						<Label>Notes (optional)</Label>
 						<Input
 							placeholder='Add notes...'
 							value={borrowNotes}
 							onChange={(e) => setBorrowNotes(e.target.value)}
 						/>
-					</div>
+					</div> */}
 				</div>
 
 				<DialogFooter>

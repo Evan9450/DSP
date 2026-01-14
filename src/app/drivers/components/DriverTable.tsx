@@ -46,7 +46,6 @@ const DriverTable = ({
 	// Get document stats for alerts
 	const getDriverDocumentStatus = (driverId: string) => {
 		const docs = driverDocuments[driverId] || [];
-		console.log('🚀 => getDriverDocumentStatus => docs:', docs);
 		const expiring = docs.filter((d) => {
 			const status = calculateDocumentStatus(new Date(d.expiry_date));
 			return status === 'expiring';

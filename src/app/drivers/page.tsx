@@ -29,7 +29,6 @@ export default function DriversPage() {
 	const [driverDocuments, setDriverDocuments] = useState<
 		Record<string, any[]>
 	>({});
-	console.log('🚀 => DriversPage => driverDocuments:', driverDocuments);
 	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [isSyncingDeputy, setIsSyncingDeputy] = useState(false);

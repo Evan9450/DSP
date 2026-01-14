@@ -98,13 +98,15 @@ export function convertVehicleInspection(
 	apiInspection: VehicleInspectionResponse
 ): VehicleInspection {
 	// Convert photo URLs to VehiclePhoto objects
-	const photos: VehiclePhoto[] = (apiInspection.inspection_urls || []).map((url: string, index: number) => ({
-		id: `${apiInspection.id}-photo-${index}`,
-		vehicleId: apiInspection.vehicle_id.toString(),
-		url: url,
-		uploadedBy: apiInspection.driver_id.toString(),
-		uploadedAt: new Date(apiInspection.created_at),
-	}));
+	const photos: VehiclePhoto[] = (apiInspection.inspection_urls || []).map(
+		(url: string, index: number) => ({
+			id: `${apiInspection.id}-photo-${index}`,
+			vehicleId: apiInspection.vehicle_id.toString(),
+			url: url,
+			uploadedBy: apiInspection.driver_id.toString(),
+			uploadedAt: new Date(apiInspection.created_at),
+		})
+	);
 
 	// Map inspection_status to VehicleInspectionStatus
 	// API now uses strings: 'pending', 'passed', 'failed'
@@ -129,7 +131,9 @@ export function convertVehicleInspection(
 		notes: undefined, // Notes field removed from new API
 		adminReviewed: apiInspection.reviewed_by_admin,
 		adminReviewedBy: undefined, // No longer tracked separately
-		adminReviewedAt: apiInspection.reviewed_by_admin ? new Date(apiInspection.updated_at) : undefined,
+		adminReviewedAt: apiInspection.reviewed_by_admin
+			? new Date(apiInspection.updated_at)
+			: undefined,
 		adminNotes: apiInspection.admin_notes,
 		driverName: '', // Will need to be fetched from driver data
 	};
@@ -152,9 +156,13 @@ export function convertSchedule(apiSchedule: ScheduleResponse): Schedule {
 		startTime: startDate,
 		endTime: endDate,
 		route: apiSchedule.route ?? undefined,
-		status: apiSchedule.confirm_status as 'pending' | 'confirmed' | 'completed',
+		status: apiSchedule.confirm_status as
+			| 'pending'
+			| 'confirmed'
+			| 'completed',
 		deputyShiftId: apiSchedule.deputy_schedule_id,
-		smsSent: apiSchedule.reminder_sms_sent || apiSchedule.assignment_sms_sent,
+		smsSent:
+			apiSchedule.reminder_sms_sent || apiSchedule.assignment_sms_sent,
 		smsSentAt: undefined, // No longer tracked separately
 		driverConfirmed: apiSchedule.confirm_status === 'confirmed',
 		driverConfirmedAt: undefined, // No longer tracked separately
@@ -190,17 +198,14 @@ export function convertBorrowRecord(
 		id: apiRecord.id.toString(),
 		assetId: apiRecord.product_id.toString(),
 		assetName: '', // Will need to be enriched from product data
-		driverId: apiRecord.driver_id.toString(),
+		driverId:
+			apiRecord.driver_id !== null
+				? apiRecord.driver_id.toString()
+				: null,
 		driverName: '', // Will need to be enriched from driver data
 		quantity: apiRecord.quantity,
 		borrowDate: new Date(apiRecord.borrow_date),
-		expectedReturnDate: apiRecord.expected_return_date
-			? new Date(apiRecord.expected_return_date)
-			: undefined,
-		actualReturnDate: apiRecord.actual_return_date
-			? new Date(apiRecord.actual_return_date)
-			: undefined,
-		status: apiRecord.is_returned ? 'returned' : 'borrowed',
+		operatedBy: apiRecord.operated_by_name,
 		notes: apiRecord.notes,
 	};
 }

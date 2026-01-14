@@ -192,13 +192,11 @@ export interface BorrowRecord {
 	id: string;
 	assetId: string;
 	assetName: string;
-	driverId: string;
+	driverId: string | null;
 	driverName: string;
 	quantity: number;
-	borrowDate: Date;
-	expectedReturnDate?: Date;
-	actualReturnDate?: Date;
-	status: 'borrowed' | 'returned' | 'overdue';
+	operatedBy: string;
+	borrowDate?: Date;
 	notes?: string;
 }
 

@@ -46,7 +46,7 @@ interface BorrowDialogProps {
 	assets: Asset[];
 	drivers: Driver[];
 	onSuccess: () => void;
-	clickedAsset?: Asset;
+	clickedAsset: Asset | undefined;
 }
 
 export function BorrowDialog({
@@ -59,7 +59,7 @@ export function BorrowDialog({
 }: BorrowDialogProps) {
 	const { toast } = useToast();
 
-	const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+	const [selectedAsset, setSelectedAsset] = useState<Asset>();
 	console.log('🚀 => BorrowDialog => selectedAsset:', selectedAsset);
 	const [borrowDriverId, setBorrowDriverId] = useState('');
 	const [borrowQuantity, setBorrowQuantity] = useState('1');
@@ -71,11 +71,11 @@ export function BorrowDialog({
 	);
 	useEffect(() => {
 		if (open) {
-			setSelectedAsset(clickedAsset ?? null);
+			setSelectedAsset(clickedAsset);
 		}
 	}, [open, clickedAsset]);
 	const resetState = () => {
-		setSelectedAsset(null);
+		// setSelectedAsset();
 		setBorrowDriverId('');
 		setBorrowQuantity('1');
 		setBorrowNotes('');
@@ -83,14 +83,7 @@ export function BorrowDialog({
 	};
 
 	const handleBorrow = async () => {
-		if (!selectedAsset || !borrowDriverId) {
-			toast({
-				title: 'Error',
-				description: 'Please select a driver',
-				variant: 'destructive',
-			});
-			return;
-		}
+		if (!selectedAsset) return;
 
 		try {
 			const payload: any = {
@@ -144,7 +137,7 @@ export function BorrowDialog({
 								const asset = availableAssets.find(
 									(a) => a.id === value
 								);
-								setSelectedAsset(asset || null);
+								setSelectedAsset(asset);
 								setBorrowQuantity('1');
 							}}>
 							<SelectTrigger>
@@ -240,7 +233,7 @@ export function BorrowDialog({
 					<Button
 						className='bg-blue-700 hover:bg-blue-800'
 						onClick={handleBorrow}
-						disabled={!selectedAsset || !borrowDriverId}>
+						disabled={!selectedAsset}>
 						Confirm Lend
 					</Button>
 				</DialogFooter>

@@ -267,8 +267,7 @@ export interface PreviousInspectionSummary {
 }
 
 // Detail response with flattened structure
-export interface VehicleInspectionDetailResponse
-	extends VehicleInspectionResponse {
+export interface VehicleInspectionDetailResponse extends VehicleInspectionResponse {
 	previous: PreviousInspectionSummary | null;
 }
 
@@ -378,12 +377,10 @@ export interface ProductInventoryCreate {
 export interface ProductBorrowResponse {
 	id: number;
 	product_id: number;
-	driver_id: number;
+	driver_id: number | null;
 	quantity: number;
 	borrow_date: string;
-	expected_return_date?: string;
-	actual_return_date?: string;
-	is_returned: boolean;
+	operated_by_name: string;
 	notes?: string;
 	created_at: string;
 	updated_at: string;
@@ -391,7 +388,7 @@ export interface ProductBorrowResponse {
 
 export interface ProductBorrowCreate {
 	product_id: number;
-	driver_id: number;
+	driver_id?: number;
 	quantity: number;
 	borrow_date: string; // Required: YYYY-MM-DD format
 	expected_return_date?: string;
@@ -628,7 +625,9 @@ class APIClient {
 
 					// Skip logout logic for login API failures (invalid credentials)
 					if (!isLoginRequest) {
-						console.warn('⚠️ Token expired or invalid - logging out');
+						console.warn(
+							'⚠️ Token expired or invalid - logging out'
+						);
 
 						// Clear all authentication data
 						TokenManager.clearAdminToken();
@@ -1406,7 +1405,7 @@ class APIClient {
 		const response = await this.client.get<ProductResponse[]>(
 			'/api/v1/assets/products'
 		);
-		console.log('🚀 => APIClient => getProducts => response:', response);
+		// console.log('🚀 => APIClient => getProducts => response:', response);
 		return response.data;
 	}
 

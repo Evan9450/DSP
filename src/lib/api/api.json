@@ -2655,7 +2655,7 @@
           "Assets & Inventory"
         ],
         "summary": "List Borrows",
-        "description": "List all borrow records with optional filters.",
+        "description": "List all distribution records with optional filters.",
         "operationId": "list_borrows_api_v1_assets_borrows_get",
         "security": [
           {
@@ -2679,15 +2679,6 @@
             "schema": {
               "type": "integer",
               "title": "Driver Id"
-            }
-          },
-          {
-            "name": "is_returned",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "title": "Is Returned"
             }
           },
           {
@@ -2743,7 +2734,7 @@
           "Assets & Inventory"
         ],
         "summary": "Create Borrow",
-        "description": "Create borrow record (lend product to driver).",
+        "description": "Create distribution record (distribute product to driver or internal use).\n\n- driver_id is optional: can be internal use without specific driver\n- Automatically records operator information (current user)\n- Reduces available stock (no return tracking)",
         "operationId": "create_borrow_api_v1_assets_borrows_post",
         "security": [
           {
@@ -2790,7 +2781,7 @@
           "Assets & Inventory"
         ],
         "summary": "Get Borrow",
-        "description": "Get borrow record by ID.",
+        "description": "Get distribution record by ID.",
         "operationId": "get_borrow_api_v1_assets_borrows__borrow_id__get",
         "security": [
           {
@@ -2832,71 +2823,13 @@
         }
       }
     },
-    "/api/v1/assets/borrows/{borrow_id}/return": {
-      "post": {
-        "tags": [
-          "Assets & Inventory"
-        ],
-        "summary": "Return Borrowed Item",
-        "description": "Mark borrowed item as returned.",
-        "operationId": "return_borrowed_item_api_v1_assets_borrows__borrow_id__return_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "borrow_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Borrow Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProductBorrowReturn"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductBorrowResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/assets/products/{product_id}/borrows": {
       "get": {
         "tags": [
           "Assets & Inventory"
         ],
         "summary": "List Product Borrows",
-        "description": "List all borrow records for a specific product.",
+        "description": "List all distribution records for a specific product.",
         "operationId": "list_product_borrows_api_v1_assets_products__product_id__borrows_get",
         "security": [
           {
@@ -2968,7 +2901,7 @@
           "Assets & Inventory"
         ],
         "summary": "List Driver Borrows",
-        "description": "List all items borrowed by a specific driver.",
+        "description": "List all items distributed to a specific driver.",
         "operationId": "list_driver_borrows_api_v1_assets_drivers__driver_id__borrows_get",
         "security": [
           {
@@ -5132,7 +5065,7 @@
           "Manual Tasks"
         ],
         "summary": "Manual Check Low Stock",
-        "description": "手动触发：检查低库存产品\n\n**自动执行时间**: 每天 11:00 AM\n\n**功能**:\n- 查找库存低于阈值的产品（current_stock \u003C min_stock_threshold）\n- 发送SMS给管理员\n- 设置 low_stock_alert_sent = True\n\n**返回**: 低库存警报统计（alerts_sent）",
+        "description": "手动触发：检查低库存产品\n\n**自动执行时间**: 每天 11:00 AM\n\n**功能**:\n- 查找库存低于阈值的产品（available_stock \u003C= min_stock_threshold）\n- 发送SMS给管理员（手动触发不检查是否已发送过警报）\n- 注意：手动调用不会设置 low_stock_alert_sent 标志\n\n**返回**: 低库存警报统计（alerts_sent）",
         "operationId": "manual_check_low_stock_api_v1_tasks_check_low_stock_post",
         "responses": {
           "200": {
@@ -6184,18 +6117,6 @@
             "format": "date",
             "title": "Borrow Date"
           },
-          "expected_return_date": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Expected Return Date"
-          },
           "notes": {
             "anyOf": [
               {
@@ -6212,18 +6133,24 @@
             "title": "Product Id"
           },
           "driver_id": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Driver Id"
           }
         },
         "type": "object",
         "required": [
           "borrow_date",
-          "product_id",
-          "driver_id"
+          "product_id"
         ],
         "title": "ProductBorrowCreate",
-        "description": "Schema for creating borrow record."
+        "description": "Schema for creating borrow/distribution record."
       },
       "ProductBorrowResponse": {
         "properties": {
@@ -6237,18 +6164,6 @@
             "type": "string",
             "format": "date",
             "title": "Borrow Date"
-          },
-          "expected_return_date": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Expected Return Date"
           },
           "notes": {
             "anyOf": [
@@ -6270,26 +6185,28 @@
             "title": "Product Id"
           },
           "driver_id": {
-            "type": "integer",
-            "title": "Driver Id"
-          },
-          "is_returned": {
-            "type": "boolean",
-            "title": "Is Returned"
-          },
-          "return_date": {
             "anyOf": [
               {
-                "type": "string",
-                "format": "date"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Return Date"
+            "title": "Driver Id"
           },
-          "return_notes": {
+          "operated_by_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operated By Id"
+          },
+          "operated_by_name": {
             "anyOf": [
               {
                 "type": "string"
@@ -6298,7 +6215,7 @@
                 "type": "null"
               }
             ],
-            "title": "Return Notes"
+            "title": "Operated By Name"
           },
           "created_at": {
             "type": "string",
@@ -6317,40 +6234,13 @@
           "id",
           "product_id",
           "driver_id",
-          "is_returned",
-          "return_date",
-          "return_notes",
+          "operated_by_id",
+          "operated_by_name",
           "created_at",
           "updated_at"
         ],
         "title": "ProductBorrowResponse",
         "description": "Schema for borrow response."
-      },
-      "ProductBorrowReturn": {
-        "properties": {
-          "return_date": {
-            "type": "string",
-            "format": "date",
-            "title": "Return Date"
-          },
-          "return_notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Return Notes"
-          }
-        },
-        "type": "object",
-        "required": [
-          "return_date"
-        ],
-        "title": "ProductBorrowReturn",
-        "description": "Schema for returning borrowed item."
       },
       "ProductCreate": {
         "properties": {

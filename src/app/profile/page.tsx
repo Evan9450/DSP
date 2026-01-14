@@ -1,26 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import {
+	ArrowLeft,
+	Eye,
+	EyeOff,
+	Loader2,
+	Mail,
+	Phone,
+	Save,
+	Shield,
+	User,
+} from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UserResponse, UserUpdate, apiClient } from '@/lib/api/client';
+import { useEffect, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-	User,
-	Mail,
-	Phone,
-	Shield,
-	ArrowLeft,
-	Save,
-	Loader2,
-	Eye,
-	EyeOff,
-} from 'lucide-react';
-import { apiClient, UserResponse, UserUpdate } from '@/lib/api/client';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProfilePage() {
 	const router = useRouter();
@@ -77,7 +78,11 @@ export default function ProfilePage() {
 			setIsSaving(true);
 
 			// Validate password fields if user is trying to change password
-			if (formData.password || formData.confirmPassword || formData.oldPassword) {
+			if (
+				formData.password ||
+				formData.confirmPassword ||
+				formData.oldPassword
+			) {
 				if (!formData.oldPassword) {
 					toast({
 						title: 'Error',
@@ -139,7 +144,12 @@ export default function ProfilePage() {
 			});
 
 			setIsEditing(false);
-			setFormData({ ...formData, oldPassword: '', password: '', confirmPassword: '' });
+			setFormData({
+				...formData,
+				oldPassword: '',
+				password: '',
+				confirmPassword: '',
+			});
 			fetchUserProfile();
 		} catch (error: any) {
 			toast({
@@ -219,7 +229,9 @@ export default function ProfilePage() {
 				<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl'>
 					<div className='text-center py-12'>
 						<p className='text-red-600'>Failed to load profile</p>
-						<Button onClick={() => router.push('/')} className='mt-4'>
+						<Button
+							onClick={() => router.push('/')}
+							className='mt-4'>
 							Go to Dashboard
 						</Button>
 					</div>
@@ -242,7 +254,9 @@ export default function ProfilePage() {
 					</Button>
 					<div className='flex items-center justify-between'>
 						<div>
-							<h1 className='text-3xl font-bold text-gray-900'>My Profile</h1>
+							<h1 className='text-3xl font-bold text-gray-900'>
+								My Profile
+							</h1>
 							<p className='text-gray-600 mt-1'>
 								Manage your account information
 							</p>
@@ -259,34 +273,6 @@ export default function ProfilePage() {
 
 				{/* Profile Card */}
 				<div className='space-y-6'>
-					{/* Avatar and Basic Info */}
-					<Card>
-						<CardContent className='pt-6'>
-							<div className='flex items-center gap-6'>
-								<Avatar className='h-24 w-24'>
-									<AvatarFallback className='bg-blue-700 text-white text-2xl'>
-										{getInitials(user.name)}
-									</AvatarFallback>
-								</Avatar>
-								<div className='flex-1'>
-									<h2 className='text-2xl font-bold text-gray-900'>
-										{user.name}
-									</h2>
-									<p className='text-gray-600'>{user.email}</p>
-									<div className='mt-2'>
-										<span
-											className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getRoleBadgeColor(
-												user.role
-											)}`}>
-											<Shield className='h-3 w-3 mr-1' />
-											{getRoleText(user.role)}
-										</span>
-									</div>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-
 					{/* Profile Information */}
 					<Card>
 						<CardHeader>
@@ -296,21 +282,27 @@ export default function ProfilePage() {
 							{/* Name */}
 							<div className='space-y-2'>
 								<Label htmlFor='name'>
-									Full Name <span className='text-red-500'>*</span>
+									Full Name{' '}
+									<span className='text-red-500'>*</span>
 								</Label>
 								{isEditing ? (
 									<Input
 										id='name'
 										value={formData.name}
 										onChange={(e) =>
-											setFormData({ ...formData, name: e.target.value })
+											setFormData({
+												...formData,
+												name: e.target.value,
+											})
 										}
 										placeholder='Enter your full name'
 									/>
 								) : (
 									<div className='flex items-center gap-2 p-3 bg-gray-50 rounded-md'>
 										<User className='h-4 w-4 text-gray-500' />
-										<span className='text-gray-900'>{user.name}</span>
+										<span className='text-gray-900'>
+											{user.name}
+										</span>
 									</div>
 								)}
 							</div>
@@ -318,7 +310,8 @@ export default function ProfilePage() {
 							{/* Email */}
 							<div className='space-y-2'>
 								<Label htmlFor='email'>
-									Email Address <span className='text-red-500'>*</span>
+									Email Address{' '}
+									<span className='text-red-500'>*</span>
 								</Label>
 								{isEditing ? (
 									<Input
@@ -326,14 +319,19 @@ export default function ProfilePage() {
 										type='email'
 										value={formData.email}
 										onChange={(e) =>
-											setFormData({ ...formData, email: e.target.value })
+											setFormData({
+												...formData,
+												email: e.target.value,
+											})
 										}
 										placeholder='Enter your email'
 									/>
 								) : (
 									<div className='flex items-center gap-2 p-3 bg-gray-50 rounded-md'>
 										<Mail className='h-4 w-4 text-gray-500' />
-										<span className='text-gray-900'>{user.email}</span>
+										<span className='text-gray-900'>
+											{user.email}
+										</span>
 									</div>
 								)}
 							</div>
@@ -347,7 +345,10 @@ export default function ProfilePage() {
 										type='tel'
 										value={formData.phone}
 										onChange={(e) =>
-											setFormData({ ...formData, phone: e.target.value })
+											setFormData({
+												...formData,
+												phone: e.target.value,
+											})
 										}
 										placeholder='Enter your phone number'
 									/>
@@ -356,7 +357,9 @@ export default function ProfilePage() {
 										<Phone className='h-4 w-4 text-gray-500' />
 										<span className='text-gray-900'>
 											{user.phone || (
-												<span className='text-gray-400'>Not set</span>
+												<span className='text-gray-400'>
+													Not set
+												</span>
 											)}
 										</span>
 									</div>
@@ -377,17 +380,29 @@ export default function ProfilePage() {
 										<div className='relative'>
 											<Input
 												id='oldPassword'
-												type={showOldPassword ? 'text' : 'password'}
+												type={
+													showOldPassword
+														? 'text'
+														: 'password'
+												}
 												value={formData.oldPassword}
 												onChange={(e) =>
-													setFormData({ ...formData, oldPassword: e.target.value })
+													setFormData({
+														...formData,
+														oldPassword:
+															e.target.value,
+													})
 												}
 												placeholder='Enter current password'
 												className='pr-10'
 											/>
 											<button
 												type='button'
-												onClick={() => setShowOldPassword(!showOldPassword)}
+												onClick={() =>
+													setShowOldPassword(
+														!showOldPassword
+													)
+												}
 												className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none'>
 												{showOldPassword ? (
 													<EyeOff className='h-4 w-4' />
@@ -409,17 +424,29 @@ export default function ProfilePage() {
 										<div className='relative'>
 											<Input
 												id='password'
-												type={showNewPassword ? 'text' : 'password'}
+												type={
+													showNewPassword
+														? 'text'
+														: 'password'
+												}
 												value={formData.password}
 												onChange={(e) =>
-													setFormData({ ...formData, password: e.target.value })
+													setFormData({
+														...formData,
+														password:
+															e.target.value,
+													})
 												}
 												placeholder='Enter new password'
 												className='pr-10'
 											/>
 											<button
 												type='button'
-												onClick={() => setShowNewPassword(!showNewPassword)}
+												onClick={() =>
+													setShowNewPassword(
+														!showNewPassword
+													)
+												}
 												className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none'>
 												{showNewPassword ? (
 													<EyeOff className='h-4 w-4' />
@@ -429,7 +456,8 @@ export default function ProfilePage() {
 											</button>
 										</div>
 										<p className='text-xs text-gray-500'>
-											Password must be at least 6 characters
+											Password must be at least 6
+											characters
 										</p>
 									</div>
 
@@ -441,17 +469,29 @@ export default function ProfilePage() {
 										<div className='relative'>
 											<Input
 												id='confirmPassword'
-												type={showConfirmPassword ? 'text' : 'password'}
+												type={
+													showConfirmPassword
+														? 'text'
+														: 'password'
+												}
 												value={formData.confirmPassword}
 												onChange={(e) =>
-													setFormData({ ...formData, confirmPassword: e.target.value })
+													setFormData({
+														...formData,
+														confirmPassword:
+															e.target.value,
+													})
 												}
 												placeholder='Confirm new password'
 												className='pr-10'
 											/>
 											<button
 												type='button'
-												onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+												onClick={() =>
+													setShowConfirmPassword(
+														!showConfirmPassword
+													)
+												}
 												className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none'>
 												{showConfirmPassword ? (
 													<EyeOff className='h-4 w-4' />
@@ -469,7 +509,9 @@ export default function ProfilePage() {
 								<Label>Role</Label>
 								<div className='flex items-center gap-2 p-3 bg-gray-50 rounded-md'>
 									<Shield className='h-4 w-4 text-gray-500' />
-									<span className='text-gray-900'>{getRoleText(user.role)}</span>
+									<span className='text-gray-900'>
+										{getRoleText(user.role)}
+									</span>
 								</div>
 							</div>
 
@@ -479,7 +521,9 @@ export default function ProfilePage() {
 								<div className='flex items-center gap-2 p-3 bg-gray-50 rounded-md'>
 									<span
 										className={`inline-block w-2 h-2 rounded-full ${
-											user.is_active ? 'bg-green-500' : 'bg-red-500'
+											user.is_active
+												? 'bg-green-500'
+												: 'bg-red-500'
 										}`}></span>
 									<span className='text-gray-900'>
 										{user.is_active ? 'Active' : 'Inactive'}
@@ -514,39 +558,6 @@ export default function ProfilePage() {
 									</Button>
 								</div>
 							)}
-						</CardContent>
-					</Card>
-
-					{/* Account Information */}
-					<Card>
-						<CardHeader>
-							<CardTitle>Account Information</CardTitle>
-						</CardHeader>
-						<CardContent className='space-y-3'>
-							<div className='flex justify-between text-sm'>
-								<span className='text-gray-600'>User ID:</span>
-								<span className='font-medium text-gray-900'>{user.id}</span>
-							</div>
-							<div className='flex justify-between text-sm'>
-								<span className='text-gray-600'>Created:</span>
-								<span className='font-medium text-gray-900'>
-									{new Date(user.created_at).toLocaleDateString('en-US', {
-										year: 'numeric',
-										month: 'long',
-										day: 'numeric',
-									})}
-								</span>
-							</div>
-							<div className='flex justify-between text-sm'>
-								<span className='text-gray-600'>Last Updated:</span>
-								<span className='font-medium text-gray-900'>
-									{new Date(user.updated_at).toLocaleDateString('en-US', {
-										year: 'numeric',
-										month: 'long',
-										day: 'numeric',
-									})}
-								</span>
-							</div>
 						</CardContent>
 					</Card>
 				</div>

@@ -43,6 +43,7 @@ const DriverTable = ({
 	handleRowClick,
 	handleDeleteClick,
 }: DriverTableProps) => {
+	console.log('🚀 => DriverTable => filteredDrivers:', filteredDrivers);
 	// Get document stats for alerts
 	const getDriverDocumentStatus = (driverId: string) => {
 		const docs = driverDocuments[driverId] || [];

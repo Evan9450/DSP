@@ -80,18 +80,23 @@ export default function DriversPage() {
 		setDriverDocuments(docsMap);
 	}, [apiDrivers]);
 
-	const filteredDrivers = drivers.filter(
-		(d) =>
-			d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			d.amazonId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			d.email?.toLowerCase().includes(searchTerm.toLowerCase())
-	);
+	const filteredDrivers = drivers
+		.filter(
+			(d) =>
+				d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				d.amazonId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				d.email?.toLowerCase().includes(searchTerm.toLowerCase())
+		)
+		.sort((a, b) => {
+			if (a.isActive === b.isActive) return 0;
+			return a.isActive ? 1 : -1;
+		});
 
 	const handleRowClick = (driverId: string) => {
 		router.push(`/drivers/${driverId}`);
 	};
 
-	const handleSyncDeputy = async () => {
+	const handleSyncDeputy: any = async () => {
 		setIsSyncingDeputy(true);
 		try {
 			const result = await apiClient.syncDeputyDrivers();

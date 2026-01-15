@@ -1026,10 +1026,12 @@ class APIClient {
 		vehicleId: number,
 		data: VehicleUpdate
 	): Promise<VehicleResponse> {
+		console.log('🔧 updateVehicle - Request data:', data);
 		const response = await this.client.put<VehicleResponse>(
 			`/api/v1/vehicles/${vehicleId}`,
 			data
 		);
+		console.log('🔧 updateVehicle - Response:', response.data);
 		return response.data;
 	}
 

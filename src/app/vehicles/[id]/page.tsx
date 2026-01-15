@@ -86,7 +86,12 @@ export default function VehicleDetailPage({
 
 	useEffect(() => {
 		console.log('🔍 Vehicle Detail - Resolved params:', resolvedParams);
-		console.log('🔍 Vehicle Detail - params.id:', resolvedParams.id, 'type:', typeof resolvedParams.id);
+		console.log(
+			'🔍 Vehicle Detail - params.id:',
+			resolvedParams.id,
+			'type:',
+			typeof resolvedParams.id
+		);
 		if (resolvedParams.id) {
 			fetchVehicleDetail();
 		}
@@ -124,7 +129,7 @@ export default function VehicleDetailPage({
 				raw: resolvedParams.id,
 				rawType: typeof resolvedParams.id,
 				parsed: vehicleId,
-				isNaN: isNaN(vehicleId)
+				isNaN: isNaN(vehicleId),
 			});
 
 			if (isNaN(vehicleId)) {
@@ -161,7 +166,7 @@ export default function VehicleDetailPage({
 
 		setIsSaving(true);
 		try {
-			await apiClient.updateVehicle(vehicle.id, {
+			const updateData = {
 				rego: editForm.rego,
 				alias: editForm.alias,
 				brand: editForm.brand,
@@ -175,7 +180,13 @@ export default function VehicleDetailPage({
 				notes: editForm.notes,
 				last_maintenance_date: editForm.last_maintenance_date,
 				next_maintenance_date: editForm.next_maintenance_date,
-			});
+			};
+			console.log('💾 Full update payload:', updateData);
+			const response = await apiClient.updateVehicle(
+				vehicle.id,
+				updateData
+			);
+			console.log('✅ Backend response:', response);
 			toast({
 				title: 'Success',
 				description: 'Vehicle updated successfully.',
@@ -288,7 +299,8 @@ export default function VehicleDetailPage({
 			const result = await apiClient.sendMaintenanceEmail(vehicle.id);
 			toast({
 				title: 'Success',
-				description: result.message || 'Maintenance email sent successfully.',
+				description:
+					result.message || 'Maintenance email sent successfully.',
 			});
 		} catch (error: any) {
 			console.error('Failed to send maintenance email:', error);
@@ -365,7 +377,6 @@ export default function VehicleDetailPage({
 				}
 			})()
 		: [];
-	console.log('🚀 => VehicleDetailPage => photoUrls:', photoUrls);
 
 	const statusConfig: Record<
 		'in-use' | 'not-in-use',
@@ -847,7 +858,9 @@ export default function VehicleDetailPage({
 													: 'Send maintenance booking email to workshop'
 										}>
 										<Mail className='h-4 w-4 mr-2' />
-										{isSendingEmail ? 'Sending...' : 'Send Booking Email'}
+										{isSendingEmail
+											? 'Sending...'
+											: 'Send Booking Email'}
 									</Button>
 								)}
 							</div>
@@ -886,12 +899,13 @@ export default function VehicleDetailPage({
 													onSelect={(date) =>
 														setEditForm({
 															...editForm,
-															last_maintenance_date: date
-																? format(
-																		date,
-																		'yyyy-MM-dd'
-																	)
-																: undefined,
+															last_maintenance_date:
+																date
+																	? format(
+																			date,
+																			'yyyy-MM-dd'
+																		)
+																	: undefined,
 														})
 													}
 													initialFocus
@@ -932,12 +946,13 @@ export default function VehicleDetailPage({
 													onSelect={(date) =>
 														setEditForm({
 															...editForm,
-															next_maintenance_date: date
-																? format(
-																		date,
-																		'yyyy-MM-dd'
-																	)
-																: undefined,
+															next_maintenance_date:
+																date
+																	? format(
+																			date,
+																			'yyyy-MM-dd'
+																		)
+																	: undefined,
 														})
 													}
 													initialFocus
@@ -1270,7 +1285,7 @@ export default function VehicleDetailPage({
 														</TableCell>
 														<TableCell>
 															{inspection.inspection_status ===
-																0 && (
+																'pending' && (
 																<Badge
 																	variant='outline'
 																	className='border-yellow-300 bg-yellow-50 text-yellow-800'>
@@ -1279,7 +1294,7 @@ export default function VehicleDetailPage({
 																</Badge>
 															)}
 															{inspection.inspection_status ===
-																1 && (
+																'passed' && (
 																<Badge
 																	variant='outline'
 																	className='border-green-300 bg-green-50 text-green-800'>
@@ -1288,7 +1303,7 @@ export default function VehicleDetailPage({
 																</Badge>
 															)}
 															{inspection.inspection_status ===
-																2 && (
+																'failed' && (
 																<Badge
 																	variant='outline'
 																	className='border-red-300 bg-red-50 text-red-800'>

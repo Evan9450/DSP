@@ -11,6 +11,7 @@ import {
 	Eye,
 	FileText,
 	Image as ImageIcon,
+	Mail,
 	MapPin,
 	Package,
 	Trash2,
@@ -81,6 +82,7 @@ export default function VehicleDetailPage({
 	const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(
 		null
 	);
+	const [isSendingEmail, setIsSendingEmail] = useState(false);
 
 	useEffect(() => {
 		console.log('🔍 Vehicle Detail - Resolved params:', resolvedParams);
@@ -276,6 +278,31 @@ export default function VehicleDetailPage({
 		setSelectedPhotoIndex((prev) =>
 			prev === photoCount - 1 ? 0 : (prev || 0) + 1
 		);
+	};
+
+	const handleSendMaintenanceEmail = async () => {
+		if (!vehicle) return;
+
+		setIsSendingEmail(true);
+		try {
+			const result = await apiClient.sendMaintenanceEmail(vehicle.id);
+			toast({
+				title: 'Success',
+				description: result.message || 'Maintenance email sent successfully.',
+			});
+		} catch (error: any) {
+			console.error('Failed to send maintenance email:', error);
+			const errorMessage =
+				error.response?.data?.detail ||
+				'Failed to send maintenance email.';
+			toast({
+				title: 'Error',
+				description: errorMessage,
+				variant: 'destructive',
+			});
+		} finally {
+			setIsSendingEmail(false);
+		}
 	};
 
 	if (isLoading) {
@@ -797,10 +824,33 @@ export default function VehicleDetailPage({
 
 						{/* Maintenance Information */}
 						<Card className='p-6'>
-							<h2 className='text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2'>
-								<Wrench className='h-5 w-5' />
-								Maintenance Schedule
-							</h2>
+							<div className='flex items-center justify-between mb-4'>
+								<h2 className='text-xl font-semibold text-gray-900 flex items-center gap-2'>
+									<Wrench className='h-5 w-5' />
+									Maintenance Schedule
+								</h2>
+								{!isEditing && (
+									<Button
+										variant='outline'
+										size='sm'
+										onClick={handleSendMaintenanceEmail}
+										disabled={
+											isSendingEmail ||
+											!vehicle.workshop_email ||
+											!vehicle.next_maintenance_date
+										}
+										title={
+											!vehicle.workshop_email
+												? 'Workshop email not configured'
+												: !vehicle.next_maintenance_date
+													? 'Next maintenance date not set'
+													: 'Send maintenance booking email to workshop'
+										}>
+										<Mail className='h-4 w-4 mr-2' />
+										{isSendingEmail ? 'Sending...' : 'Send Booking Email'}
+									</Button>
+								)}
+							</div>
 							{isEditing ? (
 								<div className='grid grid-cols-2 gap-4'>
 									<div className='space-y-2'>

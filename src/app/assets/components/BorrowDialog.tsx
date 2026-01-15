@@ -9,11 +9,6 @@ import {
 	DialogTitle,
 } from '@/components/ui/dialog';
 import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from '@/components/ui/popover';
-import {
 	Select,
 	SelectContent,
 	SelectItem,
@@ -23,12 +18,9 @@ import {
 
 import type { Asset } from '@/types/schedule';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiClient } from '@/lib/api/client';
-import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useEffect } from 'react';
 import { useState } from 'react';
@@ -47,6 +39,7 @@ interface BorrowDialogProps {
 	drivers: Driver[];
 	onSuccess: () => void;
 	clickedAsset: Asset | undefined;
+	transactionType: 'lend' | 'deduct';
 }
 
 export function BorrowDialog({
@@ -56,12 +49,15 @@ export function BorrowDialog({
 	drivers,
 	onSuccess,
 	clickedAsset,
+	transactionType,
 }: BorrowDialogProps) {
 	const { toast } = useToast();
 
 	const [selectedAsset, setSelectedAsset] = useState<Asset>();
 	console.log('🚀 => BorrowDialog => selectedAsset:', selectedAsset);
-	const [borrowDriverId, setBorrowDriverId] = useState('');
+	const [borrowDriverId, setBorrowDriverId] = useState<string | null>(null);
+	const [driverError, setDriverError] = useState(false);
+
 	const [borrowQuantity, setBorrowQuantity] = useState('1');
 	const [borrowNotes, setBorrowNotes] = useState('');
 	const [borrowDate, setBorrowDate] = useState<Date>(new Date());
@@ -72,11 +68,15 @@ export function BorrowDialog({
 	useEffect(() => {
 		if (open) {
 			setSelectedAsset(clickedAsset);
+			setBorrowDriverId(null);
+			setBorrowQuantity('1');
+			setBorrowNotes('');
+			setBorrowDate(new Date());
 		}
 	}, [open, clickedAsset]);
 	const resetState = () => {
 		// setSelectedAsset();
-		setBorrowDriverId('');
+		setBorrowDriverId(null);
 		setBorrowQuantity('1');
 		setBorrowNotes('');
 		setBorrowDate(new Date());
@@ -85,17 +85,39 @@ export function BorrowDialog({
 	const handleBorrow = async () => {
 		if (!selectedAsset) return;
 
+		if (transactionType === 'lend' && borrowDriverId === null) {
+			setDriverError(true);
+			console.log(
+				'🚀 => handleBorrow => borrowDriverId:',
+				borrowDriverId
+			);
+			console.log(
+				'🚀 => handleBorrow => transactionType:',
+				transactionType
+			);
+			toast({
+				title: 'Error',
+				description: 'Please select a valid driver',
+				variant: 'destructive',
+			});
+			return;
+		}
+
 		try {
 			const payload: any = {
 				product_id: parseInt(selectedAsset.id),
-				driver_id: parseInt(borrowDriverId),
+				// driver_id: parseInt(borrowDriverId),
 				quantity: parseInt(borrowQuantity),
 				borrow_date: format(borrowDate, 'yyyy-MM-dd'),
 			};
+			if (transactionType === 'lend') {
+				payload.driver_id = Number(borrowDriverId);
+			}
 
 			if (borrowNotes.trim()) {
 				payload.notes = borrowNotes;
 			}
+			console.log('🚀 => handleBorrow => payload:', payload);
 
 			await apiClient.createBorrowRecord(payload);
 
@@ -121,9 +143,15 @@ export function BorrowDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Lend Asset</DialogTitle>
+					<DialogTitle>
+						{transactionType === 'lend'
+							? 'Lend Asset'
+							: 'Deduct Asset'}
+					</DialogTitle>
 					<DialogDescription>
-						Record asset lending to a driver
+						{transactionType === 'lend'
+							? 'Record asset lending to a driver'
+							: 'Record asset deduction'}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -154,27 +182,37 @@ export function BorrowDialog({
 						</Select>
 					</div>
 
-					<div className='space-y-2'>
-						<Label>Driver</Label>
-						<Select
-							value={borrowDriverId}
-							onValueChange={setBorrowDriverId}>
-							<SelectTrigger>
-								<SelectValue placeholder='Select driver' />
-							</SelectTrigger>
-							<SelectContent className='max-h-60 overflow-y-auto'>
-								{drivers.map((driver) => (
-									<SelectItem
-										key={driver.id}
-										value={driver.id}>
-										{driver.name}{' '}
-										{driver.amazonId &&
-											`(${driver.amazonId})`}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
+					{transactionType === 'lend' && (
+						<div className='space-y-2'>
+							<Label>Driver</Label>
+							<Select
+								value={borrowDriverId ?? undefined}
+								onValueChange={(value) => {
+									setBorrowDriverId(value);
+									setDriverError(false);
+								}}>
+								<SelectTrigger>
+									<SelectValue placeholder='Select driver' />
+								</SelectTrigger>
+								<SelectContent className='max-h-60 overflow-y-auto'>
+									{drivers.map((driver) => (
+										<SelectItem
+											key={driver.id}
+											value={driver.id}>
+											{driver.name}{' '}
+											{driver.amazonId &&
+												`(${driver.amazonId})`}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							{driverError && (
+								<p className='text-xs text-red-500'>
+									Driver is required
+								</p>
+							)}
+						</div>
+					)}
 
 					<div className='space-y-2'>
 						<Label>Quantity</Label>
@@ -234,7 +272,9 @@ export function BorrowDialog({
 						className='bg-blue-700 hover:bg-blue-800'
 						onClick={handleBorrow}
 						disabled={!selectedAsset}>
-						Confirm Lend
+						{transactionType === 'lend'
+							? 'Confirm Lend'
+							: 'Confirm Deduct'}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

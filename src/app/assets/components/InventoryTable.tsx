@@ -21,6 +21,7 @@ interface InventoryTableProps {
 	setSelectedAsset: (asset: Asset) => void;
 	setIsAddInventoryDialogOpen: (open: boolean) => void;
 	setSelectedInventoryAsset: (asset: Asset) => void;
+	setTransactionType: (type: 'lend' | 'deduct') => void;
 }
 const InventoryTable = ({
 	filteredAssets,
@@ -28,6 +29,7 @@ const InventoryTable = ({
 	setSelectedAsset,
 	setIsAddInventoryDialogOpen,
 	setSelectedInventoryAsset,
+	setTransactionType,
 }: InventoryTableProps) => {
 	const getStatusBadge = (asset: Asset) => {
 		const available = asset.availableQuantity;
@@ -121,6 +123,9 @@ const InventoryTable = ({
 												</Button>
 												<Button
 													onClick={() => {
+														setTransactionType(
+															'lend'
+														);
 														setIsBorrowDialogOpen(
 															true
 														);
@@ -128,6 +133,19 @@ const InventoryTable = ({
 													}}
 													className='bg-blue-700 hover:bg-blue-800 w-28 h-8'>
 													Lend Asset
+												</Button>
+												<Button
+													onClick={() => {
+														setTransactionType(
+															'deduct'
+														);
+														setIsBorrowDialogOpen(
+															true
+														);
+														setSelectedAsset(asset);
+													}}
+													className='bg-blue-700 hover:bg-blue-800 w-28 h-8'>
+													Deduct
 												</Button>
 											</div>
 										</TableCell>

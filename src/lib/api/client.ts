@@ -400,6 +400,22 @@ export interface ProductBorrowReturn {
 	notes?: string;
 }
 
+// Inventory Change Types (unified IN/OUT records)
+export interface InventoryChangeResponse {
+	id: number;
+	product_id: number;
+	product_name: string;
+	change_type: 'IN' | 'OUT';
+	quantity: number;
+	change_date: string;
+	driver_id?: number | null;
+	driver_name?: string | null;
+	operated_by_id?: number | null;
+	operated_by_name?: string | null;
+	notes?: string | null;
+	created_at: string;
+}
+
 // Legacy types for backward compatibility
 export type AssetResponse = ProductResponse;
 export type AssetCreate = ProductCreate;
@@ -1459,6 +1475,20 @@ class APIClient {
 		return response.data;
 	}
 
+	// Inventory Changes (unified IN/OUT records)
+	async getInventoryChanges(params?: {
+		product_id?: number;
+		change_type?: 'IN' | 'OUT';
+		skip?: number;
+		limit?: number;
+	}): Promise<InventoryChangeResponse[]> {
+		const response = await this.client.get<InventoryChangeResponse[]>(
+			'/api/v1/assets/inventory-changes',
+			{ params }
+		);
+		return response.data;
+	}
+
 	// Product Borrows
 	async getProductBorrows(params?: {
 		product_id?: number;
@@ -1775,6 +1805,25 @@ class APIClient {
 	async checkVehicleMaintenance(): Promise<any> {
 		const response = await this.client.post(
 			'/api/v1/tasks/check-vehicle-maintenance'
+		);
+		return response.data;
+	}
+
+	/**
+	 * Send maintenance booking email to workshop
+	 * Requires vehicle to have workshop_email and next_maintenance_date set
+	 */
+	async sendMaintenanceEmail(vehicleId: number): Promise<{
+		success: boolean;
+		message: string;
+		vehicle_info?: {
+			id: number;
+			rego: string;
+			alias: string;
+		};
+	}> {
+		const response = await this.client.post(
+			`/api/v1/vehicles/${vehicleId}/send-maintenance-email`
 		);
 		return response.data;
 	}

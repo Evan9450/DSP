@@ -41,6 +41,10 @@ export default function AssetsPage() {
 	const [selectedInventoryAsset, setSelectedInventoryAsset] =
 		useState<Asset | null>(null);
 	const [isCheckingStock, setIsCheckingStock] = useState(false);
+	const [transactionType, setTransactionType] = useState<'lend' | 'deduct'>(
+		'lend'
+	);
+
 	// Convert API data to frontend types
 	const assets = apiAssets?.map(convertAsset) || [];
 
@@ -136,6 +140,7 @@ export default function AssetsPage() {
 					setSelectedAsset={setSelectedAsset}
 					setIsAddInventoryDialogOpen={setIsAddInventoryDialogOpen}
 					setSelectedInventoryAsset={setSelectedInventoryAsset}
+					setTransactionType={setTransactionType}
 				/>
 
 				<BorrowDialog
@@ -144,6 +149,7 @@ export default function AssetsPage() {
 					assets={assets}
 					drivers={drivers}
 					clickedAsset={selectedAsset}
+					transactionType={transactionType}
 					onSuccess={() => {
 						refetchAssets();
 					}}

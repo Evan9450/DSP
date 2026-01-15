@@ -1777,6 +1777,54 @@
         }
       }
     },
+    "/api/v1/vehicles/{vehicle_id}/send-maintenance-email": {
+      "post": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Send Maintenance Booking Email",
+        "description": "Manually send maintenance booking email to the vehicle's workshop.\n\nThis endpoint allows admin to manually trigger a maintenance booking email\nto the workshop configured for this vehicle.\n\nRequirements:\n- Vehicle must have a workshop_email configured\n- Vehicle must have a next_maintenance_date set\n\nReturns:\n- success: Whether the email was sent successfully\n- message: Status message\n- vehicle_info: Basic vehicle information",
+        "operationId": "send_maintenance_booking_email_api_v1_vehicles__vehicle_id__send_maintenance_email_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vehicle Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schedules/": {
       "get": {
         "tags": [
@@ -2647,6 +2695,87 @@
             "HTTPBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/assets/inventory-changes": {
+      "get": {
+        "tags": [
+          "Assets & Inventory"
+        ],
+        "summary": "List Inventory Changes",
+        "description": "List all inventory changes (both IN and OUT).\n\n- change_type: \"IN\" for stock in (purchases), \"OUT\" for stock out (distributions)\n- Returns combined records from ProductInventory and ProductBorrow tables\n- Sorted by created_at descending (newest first)",
+        "operationId": "list_inventory_changes_api_v1_assets_inventory_changes_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "title": "Product Id"
+            }
+          },
+          {
+            "name": "change_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Change Type"
+            }
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InventoryChangeResponse"
+                  },
+                  "title": "Response List Inventory Changes Api V1 Assets Inventory Changes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/assets/borrows": {
@@ -6057,6 +6186,107 @@
         ],
         "title": "InspectionPhotoWithDate",
         "description": "Inspection photo with date information."
+      },
+      "InventoryChangeResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id"
+          },
+          "product_name": {
+            "type": "string",
+            "title": "Product Name"
+          },
+          "change_type": {
+            "type": "string",
+            "title": "Change Type"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          },
+          "change_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Change Date"
+          },
+          "driver_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Id"
+          },
+          "driver_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Name"
+          },
+          "operated_by_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operated By Id"
+          },
+          "operated_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operated By Name"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "product_id",
+          "product_name",
+          "change_type",
+          "quantity",
+          "change_date",
+          "created_at"
+        ],
+        "title": "InventoryChangeResponse",
+        "description": "Unified inventory change record (both IN and OUT)."
       },
       "PreviousInspectionSummary": {
         "properties": {

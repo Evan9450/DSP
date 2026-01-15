@@ -8,51 +8,29 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { useAssets, useBorrowRecords } from '@/hooks/use-assets';
 
-import type { BorrowRecord } from '@/types/schedule';
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { convertBorrowRecord } from '@/lib/api/converters';
-import { useDrivers } from '@/hooks/use-drivers';
+import { useInventoryChanges } from '@/hooks/use-assets';
 import { useState } from 'react';
 
 export default function BorrowsPage() {
-	const { assets: apiAssets, isLoading: assetsLoading } = useAssets();
-	const { records: apiRecords, isLoading: recordsLoading } =
-		useBorrowRecords();
-	const { drivers: apiDrivers, isLoading: driversLoading } = useDrivers();
-
+	const { changes, isLoading } = useInventoryChanges();
 	const [searchTerm, setSearchTerm] = useState('');
 
-	// Convert and enrich borrow records with product and driver names
-	const borrowRecords: BorrowRecord[] = (apiRecords || []).map((record) => {
-		const converted = convertBorrowRecord(record);
-		// Enrich with product name
-		const product = apiAssets?.find((a) => a.id === record.product_id);
-		if (product) {
-			converted.assetName = product.name;
-		}
-		// Enrich with driver name
-		const driver = apiDrivers?.find((d) => d.id === record.driver_id);
-		if (driver) {
-			converted.driverName = driver.name;
-		}
-		return converted;
-	});
-
-	const isLoading = assetsLoading || recordsLoading || driversLoading;
-
-	const filteredBorrows = borrowRecords.filter(
-		(record: BorrowRecord) =>
-			record.assetName
+	const filteredChanges = (changes || []).filter(
+		(record) =>
+			record.product_name
 				?.toLowerCase()
 				.includes(searchTerm.toLowerCase()) ||
-			record.driverName
+			record.driver_name
 				?.toLowerCase()
 				.includes(searchTerm.toLowerCase()) ||
-			record.operatedBy?.toLowerCase().includes(searchTerm.toLowerCase())
+			record.operated_by_name
+				?.toLowerCase()
+				.includes(searchTerm.toLowerCase())
 	);
 
 	if (isLoading) {
@@ -61,7 +39,7 @@ export default function BorrowsPage() {
 				<div className='text-center'>
 					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto'></div>
 					<p className='mt-4 text-gray-600'>
-						Loading borrow records...
+						Loading inventory records...
 					</p>
 				</div>
 			</div>
@@ -74,10 +52,10 @@ export default function BorrowsPage() {
 				<div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6'>
 					<div>
 						<h1 className='text-3xl font-bold text-gray-900'>
-							Borrow Records
+							Inventory Records
 						</h1>
 						<p className='text-gray-500 mt-1'>
-							Track all asset borrowing records
+							Track all inventory movements
 						</p>
 					</div>
 				</div>
@@ -93,66 +71,77 @@ export default function BorrowsPage() {
 					/>
 				</div>
 
-				{/* Borrows History*/}
+				{/* Inventory History */}
 				<Card>
 					<div className='p-6'>
 						<h2 className='text-xl font-semibold mb-4 flex items-center gap-2'>
-							Borrows History
+							Inventory History
 						</h2>
 						<div className='overflow-x-auto'>
 							<Table>
 								<TableHeader>
 									<TableRow>
+										<TableHead>Type</TableHead>
 										<TableHead>Product</TableHead>
-										<TableHead>Borrowed By</TableHead>
+										<TableHead>Driver</TableHead>
 										<TableHead>Operated By</TableHead>
 										<TableHead>Quantity</TableHead>
-										<TableHead>Borrowed Date</TableHead>
-										{/* <TableHead>Notes</TableHead> */}
+										<TableHead>Date</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{filteredBorrows.length === 0 ? (
+									{filteredChanges.length === 0 ? (
 										<TableRow>
 											<TableCell
 												colSpan={6}
 												className='text-center text-gray-500 py-8'>
 												{searchTerm
-													? 'No borrows found matching your search'
-													: 'No borrow records'}
+													? 'No records found matching your search'
+													: 'No inventory records'}
 											</TableCell>
 										</TableRow>
 									) : (
-										filteredBorrows.map(
-											(record: BorrowRecord) => (
-												<TableRow key={record.id}>
-													<TableCell className='font-medium'>
-														{record.assetName ||
-															'Unknown Product'}
-													</TableCell>
-													<TableCell>
-														{record.driverName ||
-															record.operatedBy ||
-															'N/A'}
-													</TableCell>
-													<TableCell>
-														{record.operatedBy ||
-															'-'}
-													</TableCell>
-													<TableCell>
-														{record.quantity}
-													</TableCell>
-													<TableCell>
-														{record.borrowDate
-															? record.borrowDate.toLocaleDateString()
-															: '-'}
-													</TableCell>
-													{/* <TableCell>
-													{record.notes || '-'}
-												</TableCell> */}
-												</TableRow>
-											)
-										)
+										filteredChanges.map((record) => (
+											<TableRow
+												key={`${record.change_type}-${record.id}`}>
+												<TableCell>
+													<Badge
+														variant={
+															record.change_type ===
+															'IN'
+																? 'default'
+																: 'secondary'
+														}
+														className={
+															record.change_type ===
+															'IN'
+																? 'bg-green-100 text-green-800 hover:bg-green-100'
+																: 'bg-red-100 text-red-800 hover:bg-red-100'
+														}>
+														{record.change_type ===
+														'IN'
+															? 'Stock In'
+															: 'Stock Out'}
+													</Badge>
+												</TableCell>
+												<TableCell className='font-medium'>
+													{record.product_name}
+												</TableCell>
+												<TableCell>
+													{record.driver_name || '-'}
+												</TableCell>
+												<TableCell>
+													{record.operated_by_name ||
+														'-'}
+												</TableCell>
+												<TableCell>
+													{record.quantity}
+												</TableCell>
+												<TableCell>
+													{record.change_date}
+												</TableCell>
+											</TableRow>
+										))
 									)}
 								</TableBody>
 							</Table>

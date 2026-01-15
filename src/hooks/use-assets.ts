@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { apiClient, AssetResponse, BorrowRecordResponse } from '@/lib/api/client';
+import {
+	apiClient,
+	AssetResponse,
+	BorrowRecordResponse,
+	InventoryChangeResponse,
+} from '@/lib/api/client';
 
 export function useAssets() {
 	const [assets, setAssets] = useState<AssetResponse[]>([]);
@@ -97,5 +102,41 @@ export function useBorrowRecords(assetId?: number, driverId?: number) {
 		isLoading,
 		error,
 		refetch: fetchRecords,
+	};
+}
+
+export function useInventoryChanges(params?: {
+	product_id?: number;
+	change_type?: 'IN' | 'OUT';
+	skip?: number;
+	limit?: number;
+}) {
+	const [changes, setChanges] = useState<InventoryChangeResponse[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<Error | null>(null);
+
+	const fetchChanges = async () => {
+		try {
+			setIsLoading(true);
+			const data = await apiClient.getInventoryChanges(params);
+			setChanges(data);
+			setError(null);
+		} catch (err) {
+			setError(err as Error);
+			console.error('Failed to fetch inventory changes:', err);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	useEffect(() => {
+		fetchChanges();
+	}, [params?.product_id, params?.change_type, params?.skip, params?.limit]);
+
+	return {
+		changes,
+		isLoading,
+		error,
+		refetch: fetchChanges,
 	};
 }

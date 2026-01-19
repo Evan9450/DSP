@@ -294,6 +294,7 @@ export interface ScheduleDriverInfo {
 	amazon_id: string | null;
 	phone: string | null;
 	is_active: boolean;
+	has_password: boolean;
 }
 
 export interface ScheduleResponse {
@@ -334,6 +335,32 @@ export interface ScheduleUpdate {
 	vehicle_alias?: string;
 	checkin_status?: 'not_checked_in' | 'checked_in' | 'completed';
 	confirm_status?: 'pending' | 'confirmed' | 'cancelled';
+}
+
+// Batch Confirm Types
+export interface BatchConfirmRequest {
+	schedule_ids: number[];
+}
+
+export interface BatchConfirmSuccessItem {
+	id: number;
+	driver_name: string;
+	route: string;
+	vehicle_rego: string;
+	sms_sent: boolean;
+}
+
+export interface BatchConfirmFailedItem {
+	id: number;
+	error: string;
+}
+
+export interface BatchConfirmResponse {
+	total_requested: number;
+	total_success: number;
+	total_failed: number;
+	success?: BatchConfirmSuccessItem[];
+	failed?: BatchConfirmFailedItem[];
 }
 
 // Product Types (replaced Asset)
@@ -1372,6 +1399,16 @@ class APIClient {
 		return response.data;
 	}
 
+	async batchConfirmSchedules(
+		scheduleIds: number[]
+	): Promise<BatchConfirmResponse> {
+		const response = await this.client.post<BatchConfirmResponse>(
+			'/api/v1/schedules/batch-confirm',
+			{ schedule_ids: scheduleIds }
+		);
+		return response.data;
+	}
+
 	async sendScheduleSMS(scheduleId: number): Promise<SMSHistoryResponse> {
 		const response = await this.client.post<SMSHistoryResponse>(
 			`/api/v1/schedules/${scheduleId}/send-sms`
@@ -1421,6 +1458,24 @@ class APIClient {
 				params,
 			}
 		);
+		return response.data;
+	}
+
+	/**
+	 * Resend confirmation SMS for a specific schedule
+	 * @param scheduleId Schedule ID
+	 * @returns SMS send result
+	 */
+	async resendConfirmationSMS(scheduleId: number): Promise<{
+		success: boolean;
+		message: string;
+		schedule_id: number;
+	}> {
+		const response = await this.client.post<{
+			success: boolean;
+			message: string;
+			schedule_id: number;
+		}>(`/api/v1/tasks/resend-confirmation-sms/${scheduleId}`);
 		return response.data;
 	}
 

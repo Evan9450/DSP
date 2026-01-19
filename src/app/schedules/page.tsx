@@ -58,6 +58,8 @@ export default function ScheduleTablePage() {
 	const [allVehicles, setAllVehicles] = useState<any[]>([]);
 	const [allDrivers, setAllDrivers] = useState<any[]>([]);
 	const [isImporting, setIsImporting] = useState(false);
+	// Track failed schedule IDs after batch confirm - rows will show red border
+	const [failedScheduleIds, setFailedScheduleIds] = useState<number[]>([]);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	// Get available vehicles for a specific schedule
@@ -401,62 +403,100 @@ export default function ScheduleTablePage() {
 		}
 	};
 
-	const handleConfirmSingle = async (scheduleId: number) => {
-		try {
-			// Wait for API response before updating UI
-			const updatedSchedule = await apiClient.confirmSchedule(scheduleId);
-
-			// Update local state with the response from backend
-			setScheduleData((prevData) =>
-				prevData.map((schedule) =>
-					schedule.id === scheduleId
-						? {
-								...schedule,
-								confirm_status: updatedSchedule.confirm_status,
-							}
-						: schedule
-				)
-			);
-
-			notify.success('Schedule has been confirmed and SMS sent');
-		} catch (error: any) {
-			console.error('❌ Failed to confirm schedule:', error);
-
-			// Show detailed error message from backend
-			const errorMessage =
-				error.response?.data?.detail ||
-				error.message ||
-				'Failed to confirm schedule';
-			notify.error(errorMessage);
-		}
-	};
-
 	const handleConfirm = async () => {
 		try {
-			// Wait for all confirmations to complete
-			const updates = scheduleData.map((schedule) =>
-				apiClient.confirmSchedule(schedule.id)
-			);
-			const updatedSchedules = await Promise.all(updates);
+			// 清除之前的失败标记
+			setFailedScheduleIds([]);
 
-			// Update local state with responses from backend
-			setScheduleData((prevData) =>
-				prevData.map((schedule) => {
-					const updated = updatedSchedules.find(
-						(s) => s.id === schedule.id
+			// 筛选出未确认的 schedules
+			const pendingSchedules = scheduleData.filter(
+				(s) => s.confirm_status !== 'confirmed'
+			);
+
+			if (pendingSchedules.length === 0) {
+				notify.info('All schedules are already confirmed');
+				return;
+			}
+
+			// 前端验证：检查必填字段
+			// Required: driver, amazon_id, route, vehicle, has_password
+			const canConfirm = (s: ScheduleResponse) => {
+				const hasDriver = !!s.driver?.id;
+				const hasAmazonId = !!s.driver?.amazon_id;
+				const hasRoute = !!s.route;
+				const hasVehicle = !!s.vehicle_alias || !!s.vehicle_rego;
+				const hasPassword = !!s.driver?.has_password;
+				return (
+					hasDriver && hasAmazonId && hasRoute && hasVehicle && hasPassword
+				);
+			};
+
+			const validSchedules = pendingSchedules.filter(canConfirm);
+			const invalidSchedules = pendingSchedules.filter((s) => !canConfirm(s));
+
+			// 如果有无效的 schedules，标记红色边框并阻止确认
+			if (invalidSchedules.length > 0) {
+				const invalidIds = invalidSchedules.map((s) => s.id);
+				setFailedScheduleIds(invalidIds);
+
+				if (validSchedules.length === 0) {
+					notify.error(
+						`All ${invalidSchedules.length} schedules are missing required fields (Driver, Amazon ID, Route, Vehicle, or Password). Cannot confirm.`
 					);
-					return updated
-						? {
-								...schedule,
-								confirm_status: updated.confirm_status,
-							}
-						: schedule;
-				})
-			);
+				} else {
+					notify.warning(
+						`${invalidSchedules.length} schedules are missing required fields and cannot be confirmed. Please fix the highlighted rows first.`
+					);
+				}
+				return;
+			}
 
-			notify.success(
-				`${scheduleData.length} schedules have been confirmed and SMS sent`
-			);
+			const scheduleIds = validSchedules.map((s) => s.id);
+
+			// 使用批量确认 API - 后端会验证并返回失败的记录
+			const result = await apiClient.batchConfirmSchedules(scheduleIds);
+
+			// 更新本地状态 - 将成功确认的 schedule 标记为 confirmed
+			if (result.success && result.success.length > 0) {
+				const successIds = new Set(result.success.map((s) => s.id));
+				setScheduleData((prevData) =>
+					prevData.map((schedule) =>
+						successIds.has(schedule.id)
+							? { ...schedule, confirm_status: 'confirmed' as const }
+							: schedule
+					)
+				);
+			}
+
+			// 设置失败的 schedule IDs - 这些行会显示红色边框
+			if (result.failed && result.failed.length > 0) {
+				const failedIds = result.failed.map((item) => item.id);
+				setFailedScheduleIds(failedIds);
+			}
+
+			// 显示结果
+			if (result.total_failed === 0) {
+				notify.success(
+					`${result.total_success} schedules confirmed and SMS sent`
+				);
+			} else if (result.total_success > 0) {
+				// 部分成功
+				notify.warning(
+					`${result.total_success} confirmed, ${result.total_failed} failed. Failed rows are highlighted.`
+				);
+				// 显示失败详情
+				result.failed?.forEach((item) => {
+					console.warn(`Schedule ${item.id} failed: ${item.error}`);
+				});
+			} else {
+				// 全部失败
+				notify.error(
+					'All confirmations failed. Please check the highlighted rows.'
+				);
+				result.failed?.forEach((item) => {
+					console.error(`Schedule ${item.id}: ${item.error}`);
+				});
+			}
 		} catch (error: any) {
 			console.error('❌ Failed to confirm schedules:', error);
 
@@ -735,11 +775,8 @@ export default function ScheduleTablePage() {
 						mode='editable'
 						schedules={scheduleData}
 						isLoading={isLoadingSchedules}
-						allDrivers={allDrivers}
-						allVehicles={allVehicles}
 						onDriverChange={handleDriverChange}
 						onVehicleAssign={handleVehicleAssignment}
-						onConfirmSingle={handleConfirmSingle}
 						onConfirmAll={handleConfirm}
 						getAvailableDriversForSchedule={
 							getAvailableDriversForSchedule
@@ -747,6 +784,7 @@ export default function ScheduleTablePage() {
 						getAvailableVehiclesForSchedule={
 							getAvailableVehiclesForSchedule
 						}
+						failedScheduleIds={failedScheduleIds}
 						emptyMessage='No schedules for this date'
 						showConfirmAll={true}
 					/>

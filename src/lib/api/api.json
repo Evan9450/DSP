@@ -1783,7 +1783,7 @@
           "Vehicles"
         ],
         "summary": "Send Maintenance Booking Email",
-        "description": "Manually send maintenance booking email to the vehicle's workshop.\n\nThis endpoint allows admin to manually trigger a maintenance booking email\nto the workshop configured for this vehicle.\n\nRequirements:\n- Vehicle must have a workshop_email configured\n- Vehicle must have a scheduled_maintenance_date set\n\nReturns:\n- success: Whether the email was sent successfully\n- message: Status message\n- vehicle_info: Basic vehicle information",
+        "description": "Manually send maintenance booking email to the vehicle's workshop.\n\nThis endpoint allows admin to manually trigger a maintenance booking email\nto the workshop configured for this vehicle.\n\nRequirements:\n- Vehicle must have a workshop_email configured\n\nThe email will include the scheduled_maintenance_date if set,\notherwise it will use next_maintenance_date, or just send without a specific date.\n\nReturns:\n- success: Whether the email was sent successfully\n- message: Status message\n- vehicle_info: Basic vehicle information",
         "operationId": "send_maintenance_booking_email_api_v1_vehicles__vehicle_id__send_maintenance_email_post",
         "security": [
           {
@@ -2325,6 +2325,53 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/schedules/batch-confirm": {
+      "post": {
+        "tags": [
+          "Schedules"
+        ],
+        "summary": "Batch Confirm Schedules",
+        "description": "批量确认排班并发送SMS通知给司机\n\n**请求体**:\n- schedule_ids: 要确认的排班ID列表\n\n**验证规则** (每个排班):\n- ✅ driver (amazon_id) - 司机的Amazon ID必须已分配\n- ✅ route - 路线必须已分配\n- ✅ vehicle_rego - 车辆必须已分配\n- ✅ confirm_status != CONFIRMED - 不能重复确认\n\n**返回**:\n- success: 成功确认的排班列表（含SMS发送状态）\n- failed: 失败的排班列表（含错误原因）\n\n**注意**: 此接口采用部分成功模式，不会因为单个失败而回滚其他成功的确认",
+        "operationId": "batch_confirm_schedules_api_v1_schedules_batch_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchConfirmResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/api/v1/assets/products": {
@@ -5244,6 +5291,55 @@
         ]
       }
     },
+    "/api/v1/tasks/resend-confirmation-sms/{schedule_id}": {
+      "post": {
+        "tags": [
+          "Manual Tasks"
+        ],
+        "summary": "Resend Confirmation Sms",
+        "description": "重新发送排班确认短信给司机\n\n**适用场景**:\n- SMS 发送失败后重试\n- 司机反馈未收到短信\n- 排班信息更新后需要再次通知\n\n**前提条件**:\n- Schedule 必须已经 CONFIRMED\n- Schedule 必须已分配：amazon_id, route, vehicle_rego\n- 对应 Driver 必须有电话号码\n\n**SMS内容**:\n```\nHi {name}, your schedule confirmed!\nDate: {date}\nRoute: {route}\nVehicle: {vehicle_rego}\nTime: {start_time} - {end_time}\n```",
+        "operationId": "resend_confirmation_sms_api_v1_tasks_resend_confirmation_sms__schedule_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "schedule_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Schedule Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Resend Confirmation Sms Api V1 Tasks Resend Confirmation Sms  Schedule Id  Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/run-all-tasks": {
       "post": {
         "tags": [
@@ -5294,6 +5390,129 @@
   },
   "components": {
     "schemas": {
+      "BatchConfirmFailedItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Schedule ID"
+          },
+          "error": {
+            "type": "string",
+            "title": "Error",
+            "description": "Error message describing why confirmation failed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "error"
+        ],
+        "title": "BatchConfirmFailedItem",
+        "description": "Failed item in batch confirm response."
+      },
+      "BatchConfirmRequest": {
+        "properties": {
+          "schedule_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Schedule Ids",
+            "description": "List of schedule IDs to confirm.",
+            "example": [1, 2, 3, 4, 5]
+          }
+        },
+        "type": "object",
+        "required": [
+          "schedule_ids"
+        ],
+        "title": "BatchConfirmRequest",
+        "description": "Request schema for batch confirming schedules."
+      },
+      "BatchConfirmResponse": {
+        "properties": {
+          "total_requested": {
+            "type": "integer",
+            "title": "Total Requested",
+            "description": "Total number of schedules requested to confirm"
+          },
+          "total_success": {
+            "type": "integer",
+            "title": "Total Success",
+            "description": "Number of successfully confirmed schedules"
+          },
+          "total_failed": {
+            "type": "integer",
+            "title": "Total Failed",
+            "description": "Number of failed confirmations"
+          },
+          "success": {
+            "items": {
+              "$ref": "#/components/schemas/BatchConfirmSuccessItem"
+            },
+            "type": "array",
+            "title": "Success",
+            "description": "List of successfully confirmed schedules"
+          },
+          "failed": {
+            "items": {
+              "$ref": "#/components/schemas/BatchConfirmFailedItem"
+            },
+            "type": "array",
+            "title": "Failed",
+            "description": "List of failed confirmations with error details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_requested",
+          "total_success",
+          "total_failed"
+        ],
+        "title": "BatchConfirmResponse",
+        "description": "Response schema for batch confirm operation."
+      },
+      "BatchConfirmSuccessItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Schedule ID"
+          },
+          "driver_name": {
+            "type": "string",
+            "title": "Driver Name",
+            "description": "Driver name"
+          },
+          "route": {
+            "type": "string",
+            "title": "Route",
+            "description": "Route code"
+          },
+          "vehicle_rego": {
+            "type": "string",
+            "title": "Vehicle Rego",
+            "description": "Vehicle registration"
+          },
+          "sms_sent": {
+            "type": "boolean",
+            "title": "Sms Sent",
+            "description": "Whether SMS was sent successfully"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "driver_name",
+          "route",
+          "vehicle_rego",
+          "sms_sent"
+        ],
+        "title": "BatchConfirmSuccessItem",
+        "description": "Success item in batch confirm response."
+      },
       "Body_batch_delete_files_api_v1_files_batch_delete_post": {
         "properties": {
           "file_ids": {
@@ -5729,6 +5948,82 @@
         ],
         "title": "DriverCreate",
         "description": "Schema for creating a driver - only name is required, credentials are optional."
+      },
+      "DriverInSchedule": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "Driver ID (integer). Primary key from drivers table.",
+            "example": 15
+          },
+          "deputy_id": {
+            "type": "string",
+            "title": "Deputy Id",
+            "description": "Deputy employee ID (string). Links to driver record.",
+            "example": "54"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Driver full name.",
+            "example": "Fiona ZHANG"
+          },
+          "amazon_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amazon Id",
+            "description": "Amazon employee ID (string, optional).",
+            "example": "AMZ-12345"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone",
+            "description": "Driver phone number.",
+            "example": "+61452480422"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Driver active status.",
+            "example": true
+          },
+          "has_password": {
+            "type": "boolean",
+            "title": "Has Password",
+            "description": "Whether driver has set a password for driver app login.",
+            "example": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "deputy_id",
+          "name",
+          "is_active",
+          "has_password"
+        ],
+        "title": "DriverInSchedule",
+        "description": "Nested driver information in schedule response."
       },
       "DriverInspectionCreate": {
         "properties": {
@@ -7088,85 +7383,6 @@
       },
       "ScheduleResponse": {
         "properties": {
-          "deputy_id": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Deputy Id",
-            "description": "Deputy employee ID (string). Links to driver record in database.",
-            "example": "54"
-          },
-          "driver_name": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Driver Name",
-            "description": "Driver full name (string). Denormalized from driver record.",
-            "example": "Fiona ZHANG"
-          },
-          "amazon_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 100
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amazon Id",
-            "description": "Amazon employee ID (string, optional). Used for Amazon Flex integration.",
-            "example": "AMZ-12345"
-          },
-          "schedule_date": {
-            "type": "string",
-            "format": "date",
-            "title": "Schedule Date",
-            "description": "Schedule date (ISO 8601 date format: YYYY-MM-DD). Represents the roster date from Deputy, not necessarily the shift start date for overnight shifts.",
-            "example": "2025-12-26"
-          },
-          "route": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 200
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Route",
-            "description": "Route assignment (string, optional). Route code or description.",
-            "example": "Route A - North Zone"
-          },
-          "vehicle_rego": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 100
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Vehicle Rego",
-            "description": "Vehicle registration number (rego, optional). Vehicle rego assigned to this schedule.",
-            "example": "ABC123"
-          },
-          "vehicle_alias": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 100
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Vehicle Alias",
-            "description": "Vehicle alias/nickname (optional). Vehicle display name for this schedule.",
-            "example": "Van001"
-          },
           "id": {
             "type": "integer",
             "title": "Id",
@@ -7187,19 +7403,76 @@
             "description": "Deputy roster ID (string, optional). Original roster ID from Deputy system.",
             "example": "3558"
           },
+          "driver": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DriverInSchedule"
+              }
+            ],
+            "description": "Driver information object containing id, deputy_id, name, amazon_id, phone, is_active."
+          },
+          "schedule_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Schedule Date",
+            "description": "Schedule date (ISO 8601 date format: YYYY-MM-DD).",
+            "example": "2025-12-26"
+          },
           "start_time": {
             "type": "string",
             "format": "date-time",
             "title": "Start Time",
-            "description": "Shift start time (ISO 8601 datetime format: YYYY-MM-DDTHH:MM:SS). Timezone-aware timestamp for shift start.",
+            "description": "Shift start time (ISO 8601 datetime format: YYYY-MM-DDTHH:MM:SS).",
             "example": "2025-12-25T23:00:00"
           },
           "end_time": {
             "type": "string",
             "format": "date-time",
             "title": "End Time",
-            "description": "Shift end time (ISO 8601 datetime format: YYYY-MM-DDTHH:MM:SS). Timezone-aware timestamp for shift end. May be next day for overnight shifts.",
+            "description": "Shift end time (ISO 8601 datetime format: YYYY-MM-DDTHH:MM:SS).",
             "example": "2025-12-26T07:00:00"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route",
+            "description": "Route assignment (string, optional).",
+            "example": "Route A - North Zone"
+          },
+          "vehicle_rego": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Rego",
+            "description": "Vehicle registration number (rego, optional).",
+            "example": "ABC123"
+          },
+          "vehicle_alias": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Alias",
+            "description": "Vehicle alias/nickname (optional).",
+            "example": "Van001"
           },
           "checkin_status": {
             "allOf": [
@@ -7207,7 +7480,7 @@
                 "$ref": "#/components/schemas/CheckinStatus"
               }
             ],
-            "description": "Driver check-in status (enum string). Possible values: 'not_checked_in' (default), 'checked_in', 'checked_out'.",
+            "description": "Driver check-in status (enum string). Possible values: 'not_checked_in', 'checked_in'.",
             "example": "not_checked_in"
           },
           "confirm_status": {
@@ -7216,42 +7489,41 @@
                 "$ref": "#/components/schemas/ScheduleConfirmStatus"
               }
             ],
-            "description": "Driver confirmation status (enum string). Possible values: 'pending' (default), 'confirmed', 'rejected'. Used to track driver acknowledgment of shift.",
+            "description": "Driver confirmation status (enum string). Possible values: 'pending', 'confirmed', 'rejected'.",
             "example": "pending"
           },
           "reminder_sms_sent": {
             "type": "boolean",
             "title": "Reminder Sms Sent",
-            "description": "Reminder SMS sent flag (boolean). True if reminder SMS has been sent to driver.",
+            "description": "Reminder SMS sent flag (boolean).",
             "example": false
           },
           "assignment_sms_sent": {
             "type": "boolean",
             "title": "Assignment Sms Sent",
-            "description": "Assignment SMS sent flag (boolean). True if assignment SMS (with route/vehicle info) has been sent to driver.",
+            "description": "Assignment SMS sent flag (boolean).",
             "example": false
           },
           "created_at": {
             "type": "string",
             "format": "date-time",
             "title": "Created At",
-            "description": "Record creation timestamp (ISO 8601 datetime format: YYYY-MM-DDTHH:MM:SS). Auto-generated on record creation.",
+            "description": "Record creation timestamp.",
             "example": "2025-12-25T12:15:29.176043"
           },
           "updated_at": {
             "type": "string",
             "format": "date-time",
             "title": "Updated At",
-            "description": "Record last update timestamp (ISO 8601 datetime format: YYYY-MM-DDTHH:MM:SS). Auto-updated on any field change.",
+            "description": "Record last update timestamp.",
             "example": "2025-12-26T00:43:25.901380"
           }
         },
         "type": "object",
         "required": [
-          "deputy_id",
-          "driver_name",
-          "schedule_date",
           "id",
+          "driver",
+          "schedule_date",
           "start_time",
           "end_time",
           "checkin_status",
@@ -7262,7 +7534,7 @@
           "updated_at"
         ],
         "title": "ScheduleResponse",
-        "description": "Schema for schedule response. Includes all base fields plus system-generated metadata."
+        "description": "Schema for schedule response. Driver info is nested in 'driver' object."
       },
       "ScheduleUpdate": {
         "properties": {

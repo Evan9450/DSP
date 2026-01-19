@@ -150,8 +150,8 @@ export function convertSchedule(apiSchedule: ScheduleResponse): Schedule {
 
 	return {
 		id: apiSchedule.id.toString(),
-		driverId: apiSchedule.deputy_id, // Use deputy_id as driverId
-		driverName: apiSchedule.driver_name,
+		driverId: apiSchedule.driver.deputy_id, // Use deputy_id as driverId
+		driverName: apiSchedule.driver.name,
 		vehicleId: undefined, // No vehicle_id in new API
 		startTime: startDate,
 		endTime: endDate,

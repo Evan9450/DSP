@@ -33,7 +33,7 @@ export interface DocumentInfoCardProps {
 		type: 'license' | 'visa',
 		file: File | null,
 		expiryDate: string,
-		documentNumber?: string
+		documentNumber?: string,
 	) => Promise<void>;
 }
 
@@ -74,7 +74,7 @@ export function DocumentInfoCard({
 
 	// Local state for calendar date
 	const [calendarDate, setCalendarDate] = useState<Date | undefined>(
-		editedExpiryDate ? new Date(editedExpiryDate) : undefined
+		editedExpiryDate ? new Date(editedExpiryDate) : undefined,
 	);
 
 	// Preview dialog state
@@ -200,7 +200,7 @@ export function DocumentInfoCard({
 				type,
 				selectedFile,
 				expiryDateString,
-				documentNumber
+				documentNumber,
 			);
 			console.log('✅ onUpload completed successfully');
 			// Clear file input after successful upload
@@ -250,9 +250,12 @@ export function DocumentInfoCard({
 										onChange={(e) => {
 											console.log(
 												`📝 ${type} document number changed:`,
-												e.target.value
+												e.target.value,
 											);
-											onEdit(docNumberField, e.target.value);
+											onEdit(
+												docNumberField,
+												e.target.value,
+											);
 										}}
 										placeholder={`Enter ${title.toLowerCase()} number`}
 										className='mt-1'
@@ -273,7 +276,7 @@ export function DocumentInfoCard({
 												className={cn(
 													'w-full justify-start text-left font-normal mt-1',
 													!calendarDate &&
-														'text-muted-foreground'
+														'text-muted-foreground',
 												)}>
 												<CalendarIcon className='mr-2 h-4 w-4' />
 												{calendarDate ? (
@@ -293,15 +296,15 @@ export function DocumentInfoCard({
 														const formattedDate =
 															format(
 																date,
-																'yyyy-MM-dd'
+																'yyyy-MM-dd',
 															);
 														console.log(
 															`📅 ${type} expiry date changed:`,
-															formattedDate
+															formattedDate,
 														);
 														onEdit(
 															expiryDateField,
-															formattedDate
+															formattedDate,
 														);
 													}
 												}}
@@ -313,7 +316,7 @@ export function DocumentInfoCard({
 									<p className='text-gray-900 mt-1'>
 										{expiryDate
 											? new Date(
-													expiryDate
+													expiryDate,
 												).toLocaleDateString()
 											: '-'}
 									</p>
@@ -348,7 +351,7 @@ export function DocumentInfoCard({
 															size='sm'
 															onClick={() =>
 																handleDelete(
-																	url
+																	url,
 																)
 															}
 															className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 p-0'
@@ -366,7 +369,7 @@ export function DocumentInfoCard({
 													)}
 												</div>
 											</div>
-										)
+										),
 									)}
 								</div>
 							) : (
@@ -387,7 +390,7 @@ export function DocumentInfoCard({
 									type='file'
 									onChange={(e) =>
 										setSelectedFile(
-											e.target.files?.[0] || null
+											e.target.files?.[0] || null,
 										)
 									}
 									accept='image/*,.pdf'
@@ -410,7 +413,7 @@ export function DocumentInfoCard({
 													isUploading,
 												isUploading,
 												hasFile: !!selectedFile,
-											}
+											},
 										);
 										handleUpload();
 									}}

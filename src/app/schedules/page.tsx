@@ -140,8 +140,9 @@ export default function ScheduleTablePage() {
 			const enrichedData = sortedData.map((schedule) => {
 				const matchedDriver = allDrivers.find(
 					(d) =>
-						(d.deputy_id && d.deputy_id === schedule.deputy_id) ||
-						d.name === schedule.driver_name
+						(d.deputy_id &&
+							d.deputy_id === schedule.driver.deputy_id) ||
+						d.name === schedule.driver.name
 				);
 				return {
 					...schedule,
@@ -202,7 +203,8 @@ export default function ScheduleTablePage() {
 					? {
 							...schedule,
 							deputy_id:
-								newDriver.deputy_id || schedule.deputy_id,
+								newDriver.deputy_id ||
+								schedule.driver.deputy_id,
 							driver_name: newDriver.name,
 							amazon_id: newDriver.amazon_id || null,
 							confirm_status: 'pending' as const,
@@ -220,16 +222,26 @@ export default function ScheduleTablePage() {
 
 		try {
 			console.log('🌐 Calling API to update schedule...');
-			const result = await apiClient.updateSchedule(scheduleId, {
+			const updatedSchedule = await apiClient.updateSchedule(scheduleId, {
 				driver_id: newDriverId,
 				confirm_status: 'pending', // Reset to pending when driver changes
 			});
-			console.log('✅ API update successful:', result);
+			console.log('✅ API update successful:', updatedSchedule);
 
-			// Refresh to get backend-updated data
-			console.log('🔄 Refreshing schedules from backend...');
-			await fetchSchedules();
-			console.log('✅ Schedules refreshed');
+			// Single-row replacement: use API response to update the specific row
+			setScheduleData((prevData) =>
+				prevData.map((schedule) =>
+					schedule.id === scheduleId
+						? {
+								...updatedSchedule,
+								// Preserve local computed field
+								// @ts-ignore
+								_driver_id: newDriverId,
+							}
+						: schedule
+				)
+			);
+			console.log('✅ Single row updated without full refresh');
 
 			toast({
 				title: 'Driver Changed',
@@ -262,6 +274,63 @@ export default function ScheduleTablePage() {
 		scheduleId: number,
 		vehicleAlias: string
 	) => {
+		// Handle unassign case
+		if (!vehicleAlias) {
+			const previousSchedule = scheduleData.find(
+				(s) => s.id === scheduleId
+			);
+			if (!previousSchedule) return;
+
+			// Optimistic update
+			setScheduleData((prevData) =>
+				prevData.map((schedule) =>
+					schedule.id === scheduleId
+						? {
+								...schedule,
+								vehicle_rego: null,
+								vehicle_alias: null,
+							}
+						: schedule
+				)
+			);
+
+			try {
+				const updatedSchedule = await apiClient.updateSchedule(scheduleId, {
+					vehicle_rego: '',
+					vehicle_alias: '',
+				});
+				// Single-row replacement
+				setScheduleData((prevData) =>
+					prevData.map((schedule) =>
+						schedule.id === scheduleId
+							? {
+									...updatedSchedule,
+									// @ts-ignore - Preserve local computed field
+									_driver_id: (schedule as any)._driver_id,
+								}
+							: schedule
+					)
+				);
+				toast({
+					title: 'Vehicle Unassigned',
+					description: 'Vehicle has been removed from this schedule',
+				});
+			} catch (error: any) {
+				console.error('❌ Failed to unassign vehicle:', error);
+				setScheduleData((prevData) =>
+					prevData.map((schedule) =>
+						schedule.id === scheduleId ? previousSchedule : schedule
+					)
+				);
+				toast({
+					title: 'Error',
+					description: 'Failed to unassign vehicle',
+					variant: 'destructive',
+				});
+			}
+			return;
+		}
+
 		// Find the vehicle object to get both rego and alias
 		const vehicle = allVehicles.find((v) => v.alias === vehicleAlias);
 		if (!vehicle) {
@@ -288,12 +357,23 @@ export default function ScheduleTablePage() {
 		);
 
 		try {
-			await apiClient.updateSchedule(scheduleId, {
+			const updatedSchedule = await apiClient.updateSchedule(scheduleId, {
 				vehicle_rego: vehicle.rego,
 				vehicle_alias: vehicle.alias,
 				confirm_status: 'pending', // Reset to pending when vehicle changes
 			});
-			await fetchSchedules(); // Refresh schedules
+			// Single-row replacement
+			setScheduleData((prevData) =>
+				prevData.map((schedule) =>
+					schedule.id === scheduleId
+						? {
+								...updatedSchedule,
+								// @ts-ignore - Preserve local computed field
+								_driver_id: (schedule as any)._driver_id,
+							}
+						: schedule
+				)
+			);
 			toast({
 				title: 'Vehicle Assigned',
 				description: 'Vehicle has been assigned, please confirm again',
@@ -404,10 +484,10 @@ export default function ScheduleTablePage() {
 			const scheduleWithDriverId = s as any;
 			if (scheduleWithDriverId._driver_id) {
 				todayDriverIds.add(scheduleWithDriverId._driver_id);
-			} else if (s.deputy_id) {
+			} else if (s.driver.deputy_id) {
 				// Find driver by deputy_id
 				const driver = allDrivers.find(
-					(d) => d.deputy_id === s.deputy_id
+					(d) => d.deputy_id === s.driver.deputy_id
 				);
 				if (driver) {
 					todayDriverIds.add(driver.id);
@@ -427,9 +507,9 @@ export default function ScheduleTablePage() {
 				const scheduleWithDriverId = s as any;
 				if (scheduleWithDriverId._driver_id) {
 					confirmedDriverIds.add(scheduleWithDriverId._driver_id);
-				} else if (s.deputy_id) {
+				} else if (s.driver.deputy_id) {
 					const driver = allDrivers.find(
-						(d) => d.deputy_id === s.deputy_id
+						(d) => d.deputy_id === s.driver.deputy_id
 					);
 					if (driver) {
 						confirmedDriverIds.add(driver.id);
@@ -450,21 +530,35 @@ export default function ScheduleTablePage() {
 	const handleSyncToday = async () => {
 		try {
 			setIsSyncingToday(true);
-			await apiClient.syncToday();
+			const result = await apiClient.syncToday();
+
 			const today = format(new Date(), 'yyyy-MM-dd');
 			setSelectedDate(today);
-			toast({
-				title: 'Success',
-				description:
-					"Today's schedules synced from Deputy successfully",
-			});
-		} catch (error) {
-			console.error('Failed to sync today:', error);
-			toast({
-				title: 'Error',
-				description: "Failed to sync today's schedules",
-				variant: 'destructive',
-			});
+
+			// Build detailed success message from API response
+			const syncedCount = result?.synced_count ?? result?.count ?? 0;
+			const createdCount = result?.created_count ?? 0;
+			const updatedCount = result?.updated_count ?? 0;
+
+			let description =
+				"Today's schedules synced from Deputy successfully";
+			if (syncedCount > 0 || createdCount > 0 || updatedCount > 0) {
+				const details: string[] = [];
+				if (syncedCount > 0) details.push(`Synced: ${syncedCount}`);
+				if (createdCount > 0) details.push(`Created: ${createdCount}`);
+				if (updatedCount > 0) details.push(`Updated: ${updatedCount}`);
+				description = details.join(', ');
+			}
+
+			notify.success(description);
+		} catch (error: any) {
+			// Show detailed error message from backend
+			const errorMessage =
+				error.response?.data?.detail ||
+				error.message ||
+				"Failed to sync today's schedules";
+
+			notify.error(errorMessage);
 		} finally {
 			setIsSyncingToday(false);
 		}
@@ -605,7 +699,9 @@ export default function ScheduleTablePage() {
 							disabled={isSendingReminders || isLoadingSchedules}
 							className='border-orange-600 text-orange-600 hover:bg-orange-50 hover:text-orange-600'>
 							<Bell className='h-4 w-4 mr-2' />
-							{isSendingReminders ? 'Sending...' : 'Send Reminders'}
+							{isSendingReminders
+								? 'Sending...'
+								: 'Send Reminders'}
 						</Button>
 						{/* <Button
 							variant='outline'

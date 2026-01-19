@@ -147,14 +147,14 @@ const DriverTable = ({
 											<span>{driver.phone}</span>
 										</div>
 									)}
-									{driver.email && (
+									{/* {driver.email && (
 										<div className='flex items-center gap-1'>
 											<Mail className='h-3 w-3 text-gray-500' />
 											<span className='text-xs'>
 												{driver.email}
 											</span>
 										</div>
-									)}
+									)} */}
 								</TableCell>
 								{/* <TableCell className='text-gray-600 text-sm'>
 									{driver.address ? (

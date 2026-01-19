@@ -2,8 +2,6 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { FileText } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,7 +29,6 @@ import {
 
 // Import extracted components
 import { DocumentInfoCard } from './components/DocumentInfoCard';
-import { DocumentUploadCard } from './components/DocumentUploadCard';
 import { SetPasswordDialog } from './components/SetPasswordDialog';
 import { DriverHeader } from './components/DriverHeader';
 import { BasicInformationCard } from './components/BasicInformationCard';
@@ -535,6 +532,7 @@ export default function DriverDetailPage() {
 								});
 							}}
 							onDeleteFile={handleDeleteFile}
+							onUpload={handleFileUpload}
 						/>
 						<DocumentInfoCard
 							type='visa'
@@ -557,34 +555,9 @@ export default function DriverDetailPage() {
 								});
 							}}
 							onDeleteFile={handleDeleteFile}
+							onUpload={handleFileUpload}
 						/>
 					</div>
-
-					{/* Document Files Management */}
-					<Card>
-						<CardHeader>
-							<CardTitle className='flex items-center gap-2'>
-								<FileText className='h-5 w-5' />
-								Document Files
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-								<DocumentUploadCard
-									type='license'
-									title='Driver License'
-									driver={driver}
-									onUpload={handleFileUpload}
-								/>
-								<DocumentUploadCard
-									type='visa'
-									title='Visa'
-									driver={driver}
-									onUpload={handleFileUpload}
-								/>
-							</div>
-						</CardContent>
-					</Card>
 				</div>
 			</div>
 

@@ -168,6 +168,7 @@ export interface VehicleResponse {
 	notes?: string;
 	last_maintenance_date?: string;
 	next_maintenance_date?: string;
+	scheduled_maintenance_date?: string;
 	created_at: string;
 	updated_at: string;
 }
@@ -198,6 +199,7 @@ export interface VehicleCreate {
 	notes?: string;
 	last_maintenance_date?: string;
 	next_maintenance_date?: string;
+	scheduled_maintenance_date?: string;
 }
 
 export interface VehicleUpdate {
@@ -214,6 +216,7 @@ export interface VehicleUpdate {
 	notes?: string;
 	last_maintenance_date?: string;
 	next_maintenance_date?: string;
+	scheduled_maintenance_date?: string;
 }
 
 // Vehicle Inspection Types
@@ -284,18 +287,25 @@ export interface VehicleInspectionPhotoResponse {
 }
 
 // Schedule Types
-export interface ScheduleResponse {
+export interface ScheduleDriverInfo {
 	id: number;
 	deputy_id: string;
-	driver_name: string;
-	amazon_id?: string | null;
+	name: string;
+	amazon_id: string | null;
+	phone: string | null;
+	is_active: boolean;
+}
+
+export interface ScheduleResponse {
+	id: number;
+	deputy_schedule_id: string;
+	driver: ScheduleDriverInfo;
 	schedule_date: string;
+	start_time: string;
+	end_time: string;
 	route?: string | null;
 	vehicle_rego?: string | null;
 	vehicle_alias?: string | null;
-	deputy_schedule_id: string;
-	start_time: string;
-	end_time: string;
 	checkin_status: 'not_checked_in' | 'checked_in' | 'completed';
 	confirm_status: 'pending' | 'confirmed' | 'cancelled';
 	reminder_sms_sent: boolean;

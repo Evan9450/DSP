@@ -1783,7 +1783,7 @@
           "Vehicles"
         ],
         "summary": "Send Maintenance Booking Email",
-        "description": "Manually send maintenance booking email to the vehicle's workshop.\n\nThis endpoint allows admin to manually trigger a maintenance booking email\nto the workshop configured for this vehicle.\n\nRequirements:\n- Vehicle must have a workshop_email configured\n- Vehicle must have a next_maintenance_date set\n\nReturns:\n- success: Whether the email was sent successfully\n- message: Status message\n- vehicle_info: Basic vehicle information",
+        "description": "Manually send maintenance booking email to the vehicle's workshop.\n\nThis endpoint allows admin to manually trigger a maintenance booking email\nto the workshop configured for this vehicle.\n\nRequirements:\n- Vehicle must have a workshop_email configured\n- Vehicle must have a scheduled_maintenance_date set\n\nReturns:\n- success: Whether the email was sent successfully\n- message: Status message\n- vehicle_info: Basic vehicle information",
         "operationId": "send_maintenance_booking_email_api_v1_vehicles__vehicle_id__send_maintenance_email_post",
         "security": [
           {
@@ -4772,7 +4772,7 @@
           "Inspection Management"
         ],
         "summary": "Review Inspection",
-        "description": "审核 inspection（管理员）\n\n**功能**：\n- 设置审核状态（0=pending, 1=passed, 2=failed）\n- 添加管理员备注\n- 标记为已审核\n\n**限制**：\n- 管理员不能修改 inspection 内容（日期、里程数、照片）\n- 只能审核和添加备注",
+        "description": "审核 inspection（管理员）\n\n**功能**：\n- 设置审核状态（pending/passed/failed）\n- 添加管理员备注\n- 更新里程数（可选，不受审核状态影响）\n- 标记为已审核\n\n**重要**：\n- 里程数可以在任何审核状态下更新（pending/passed/failed）\n- 里程数更新独立于审核结果",
         "operationId": "review_inspection_api_v1_inspections__inspection_id__review_post",
         "security": [
           {
@@ -8405,6 +8405,45 @@
             ],
             "title": "Workshop Email",
             "description": "Workshop/garage email"
+          },
+          "last_maintenance_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Maintenance Date",
+            "description": "Last maintenance date (manual input)"
+          },
+          "next_maintenance_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Maintenance Date",
+            "description": "Next maintenance date (manual input)"
+          },
+          "scheduled_maintenance_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Maintenance Date",
+            "description": "Scheduled date for workshop email notification (manual input)"
           }
         },
         "type": "object",
@@ -8572,6 +8611,18 @@
             ],
             "title": "Next Maintenance Date"
           },
+          "scheduled_maintenance_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Maintenance Date"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -8612,6 +8663,7 @@
           "workshop_email",
           "last_maintenance_date",
           "next_maintenance_date",
+          "scheduled_maintenance_date",
           "created_at",
           "updated_at"
         ],
@@ -9042,6 +9094,18 @@
             ],
             "title": "Admin Notes",
             "description": "Admin review notes/feedback"
+          },
+          "mileage_at_inspection": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mileage At Inspection",
+            "description": "Update vehicle mileage (optional, independent of review status)"
           }
         },
         "type": "object",
@@ -9295,6 +9359,18 @@
             ],
             "title": "Next Maintenance Date"
           },
+          "scheduled_maintenance_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Maintenance Date"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -9319,6 +9395,7 @@
           "workshop_email",
           "last_maintenance_date",
           "next_maintenance_date",
+          "scheduled_maintenance_date",
           "created_at",
           "updated_at"
         ],
@@ -9454,6 +9531,42 @@
               }
             ],
             "title": "Workshop Email"
+          },
+          "last_maintenance_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Maintenance Date"
+          },
+          "next_maintenance_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Maintenance Date"
+          },
+          "scheduled_maintenance_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Maintenance Date"
           }
         },
         "type": "object",

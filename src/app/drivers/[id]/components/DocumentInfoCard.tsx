@@ -1,26 +1,14 @@
 'use client';
 
-import {
-	CalendarIcon,
-	ExternalLink,
-	Eye,
-	FileText,
-	Trash2,
-	X,
-} from 'lucide-react';
+import { CalendarIcon, FileText, Trash2, Upload } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from '@/components/ui/dialog';
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from '@/components/ui/popover';
-import { useEffect, useState } from 'react';
+import { handleApiError, notify } from '@/lib/notifications';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -41,6 +29,12 @@ export interface DocumentInfoCardProps {
 	getStatusBadge: (expiryDate: string) => JSX.Element;
 	onEdit: (field: string, value: string) => void;
 	onDeleteFile?: (type: 'license' | 'visa', fileUrl: string) => Promise<void>;
+	onUpload?: (
+		type: 'license' | 'visa',
+		file: File | null,
+		expiryDate: string,
+		documentNumber?: string
+	) => Promise<void>;
 }
 
 export function DocumentInfoCard({
@@ -53,6 +47,7 @@ export function DocumentInfoCard({
 	getStatusBadge,
 	onEdit,
 	onDeleteFile,
+	onUpload,
 }: DocumentInfoCardProps) {
 	const documentNumber =
 		type === 'license' ? driver?.license_number : driver?.visa_number;
@@ -90,6 +85,11 @@ export function DocumentInfoCard({
 
 	// Delete state
 	const [deletingFileUrl, setDeletingFileUrl] = useState<string | null>(null);
+
+	// Upload state
+	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [isUploading, setIsUploading] = useState(false);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	// Sync calendar date when editedDriver changes
 	useEffect(() => {
@@ -165,6 +165,59 @@ export function DocumentInfoCard({
 		}
 	};
 
+	// Handle file upload
+	const handleUpload = async () => {
+		console.log('🔘 Upload button clicked for:', title, {
+			type,
+			expiryDate,
+			documentNumber,
+			hasFile: !!selectedFile,
+		});
+
+		if (!selectedFile) {
+			console.warn('⚠️ No file selected');
+			notify.error('Please select a file to upload');
+			return;
+		}
+
+		if (!onUpload) {
+			console.warn('⚠️ No onUpload handler provided!');
+			return;
+		}
+
+		setIsUploading(true);
+		console.log('⏳ Starting upload process...');
+		try {
+			// Convert Date to YYYY-MM-DD format for API (if provided)
+			const existingExpiryDate =
+				type === 'license'
+					? driver?.license_expiry_date
+					: driver?.visa_expiry_date;
+			const expiryDateString = existingExpiryDate || '';
+			console.log('📅 Expiry date:', expiryDateString);
+			console.log('📤 Calling onUpload function...');
+			await onUpload(
+				type,
+				selectedFile,
+				expiryDateString,
+				documentNumber
+			);
+			console.log('✅ onUpload completed successfully');
+			// Clear file input after successful upload
+			setSelectedFile(null);
+			if (fileInputRef.current) {
+				fileInputRef.current.value = '';
+			}
+			notify.success(`${title} uploaded successfully!`);
+		} catch (error: any) {
+			console.error('❌ Upload failed:', error);
+			handleApiError(error, `Failed to upload ${title}`);
+		} finally {
+			setIsUploading(false);
+			console.log('🏁 Upload process finished');
+		}
+	};
+
 	return (
 		<Card>
 			<CardHeader>
@@ -187,82 +240,85 @@ export function DocumentInfoCard({
 								{getStatusBadge(expiryDate)}
 							</div>
 						)}
-						<div>
-							<Label>Document Number</Label>
-							{isEditing ? (
-								<Input
-									value={editedDocNumber || ''}
-									onChange={(e) => {
-										console.log(
-											`📝 ${type} document number changed:`,
-											e.target.value
-										);
-										onEdit(docNumberField, e.target.value);
-									}}
-									placeholder={`Enter ${title.toLowerCase()} number`}
-									className='mt-1'
-								/>
-							) : (
-								<p className='text-gray-900 font-mono mt-1'>
-									{documentNumber || '-'}
-								</p>
-							)}
-						</div>
-						<div>
-							<Label>Expiry Date</Label>
-							{isEditing ? (
-								<Popover>
-									<PopoverTrigger asChild>
-										<Button
-											variant='outline'
-											className={cn(
-												'w-full justify-start text-left font-normal mt-1',
-												!calendarDate &&
-													'text-muted-foreground'
-											)}>
-											<CalendarIcon className='mr-2 h-4 w-4' />
-											{calendarDate ? (
-												format(calendarDate, 'PPP')
-											) : (
-												<span>Pick a date</span>
-											)}
-										</Button>
-									</PopoverTrigger>
-									<PopoverContent className='w-auto p-0'>
-										<Calendar
-											mode='single'
-											selected={calendarDate}
-											onSelect={(date) => {
-												setCalendarDate(date);
-												if (date) {
-													const formattedDate =
-														format(
-															date,
-															'yyyy-MM-dd'
+						{/* Document Number and Expiry Date in one row */}
+						<div className='grid grid-cols-2 gap-4'>
+							<div>
+								<Label>Document Number</Label>
+								{isEditing ? (
+									<Input
+										value={editedDocNumber || ''}
+										onChange={(e) => {
+											console.log(
+												`📝 ${type} document number changed:`,
+												e.target.value
+											);
+											onEdit(docNumberField, e.target.value);
+										}}
+										placeholder={`Enter ${title.toLowerCase()} number`}
+										className='mt-1'
+									/>
+								) : (
+									<p className='text-gray-900 font-mono mt-1'>
+										{documentNumber || '-'}
+									</p>
+								)}
+							</div>
+							<div>
+								<Label>Expiry Date</Label>
+								{isEditing ? (
+									<Popover>
+										<PopoverTrigger asChild>
+											<Button
+												variant='outline'
+												className={cn(
+													'w-full justify-start text-left font-normal mt-1',
+													!calendarDate &&
+														'text-muted-foreground'
+												)}>
+												<CalendarIcon className='mr-2 h-4 w-4' />
+												{calendarDate ? (
+													format(calendarDate, 'PPP')
+												) : (
+													<span>Pick a date</span>
+												)}
+											</Button>
+										</PopoverTrigger>
+										<PopoverContent className='w-auto p-0'>
+											<Calendar
+												mode='single'
+												selected={calendarDate}
+												onSelect={(date) => {
+													setCalendarDate(date);
+													if (date) {
+														const formattedDate =
+															format(
+																date,
+																'yyyy-MM-dd'
+															);
+														console.log(
+															`📅 ${type} expiry date changed:`,
+															formattedDate
 														);
-													console.log(
-														`📅 ${type} expiry date changed:`,
-														formattedDate
-													);
-													onEdit(
-														expiryDateField,
-														formattedDate
-													);
-												}
-											}}
-											initialFocus
-										/>
-									</PopoverContent>
-								</Popover>
-							) : (
-								<p className='text-gray-900 mt-1'>
-									{expiryDate
-										? new Date(
-												expiryDate
-											).toLocaleDateString()
-										: '-'}
-								</p>
-							)}
+														onEdit(
+															expiryDateField,
+															formattedDate
+														);
+													}
+												}}
+												initialFocus
+											/>
+										</PopoverContent>
+									</Popover>
+								) : (
+									<p className='text-gray-900 mt-1'>
+										{expiryDate
+											? new Date(
+													expiryDate
+												).toLocaleDateString()
+											: '-'}
+									</p>
+								)}
+							</div>
 						</div>
 						<div>
 							<Label>
@@ -319,6 +375,63 @@ export function DocumentInfoCard({
 								</p>
 							)}
 						</div>
+
+						{/* Upload Section */}
+						{onUpload && (
+							<div className='pt-4 border-t border-gray-200'>
+								<Label className='text-sm'>
+									Upload New File
+								</Label>
+								<Input
+									ref={fileInputRef}
+									type='file'
+									onChange={(e) =>
+										setSelectedFile(
+											e.target.files?.[0] || null
+										)
+									}
+									accept='image/*,.pdf'
+									className='mt-1'
+								/>
+								{selectedFile && (
+									<p className='text-xs text-green-600 mt-1 flex items-center gap-1'>
+										<FileText className='h-3 w-3' />
+										{selectedFile.name}
+									</p>
+								)}
+								<Button
+									onClick={() => {
+										console.log(
+											`🖱️ Button clicked - ${type}:`,
+											{
+												selectedFile,
+												isDisabled:
+													!selectedFile ||
+													isUploading,
+												isUploading,
+												hasFile: !!selectedFile,
+											}
+										);
+										handleUpload();
+									}}
+									disabled={!selectedFile || isUploading}
+									className='w-full mt-2 bg-blue-700 hover:bg-blue-800'>
+									{isUploading ? (
+										<>
+											<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
+											Uploading...
+										</>
+									) : (
+										<>
+											<Upload className='h-4 w-4 mr-2' />
+											{fileUrls && fileUrls.length > 0
+												? 'Add File'
+												: 'Upload File'}
+										</>
+									)}
+								</Button>
+							</div>
+						)}
 					</div>
 				)}
 			</CardContent>

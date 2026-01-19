@@ -36,7 +36,6 @@ export function DriverHeader({
 					<h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>
 						{driverName}
 					</h1>
-					<p className='text-sm text-gray-600 mt-1'>Driver Details</p>
 				</div>
 				<div className='flex gap-2'>
 					<Button

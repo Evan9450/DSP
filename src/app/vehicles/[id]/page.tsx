@@ -21,6 +21,14 @@ import {
 	XCircle,
 } from 'lucide-react';
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog';
+import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
@@ -83,6 +91,7 @@ export default function VehicleDetailPage({
 		null
 	);
 	const [isSendingEmail, setIsSendingEmail] = useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
 	useEffect(() => {
 		console.log('🔍 Vehicle Detail - Resolved params:', resolvedParams);
@@ -180,6 +189,7 @@ export default function VehicleDetailPage({
 				notes: editForm.notes,
 				last_maintenance_date: editForm.last_maintenance_date,
 				next_maintenance_date: editForm.next_maintenance_date,
+				scheduled_maintenance_date: editForm.scheduled_maintenance_date,
 			};
 			console.log('💾 Full update payload:', updateData);
 			const response = await apiClient.updateVehicle(
@@ -314,6 +324,29 @@ export default function VehicleDetailPage({
 			});
 		} finally {
 			setIsSendingEmail(false);
+		}
+	};
+
+	const handleDeleteVehicle = async () => {
+		if (!vehicle) return;
+
+		try {
+			await apiClient.deleteVehicle(vehicle.id);
+			const vehicleRego = vehicle.rego;
+			setShowDeleteDialog(false);
+			toast({
+				title: 'Success',
+				description: `Vehicle ${vehicleRego} deleted successfully.`,
+			});
+			// Navigate back to vehicles list
+			router.push('/vehicles');
+		} catch (error) {
+			console.error('Failed to delete vehicle:', error);
+			toast({
+				title: 'Error',
+				description: `Failed to delete vehicle ${vehicle.rego}.`,
+				variant: 'destructive',
+			});
 		}
 	};
 
@@ -460,10 +493,21 @@ export default function VehicleDetailPage({
 									</Button>
 								</>
 							) : (
-								<Button onClick={handleStartEdit}>
-									<Edit className='h-4 w-4 mr-2' />
-									Edit
-								</Button>
+								<>
+									<Button onClick={handleStartEdit}>
+										<Edit className='h-4 w-4 mr-2' />
+										Edit
+									</Button>
+									<Button
+										variant='outline'
+										className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 border-rose-300'
+										onClick={() =>
+											setShowDeleteDialog(true)
+										}>
+										<Trash2 className='h-4 w-4 mr-2' />
+										Delete
+									</Button>
+								</>
 							)}
 						</div>
 					</div>
@@ -960,6 +1004,53 @@ export default function VehicleDetailPage({
 											</PopoverContent>
 										</Popover>
 									</div>
+							<div className='space-y-2'>
+								<Label>Scheduled Maintenance Date</Label>
+								<Popover>
+									<PopoverTrigger asChild>
+										<Button
+											variant='outline'
+											className='w-full justify-start text-left font-normal'>
+											<CalendarIcon className='mr-2 h-4 w-4' />
+											{editForm.scheduled_maintenance_date ? (
+												format(
+													new Date(
+														editForm.scheduled_maintenance_date
+													),
+													'PPP'
+												)
+											) : (
+												<span>Pick a date</span>
+											)}
+										</Button>
+									</PopoverTrigger>
+									<PopoverContent className='w-auto p-0'>
+										<Calendar
+											mode='single'
+											selected={
+												editForm.scheduled_maintenance_date
+													? new Date(
+															editForm.scheduled_maintenance_date
+														)
+													: undefined
+											}
+											onSelect={(date) =>
+												setEditForm({
+													...editForm,
+													scheduled_maintenance_date:
+														date
+															? format(
+																	date,
+																	'yyyy-MM-dd'
+																)
+															: undefined,
+												})
+											}
+											initialFocus
+										/>
+									</PopoverContent>
+								</Popover>
+							</div>
 									<div className='space-y-2'>
 										<Label htmlFor='edit-location'>
 											Maintenance Location
@@ -1042,6 +1133,25 @@ export default function VehicleDetailPage({
 											)}
 										</p>
 									</div>
+							<div>
+								<p className='text-sm text-gray-600'>
+									Scheduled Maintenance
+								</p>
+								<p className='font-semibold'>
+									{vehicle.scheduled_maintenance_date ? (
+										format(
+											new Date(
+												vehicle.scheduled_maintenance_date
+											),
+											'MMM dd, yyyy'
+										)
+									) : (
+										<span className='text-gray-400'>
+											Not scheduled
+										</span>
+									)}
+								</p>
+							</div>
 									<div>
 										<p className='text-sm text-gray-600'>
 											Maintenance Location
@@ -1446,6 +1556,34 @@ export default function VehicleDetailPage({
 					onNext={handleNextPhoto}
 					onDelete={handleDeletePhoto}
 				/>
+				<Dialog
+					open={showDeleteDialog}
+					onOpenChange={setShowDeleteDialog}>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Delete Vehicle</DialogTitle>
+							<DialogDescription>
+								Are you sure you want to delete vehicle{' '}
+								<span className='font-semibold'>
+									{vehicle?.rego}
+								</span>
+								? This action cannot be undone.
+							</DialogDescription>
+						</DialogHeader>
+						<DialogFooter>
+							<Button
+								variant='outline'
+								onClick={() => setShowDeleteDialog(false)}>
+								Cancel
+							</Button>
+							<Button
+								variant='destructive'
+								onClick={handleDeleteVehicle}>
+								Delete Vehicle
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
 			</div>
 		</div>
 	);

@@ -89,7 +89,7 @@ export function ScheduleTable({
 	};
 
 	const isEditable = mode === 'editable';
-	const columnCount = isEditable ? 7 : 8; // editable has 7 columns, readonly has 8 (includes Date)
+	const columnCount = isEditable ? 8 : 9; // +1 for Driver Status column
 
 	return (
 		<>
@@ -97,13 +97,14 @@ export function ScheduleTable({
 				<TableHeader>
 					<TableRow>
 						<TableHead>Driver Name</TableHead>
+						<TableHead>Status</TableHead>
 						<TableHead>Amazon ID</TableHead>
 						<TableHead>Check-in Status</TableHead>
 						<TableHead>Route</TableHead>
 						<TableHead>Shift Time</TableHead>
 						<TableHead>Vehicle</TableHead>
 						{isEditable && <TableHead>Confirm</TableHead>}
-						{!isEditable && <TableHead>Status</TableHead>}
+						{!isEditable && <TableHead>Confirm Status</TableHead>}
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -138,15 +139,7 @@ export function ScheduleTable({
 									{isEditable ? (
 										<Select
 											value={
-												// @ts-ignore - _driver_id is a temporary field
-												schedule._driver_id?.toString() ||
-												allDrivers
-													.find(
-														(d) =>
-															d.deputy_id ===
-															schedule.deputy_id
-													)
-													?.id?.toString() ||
+												schedule.driver?.id?.toString() ||
 												''
 											}
 											onValueChange={(value) => {
@@ -167,9 +160,8 @@ export function ScheduleTable({
 													<div className='flex items-center gap-2'>
 														<User className='h-4 w-4 text-gray-500' />
 														<span className='font-medium text-gray-900'>
-															{
-																schedule.driver_name
-															}
+															{schedule.driver
+																?.name || '-'}
 														</span>
 													</div>
 												</SelectValue>
@@ -185,9 +177,8 @@ export function ScheduleTable({
 															<div className='flex items-center gap-2'>
 																<User className='h-4 w-4 text-gray-500' />
 																{driver.name}
-																{(
-																	schedule as any
-																)._driver_id ===
+																{schedule.driver
+																	?.id ===
 																	driver.id && (
 																	<span className='text-xs text-gray-500'>
 																		(current)
@@ -202,16 +193,35 @@ export function ScheduleTable({
 										<div className='flex items-center gap-2'>
 											<User className='h-4 w-4 text-gray-500' />
 											<span className='font-medium text-gray-900'>
-												{schedule.driver_name}
+												{schedule.driver?.name || '-'}
 											</span>
 										</div>
 									)}
 								</TableCell>
 
+								{/* Driver Status Column */}
+								<TableCell>
+									<Badge
+										variant={
+											schedule.driver?.is_active
+												? 'default'
+												: 'secondary'
+										}
+										className={
+											schedule.driver?.is_active
+												? 'bg-green-600 text-white'
+												: 'bg-gray-300 text-gray-700'
+										}>
+										{schedule.driver?.is_active
+											? 'Active'
+											: 'Inactive'}
+									</Badge>
+								</TableCell>
+
 								{/* Amazon ID Column */}
 								<TableCell>
 									<span className='font-medium text-gray-900'>
-										{schedule.amazon_id || '-'}
+										{schedule.driver?.amazon_id || '-'}
 									</span>
 								</TableCell>
 
@@ -291,13 +301,12 @@ export function ScheduleTable({
 												'unassigned'
 											}
 											onValueChange={(value) => {
-												if (
-													value !== 'unassigned' &&
-													onVehicleAssign
-												) {
+												if (onVehicleAssign) {
 													onVehicleAssign(
 														schedule.id,
-														value
+														value === 'unassigned'
+															? ''
+															: value
 													);
 												}
 											}}>
@@ -313,6 +322,14 @@ export function ScheduleTable({
 												</SelectValue>
 											</SelectTrigger>
 											<SelectContent>
+												{schedule.vehicle_alias && (
+													<SelectItem value='unassigned'>
+														<div className='flex items-center gap-2 text-orange-600'>
+															<CarIcon className='h-4 w-4' />
+															Unassign Vehicle
+														</div>
+													</SelectItem>
+												)}
 												{!schedule.vehicle_alias && (
 													<SelectItem
 														value='unassigned'

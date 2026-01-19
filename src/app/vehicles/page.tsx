@@ -93,7 +93,7 @@ export default function VehiclesPage() {
 			id: vehicles[0].id,
 			idType: typeof vehicles[0].id,
 			rego: vehicles[0].rego,
-			alias: vehicles[0].alias
+			alias: vehicles[0].alias,
 		});
 	}
 
@@ -148,7 +148,12 @@ export default function VehiclesPage() {
 	};
 
 	const handleRowClick = (vehicleId: string) => {
-		console.log('🚗 Clicking vehicle with ID:', vehicleId, 'type:', typeof vehicleId);
+		console.log(
+			'🚗 Clicking vehicle with ID:',
+			vehicleId,
+			'type:',
+			typeof vehicleId
+		);
 
 		if (!vehicleId || vehicleId === 'undefined') {
 			console.error('❌ Invalid vehicle ID:', vehicleId);
@@ -168,12 +173,6 @@ export default function VehiclesPage() {
 		e.stopPropagation();
 		// TODO: Implement schedule maintenance functionality
 		notify.info('Schedule Maintenance feature coming soon');
-	};
-
-	const handleAssignToSchedule = (vehicleId: string, e: React.MouseEvent) => {
-		e.stopPropagation();
-		// TODO: Implement assign to schedule functionality
-		notify.info('Assign to Schedule feature coming soon');
 	};
 
 	const handleDeleteClick = (
@@ -256,70 +255,6 @@ export default function VehiclesPage() {
 					</h1>
 				</div>
 
-				{/* Maintenance Alerts */}
-				{/* {vehiclesNeedingMaintenance.length > 0 && (
-					<Card className='mb-6 p-4 border-orange-200 bg-orange-50'>
-						<div className='flex items-start gap-3'>
-							<Wrench className='h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0' />
-							<div className='flex-1'>
-								<h3 className='font-semibold text-orange-900'>
-									Maintenance Alerts
-								</h3>
-								<p className='text-sm text-orange-700 mt-1'>
-									{vehiclesNeedingMaintenance.length}{' '}
-									{vehiclesNeedingMaintenance.length === 1
-										? 'vehicle needs'
-										: 'vehicles need'}{' '}
-									maintenance attention
-								</p>
-							</div>
-						</div>
-					</Card>
-				)} */}
-
-				{/* Stats Cards */}
-				{/* <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6'>
-					<Card className='p-4 bg-green-50 border-green-200'>
-						<div className='flex items-center justify-between'>
-							<div>
-								<p className='text-sm text-green-700 font-medium'>
-									Ready Vehicles
-								</p>
-								<p className='text-2xl font-bold text-green-900 mt-1'>
-									{conditionStats.green}
-								</p>
-							</div>
-							<div className='w-3 h-3 rounded-full bg-green-500'></div>
-						</div>
-					</Card>
-					<Card className='p-4 bg-yellow-50 border-yellow-200'>
-						<div className='flex items-center justify-between'>
-							<div>
-								<p className='text-sm text-yellow-700 font-medium'>
-									Needs Repair
-								</p>
-								<p className='text-2xl font-bold text-yellow-900 mt-1'>
-									{conditionStats.yellow}
-								</p>
-							</div>
-							<div className='w-3 h-3 rounded-full bg-yellow-500'></div>
-						</div>
-					</Card>
-					<Card className='p-4 bg-red-50 border-red-200'>
-						<div className='flex items-center justify-between'>
-							<div>
-								<p className='text-sm text-red-700 font-medium'>
-									Unavailable
-								</p>
-								<p className='text-2xl font-bold text-red-900 mt-1'>
-									{conditionStats.red}
-								</p>
-							</div>
-							<div className='w-3 h-3 rounded-full bg-red-500'></div>
-						</div>
-					</Card>
-				</div> */}
-
 				{/* Search and Filters */}
 				<div className='mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3'>
 					<div className='relative flex-1 max-w-full sm:max-w-md'>
@@ -398,7 +333,9 @@ export default function VehiclesPage() {
 							disabled={isCheckingMaintenance}>
 							<Settings className='h-4 w-4 mr-2' />
 							<span className='hidden sm:inline'>
-								{isCheckingMaintenance ? 'Checking...' : 'Check Maintenance'}
+								{isCheckingMaintenance
+									? 'Checking...'
+									: 'Check Maintenance'}
 							</span>
 							<span className='sm:hidden'>
 								{isCheckingMaintenance ? 'Check...' : 'Check'}
@@ -408,7 +345,9 @@ export default function VehiclesPage() {
 							className='bg-blue-700 hover:bg-blue-800 text-white'
 							onClick={() => setShowAddDialog(true)}>
 							<Plus className='h-4 w-4 mr-2' />
-							<span className='hidden sm:inline'>Add Vehicle</span>
+							<span className='hidden sm:inline'>
+								Add Vehicle
+							</span>
 							<span className='sm:hidden'>Add</span>
 						</Button>
 					</div>
@@ -613,7 +552,7 @@ export default function VehiclesPage() {
 												</DropdownMenuContent>
 											</DropdownMenu> */}
 											<div className='flex items-center justify-end gap-2'>
-												<Button
+												{/* <Button
 													variant='ghost'
 													size='sm'
 													className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 p-0'
@@ -625,8 +564,8 @@ export default function VehiclesPage() {
 														)
 													}>
 													<Trash2 className='h-4 w-4  ' />
-												</Button>
-												{/* <ChevronRight className='h-5 w-5 text-gray-400' /> */}
+												</Button> */}
+												<ChevronRight className='h-5 w-5 text-gray-400' />
 											</div>
 										</TableCell>
 									</TableRow>
@@ -650,7 +589,7 @@ export default function VehiclesPage() {
 				/>
 
 				{/* Delete Confirmation Dialog */}
-				<Dialog
+				{/* <Dialog
 					open={showDeleteDialog}
 					onOpenChange={setShowDeleteDialog}>
 					<DialogContent>
@@ -677,7 +616,7 @@ export default function VehiclesPage() {
 							</Button>
 						</DialogFooter>
 					</DialogContent>
-				</Dialog>
+				</Dialog> */}
 			</div>
 		</div>
 	);

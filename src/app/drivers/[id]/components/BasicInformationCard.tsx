@@ -149,11 +149,11 @@ export function BasicInformationCard({
 					<div>
 						<Label className='mb-2 block'>Status</Label>
 						<div className='flex items-center gap-3'>
-							<Switch
+							{/* <Switch
 								checked={driver.is_active}
 								onCheckedChange={onToggleActive}
 								disabled={!onToggleActive}
-							/>
+							/> */}
 							<div className='flex items-center gap-2'>
 								{driver.is_active ? (
 									<Badge className='bg-green-500'>
@@ -170,7 +170,7 @@ export function BasicInformationCard({
 							</div>
 						</div>
 					</div>
-					<div className='md:col-span-2'>
+					{/* <div className='md:col-span-2'>
 						<Label className='flex items-center gap-2 mb-2'>
 							<MapPin className='h-4 w-4' />
 							Address
@@ -187,7 +187,7 @@ export function BasicInformationCard({
 								{driver.address || '-'}
 							</p>
 						)}
-					</div>
+					</div> */}
 				</div>
 			</CardContent>
 		</Card>

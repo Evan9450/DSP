@@ -92,11 +92,11 @@ export default function InspectionDetailPage() {
 					// If we have a specific inspection ID, fetch it directly
 					// The API returns flattened structure with previous inspection in 'previous' field
 					const detailData = await apiClient.getInspection(
-						parseInt(inspectionId)
+						parseInt(inspectionId),
 					);
 					console.log(
 						'🚀 => fetchInspectionDetail => detailData:',
-						detailData
+						detailData,
 					);
 
 					// Set current inspection (the detail data itself)
@@ -113,13 +113,13 @@ export default function InspectionDetailPage() {
 
 					if (recentInspections.length === 0) {
 						throw new Error(
-							'No inspections found for this vehicle'
+							'No inspections found for this vehicle',
 						);
 					}
 
 					// Fetch the detail data for the most recent inspection
 					const detailData = await apiClient.getInspection(
-						recentInspections[0].id
+						recentInspections[0].id,
 					);
 					setInspection(detailData);
 					setPreviousInspection(detailData.previous);
@@ -128,7 +128,7 @@ export default function InspectionDetailPage() {
 				setError(
 					err instanceof Error
 						? err.message
-						: 'Failed to load inspection details'
+						: 'Failed to load inspection details',
 				);
 			} finally {
 				setIsLoading(false);
@@ -151,14 +151,18 @@ export default function InspectionDetailPage() {
 				{
 					inspection_status: status,
 					admin_notes: adminNotes || undefined,
-				}
+				},
 			);
 
 			setInspection(updatedInspection);
 			setAdminNotes('');
 
 			const statusText =
-				status === 'passed' ? 'Passed' : status === 'failed' ? 'Failed' : 'Pending';
+				status === 'passed'
+					? 'Passed'
+					: status === 'failed'
+						? 'Failed'
+						: 'Pending';
 			toast.success(`Inspection marked as ${statusText}`);
 		} catch (err) {
 			toast.error('Failed to review inspection');
@@ -283,7 +287,7 @@ export default function InspectionDetailPage() {
 								Vehicle #{vehicleId} •{' '}
 								{format(
 									new Date(inspection.inspection_date),
-									'MMMM dd, yyyy'
+									'MMMM dd, yyyy',
 								)}
 							</p>
 						</div>
@@ -309,7 +313,7 @@ export default function InspectionDetailPage() {
 								<div className='font-medium'>
 									{format(
 										new Date(inspection.inspection_date),
-										'MMM dd, yyyy'
+										'MMM dd, yyyy',
 									)}
 								</div>
 							</div>
@@ -447,9 +451,9 @@ export default function InspectionDetailPage() {
 									<div className='text-xs text-gray-500 mt-1'>
 										{format(
 											new Date(
-												previousInspection.inspection_date
+												previousInspection.inspection_date,
 											),
-											'MMM dd, yyyy'
+											'MMM dd, yyyy',
 										)}
 									</div>
 								</div>
@@ -495,7 +499,7 @@ export default function InspectionDetailPage() {
 				</Card>
 
 				{/* Driver Notes */}
-				{/* {inspection.notes && (
+				{inspection.notes && (
 					<Card className='mb-6'>
 						<CardHeader>
 							<CardTitle className='flex items-center gap-2'>
@@ -509,7 +513,7 @@ export default function InspectionDetailPage() {
 							</p>
 						</CardContent>
 					</Card>
-				)} */}
+				)}
 
 				{/* Current Inspection Photos */}
 				<Card className='mb-6'>
@@ -541,7 +545,7 @@ export default function InspectionDetailPage() {
 												onClick={() =>
 													window.open(
 														photoUrl,
-														'_blank'
+														'_blank',
 													)
 												}
 											/>
@@ -584,9 +588,9 @@ export default function InspectionDetailPage() {
 								<span className='text-sm font-normal text-gray-500 ml-auto'>
 									{format(
 										new Date(
-											previousInspection.inspection_date
+											previousInspection.inspection_date,
 										),
-										'MMM dd, yyyy'
+										'MMM dd, yyyy',
 									)}{' '}
 									• {previousInspection.driver_name}
 								</span>
@@ -609,7 +613,7 @@ export default function InspectionDetailPage() {
 														onClick={() =>
 															window.open(
 																photoUrl,
-																'_blank'
+																'_blank',
 															)
 														}
 													/>
@@ -620,7 +624,7 @@ export default function InspectionDetailPage() {
 														}
 													</div>
 												</div>
-											)
+											),
 										)}
 									</div>
 									<p className='text-sm text-gray-500 mt-4 text-center'>

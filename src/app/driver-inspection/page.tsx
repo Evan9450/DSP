@@ -121,11 +121,11 @@ export default function DriverInspectionPage() {
 				// Edit mode
 				setMode('edit');
 				setMileage(
-					data.existing_inspection.mileage_at_inspection.toString()
+					data.existing_inspection.mileage_at_inspection.toString(),
 				);
 				setNotes(data.existing_inspection.notes || '');
 				setExistingPhotoUrls(
-					data.existing_inspection.inspection_urls || []
+					data.existing_inspection.inspection_urls || [],
 				);
 			} else {
 				// Create mode
@@ -224,9 +224,13 @@ export default function DriverInspectionPage() {
 		}
 
 		// Only validate vehicle_id in create mode (update mode doesn't need it)
-		if (mode === 'create' && (!schedule?.vehicle_id || schedule.vehicle_id === null)) {
+		if (
+			mode === 'create' &&
+			(!schedule?.vehicle_id || schedule.vehicle_id === null)
+		) {
 			console.log('❌ Validation failed: No vehicle_id');
-			const errorMsg = 'ERROR: No vehicle assigned in your schedule. Please contact your manager to assign a vehicle before submitting inspection.';
+			const errorMsg =
+				'ERROR: No vehicle assigned in your schedule. Please contact your manager to assign a vehicle before submitting inspection.';
 			setSubmitError(errorMsg);
 			toast({
 				title: 'Vehicle Not Assigned',
@@ -248,7 +252,7 @@ export default function DriverInspectionPage() {
 				console.log(`📸 Uploading ${newFiles.length} new photos...`);
 				const uploadedFiles = await driverApiClient.batchUploadFiles(
 					newFiles,
-					`inspections/${format(new Date(), 'yyyy-MM-dd')}`
+					`inspections/${format(new Date(), 'yyyy-MM-dd')}`,
 				);
 				console.log('✅ Photos uploaded:', uploadedFiles);
 
@@ -267,7 +271,7 @@ export default function DriverInspectionPage() {
 				// Type safety check (should already be validated above)
 				if (!schedule?.vehicle_id || schedule.vehicle_id === null) {
 					throw new Error(
-						'No vehicle_id available for creating inspection'
+						'No vehicle_id available for creating inspection',
 					);
 				}
 
@@ -608,7 +612,7 @@ export default function DriverInspectionPage() {
 					</Card>
 
 					{/* Notes Section */}
-					{/* <Card className='p-6'>
+					<Card className='p-6'>
 						<h3 className='text-lg font-semibold text-gray-900 mb-4'>
 							Additional Notes (Optional)
 						</h3>
@@ -623,7 +627,7 @@ export default function DriverInspectionPage() {
 						<p className='text-xs text-gray-500 mt-2'>
 							{notes.length}/500 characters
 						</p>
-					</Card> */}
+					</Card>
 
 					{/* Error Display */}
 					{submitError && (
@@ -633,7 +637,9 @@ export default function DriverInspectionPage() {
 								<p className='font-semibold text-red-900 mb-1'>
 									Submission Error
 								</p>
-								<p className='text-sm text-red-700'>{submitError}</p>
+								<p className='text-sm text-red-700'>
+									{submitError}
+								</p>
 							</div>
 						</div>
 					)}
@@ -644,11 +650,11 @@ export default function DriverInspectionPage() {
 						onClick={(e) => {
 							console.log(
 								'🟡 Button clicked! Event type:',
-								e.type
+								e.type,
 							);
 							console.log(
 								'Current state - isSubmitting:',
-								isSubmitting
+								isSubmitting,
 							);
 							console.log('Current state - mode:', mode);
 						}}

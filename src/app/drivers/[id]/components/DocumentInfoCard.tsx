@@ -289,6 +289,15 @@ export function DocumentInfoCard({
 										<PopoverContent className='w-auto p-0'>
 											<Calendar
 												mode='single'
+												captionLayout='dropdown'
+												fromYear={1900}
+												toYear={2999}
+												classNames={{
+													caption:
+														'flex items-center justify-center gap-2 pt-1',
+													caption_label: 'hidden', // ❗只对 dropdown 隐藏 label
+													vhidden: 'hidden', // ❗把 rdp-vhidden 隐藏掉
+												}}
 												selected={calendarDate}
 												onSelect={(date) => {
 													setCalendarDate(date);

@@ -64,7 +64,7 @@ const menuItems: MenuItem[] = [
 		icon: Package,
 		submenu: [
 			{ href: '/assets', label: 'Inventory' },
-			{ href: '/borrows', label: 'Borrow Record' },
+			{ href: '/borrows', label: 'Inventory History' },
 		],
 	},
 	// Only show Files in development environment
@@ -152,7 +152,7 @@ export function AppSidebar() {
 																		</SidebarMenuSubButton>
 																	</SidebarMenuSubItem>
 																);
-															}
+															},
 														)}
 													</SidebarMenuSub>
 												</CollapsibleContent>

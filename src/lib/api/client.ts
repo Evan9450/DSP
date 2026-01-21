@@ -137,6 +137,13 @@ export interface DriverFileResponse {
 	created_at: string;
 }
 
+export interface SyncedDriver {
+	driver_id: any;
+	id: number;
+	name: string;
+	deputy_id: string;
+}
+
 export interface DriverFileCreate {
 	type: 'license' | 'visa' | 'certification' | 'other';
 	document_number?: string;
@@ -555,9 +562,10 @@ export function decodeJWT(token: string): any {
 			atob(base64)
 				.split('')
 				.map(
-					(c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+					(c) =>
+						'%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2),
 				)
-				.join('')
+				.join(''),
 		);
 		return JSON.parse(jsonPayload);
 	} catch (error) {
@@ -643,7 +651,7 @@ class APIClient {
 				}
 				return config;
 			},
-			(error) => Promise.reject(error)
+			(error) => Promise.reject(error),
 		);
 
 		// Response interceptor - handle errors
@@ -660,7 +668,7 @@ class APIClient {
 					console.log('URL:', axiosError.config?.url);
 					console.log(
 						'Method:',
-						axiosError.config?.method?.toUpperCase()
+						axiosError.config?.method?.toUpperCase(),
 					);
 					console.log('Response Data:', axiosError.response.data);
 					console.groupEnd();
@@ -679,7 +687,7 @@ class APIClient {
 					// Skip logout logic for login API failures (invalid credentials)
 					if (!isLoginRequest) {
 						console.warn(
-							'⚠️ Token expired or invalid - logging out'
+							'⚠️ Token expired or invalid - logging out',
 						);
 
 						// Clear all authentication data
@@ -693,7 +701,7 @@ class APIClient {
 							// Store logout reason for displaying on login page
 							sessionStorage.setItem(
 								'logout_reason',
-								'Session expired. Please login again.'
+								'Session expired. Please login again.',
 							);
 
 							// Redirect to appropriate login page
@@ -710,7 +718,7 @@ class APIClient {
 				}
 
 				return Promise.reject(error);
-			}
+			},
 		);
 	}
 
@@ -724,7 +732,7 @@ class APIClient {
 			{
 				email: email,
 				password,
-			}
+			},
 		);
 		TokenManager.setAdminToken(response.data.access_token);
 		return response.data;
@@ -732,14 +740,14 @@ class APIClient {
 
 	async driverLogin(
 		amazonId: string,
-		password: string
+		password: string,
 	): Promise<DriverTokenResponse> {
 		const response = await this.client.post<DriverTokenResponse>(
 			'/api/v1/auth/driver/login',
 			{
 				amazon_id: amazonId,
 				password,
-			}
+			},
 		);
 		TokenManager.setDriverToken(response.data.access_token);
 		return response.data;
@@ -766,7 +774,7 @@ class APIClient {
 
 	async getUser(userId: number): Promise<UserResponse> {
 		const response = await this.client.get<UserResponse>(
-			`/api/v1/users/${userId}`
+			`/api/v1/users/${userId}`,
 		);
 		return response.data;
 	}
@@ -780,7 +788,7 @@ class APIClient {
 	async createUser(data: UserCreate): Promise<UserResponse> {
 		const response = await this.client.post<UserResponse>(
 			'/api/v1/users/',
-			data
+			data,
 		);
 		return response.data;
 	}
@@ -788,7 +796,7 @@ class APIClient {
 	async updateUser(userId: number, data: UserUpdate): Promise<UserResponse> {
 		const response = await this.client.put<UserResponse>(
 			`/api/v1/users/${userId}`,
-			data
+			data,
 		);
 		return response.data;
 	}
@@ -810,7 +818,7 @@ class APIClient {
 
 	async getDriver(driverId: number): Promise<DriverResponse> {
 		const response = await this.client.get<DriverResponse>(
-			`/api/v1/drivers/${driverId}`
+			`/api/v1/drivers/${driverId}`,
 		);
 		return response.data;
 	}
@@ -818,18 +826,18 @@ class APIClient {
 	async createDriver(data: DriverCreate): Promise<DriverResponse> {
 		const response = await this.client.post<DriverResponse>(
 			'/api/v1/drivers/',
-			data
+			data,
 		);
 		return response.data;
 	}
 
 	async updateDriver(
 		driverId: number,
-		data: DriverUpdate
+		data: DriverUpdate,
 	): Promise<DriverResponse> {
 		const response = await this.client.put<DriverResponse>(
 			`/api/v1/drivers/${driverId}`,
-			data
+			data,
 		);
 		return response.data;
 	}
@@ -850,7 +858,7 @@ class APIClient {
 			visa_file?: File;
 			visa_number?: string;
 			visa_expiry_date?: string;
-		}
+		},
 	): Promise<DriverResponse> {
 		console.log('📤 Updating driver with files:', { driverId, data });
 
@@ -886,7 +894,7 @@ class APIClient {
 		formData.forEach((value, key) => {
 			console.log(
 				`  ${key}:`,
-				value instanceof File ? `File(${value.name})` : value
+				value instanceof File ? `File(${value.name})` : value,
 			);
 		});
 
@@ -898,11 +906,11 @@ class APIClient {
 					headers: {
 						'Content-Type': 'multipart/form-data',
 					},
-				}
+				},
 			);
 			console.log(
 				'✅ Driver updated successfully, full response:',
-				response
+				response,
 			);
 			console.log('📋 Response data breakdown:');
 			console.log('  - Name:', response.data.name);
@@ -910,7 +918,7 @@ class APIClient {
 			console.log('  - License Number:', response.data.license_number);
 			console.log(
 				'  - License Expiry:',
-				response.data.license_expiry_date
+				response.data.license_expiry_date,
 			);
 			console.log('  - Visa Number:', response.data.visa_number);
 			console.log('  - Visa Expiry:', response.data.visa_expiry_date);
@@ -929,7 +937,7 @@ class APIClient {
 	 */
 	async updateDriverWithFormData(
 		driverId: number,
-		formData: FormData
+		formData: FormData,
 	): Promise<DriverResponse> {
 		const response = await this.client.put<DriverResponse>(
 			`/api/v1/drivers/${driverId}`,
@@ -938,7 +946,7 @@ class APIClient {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 				},
-			}
+			},
 		);
 		return response.data;
 	}
@@ -951,7 +959,7 @@ class APIClient {
 	async deleteLicenseFile(driverId: number, fileUrl: string): Promise<void> {
 		await this.client.delete(
 			`/api/v1/drivers/${driverId}/delete-license-file`,
-			{ params: { file_url: fileUrl } }
+			{ params: { file_url: fileUrl } },
 		);
 	}
 
@@ -959,7 +967,7 @@ class APIClient {
 	async deleteVisaFile(driverId: number, fileUrl: string): Promise<void> {
 		await this.client.delete(
 			`/api/v1/drivers/${driverId}/delete-visa-file`,
-			{ params: { file_url: fileUrl } }
+			{ params: { file_url: fileUrl } },
 		);
 	}
 
@@ -967,7 +975,7 @@ class APIClient {
 	async getExpiringDocuments(daysAhead: number = 30): Promise<any> {
 		const response = await this.client.get(
 			'/api/v1/drivers/documents/expiring',
-			{ params: { days_ahead: daysAhead } }
+			{ params: { days_ahead: daysAhead } },
 		);
 		return response.data;
 	}
@@ -975,7 +983,7 @@ class APIClient {
 	async setDriverPassword(driverId: number, password: string): Promise<any> {
 		const response = await this.client.post(
 			`/api/v1/drivers/${driverId}/set-password`,
-			{ password }
+			{ password },
 		);
 		return response.data;
 	}
@@ -991,7 +999,7 @@ class APIClient {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 				},
-			}
+			},
 		);
 		return response.data;
 	}
@@ -1004,9 +1012,16 @@ class APIClient {
 		[key: string]: any;
 	}> {
 		const response = await this.client.post<any>(
-			'/api/v1/supervise/sync-employees'
+			'/api/v1/supervise/sync-employees',
 		);
 		console.log('🔄 Deputy sync response:', response.data);
+		return response.data;
+	}
+
+	async getSyncedDeputyDrivers(): Promise<SyncedDriver[]> {
+		const response = await this.client.get<SyncedDriver[]>(
+			'/api/v1/supervise/rosters/synced-drivers',
+		);
 		return response.data;
 	}
 
@@ -1020,7 +1035,7 @@ class APIClient {
 	}): Promise<VehicleResponse[]> {
 		const response = await this.client.get<VehicleResponse[]>(
 			'/api/v1/vehicles/',
-			{ params }
+			{ params },
 		);
 		console.log('🚀 => APIClient => getVehicles => response:', response);
 		return response.data;
@@ -1028,25 +1043,25 @@ class APIClient {
 
 	async getAvailableVehicles(): Promise<VehicleResponse[]> {
 		const response = await this.client.get<VehicleResponse[]>(
-			'/api/v1/vehicles/available'
+			'/api/v1/vehicles/available',
 		);
 		return response.data;
 	}
 
 	async getVehicle(vehicleId: number): Promise<VehicleResponse> {
 		const response = await this.client.get<VehicleResponse>(
-			`/api/v1/vehicles/${vehicleId}`
+			`/api/v1/vehicles/${vehicleId}`,
 		);
 		return response.data;
 	}
 
 	async getVehicleDetail(vehicleId: number): Promise<VehicleDetailResponse> {
 		const response = await this.client.get<VehicleDetailResponse>(
-			`/api/v1/vehicles/${vehicleId}`
+			`/api/v1/vehicles/${vehicleId}`,
 		);
 		console.log(
 			'🚀 => APIClient => getVehicleDetail => response:',
-			response
+			response,
 		);
 		return response.data;
 	}
@@ -1054,19 +1069,19 @@ class APIClient {
 	async createVehicle(data: VehicleCreate): Promise<VehicleResponse> {
 		const response = await this.client.post<VehicleResponse>(
 			'/api/v1/vehicles/',
-			data
+			data,
 		);
 		return response.data;
 	}
 
 	async updateVehicle(
 		vehicleId: number,
-		data: VehicleUpdate
+		data: VehicleUpdate,
 	): Promise<VehicleResponse> {
 		console.log('🔧 updateVehicle - Request data:', data);
 		const response = await this.client.put<VehicleResponse>(
 			`/api/v1/vehicles/${vehicleId}`,
-			data
+			data,
 		);
 		console.log('🔧 updateVehicle - Response:', response.data);
 		return response.data;
@@ -1089,16 +1104,16 @@ class APIClient {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 				},
-			}
+			},
 		);
 	}
 
 	async deleteVehiclePhoto(
 		vehicleId: number,
-		photoIndex: number
+		photoIndex: number,
 	): Promise<void> {
 		await this.client.delete(
-			`/api/v1/vehicles/${vehicleId}/photos/${photoIndex}`
+			`/api/v1/vehicles/${vehicleId}/photos/${photoIndex}`,
 		);
 	}
 
@@ -1135,7 +1150,7 @@ class APIClient {
 
 		const response = await this.client.get<VehicleInspectionResponse[]>(
 			'/api/v1/vehicles/inspections',
-			{ params: cleanParams }
+			{ params: cleanParams },
 		);
 		return response.data;
 	}
@@ -1146,11 +1161,11 @@ class APIClient {
 	 * @returns Created inspection record
 	 */
 	async createVehicleInspection(
-		data: VehicleInspectionCreate
+		data: VehicleInspectionCreate,
 	): Promise<VehicleInspectionResponse> {
 		const response = await this.client.post<VehicleInspectionResponse>(
 			'/api/v1/vehicles/inspections',
-			data
+			data,
 		);
 		return response.data;
 	}
@@ -1164,11 +1179,11 @@ class APIClient {
 	 */
 	async updateVehicleInspection(
 		inspectionId: number,
-		data: VehicleInspectionUpdate
+		data: VehicleInspectionUpdate,
 	): Promise<VehicleInspectionResponse> {
 		const response = await this.client.put<VehicleInspectionResponse>(
 			`/api/v1/vehicles/inspections/${inspectionId}`,
-			data
+			data,
 		);
 		return response.data;
 	}
@@ -1181,7 +1196,7 @@ class APIClient {
 	 */
 	async uploadInspectionPhotos(
 		inspectionId: number,
-		files: File[]
+		files: File[],
 	): Promise<any> {
 		const formData = new FormData();
 		files.forEach((file) => {
@@ -1195,7 +1210,7 @@ class APIClient {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 				},
-			}
+			},
 		);
 		return response.data;
 	}
@@ -1206,10 +1221,10 @@ class APIClient {
 	 * @returns Flattened inspection detail with previous inspection summary
 	 */
 	async getInspection(
-		inspectionId: number
+		inspectionId: number,
 	): Promise<VehicleInspectionDetailResponse> {
 		const response = await this.client.get<VehicleInspectionDetailResponse>(
-			`/api/v1/inspections/${inspectionId}`
+			`/api/v1/inspections/${inspectionId}`,
 		);
 		return response.data;
 	}
@@ -1223,11 +1238,11 @@ class APIClient {
 	 */
 	async reviewInspection(
 		inspectionId: number,
-		data: VehicleInspectionReview
+		data: VehicleInspectionReview,
 	): Promise<VehicleInspectionResponse> {
 		const response = await this.client.post<VehicleInspectionResponse>(
 			`/api/v1/vehicles/inspections/${inspectionId}/review`,
-			data
+			data,
 		);
 		return response.data;
 	}
@@ -1238,10 +1253,10 @@ class APIClient {
 	 * @returns Array of inspection records
 	 */
 	async getInspectionsByDate(
-		date: string
+		date: string,
 	): Promise<VehicleInspectionResponse[]> {
 		const response = await this.client.get<VehicleInspectionResponse[]>(
-			`/api/v1/inspections/by-date/${date}`
+			`/api/v1/inspections/by-date/${date}`,
 		);
 		return response.data;
 	}
@@ -1259,11 +1274,11 @@ class APIClient {
 			end_date?: string; // YYYY-MM-DD
 			skip?: number;
 			limit?: number;
-		}
+		},
 	): Promise<VehicleInspectionResponse[]> {
 		const response = await this.client.get<VehicleInspectionResponse[]>(
 			`/api/v1/inspections/by-vehicle/${vehicleId}`,
-			{ params }
+			{ params },
 		);
 		return response.data;
 	}
@@ -1274,7 +1289,7 @@ class APIClient {
 	 */
 	async deleteInspection(inspectionId: number): Promise<void> {
 		await this.client.delete(
-			`/api/v1/vehicles/inspections/${inspectionId}`
+			`/api/v1/vehicles/inspections/${inspectionId}`,
 		);
 	}
 
@@ -1290,7 +1305,7 @@ class APIClient {
 			inspection_date?: string; // YYYY-MM-DD
 			skip?: number;
 			limit?: number;
-		}
+		},
 	): Promise<VehicleInspectionPhotoResponse[]> {
 		// Set default pagination values and filter out undefined values
 		const cleanParams: Record<string, any> = {
@@ -1319,7 +1334,7 @@ class APIClient {
 	 * @deprecated Use listInspections with vehicle_id filter instead
 	 */
 	async getVehicleInspections(
-		vehicleId: number
+		vehicleId: number,
 	): Promise<VehicleInspectionResponse[]> {
 		return this.listInspections({ vehicle_id: vehicleId });
 	}
@@ -1336,24 +1351,24 @@ class APIClient {
 	}): Promise<ScheduleResponse[]> {
 		const response = await this.client.get<ScheduleResponse[]>(
 			'/api/v1/schedules/',
-			{ params }
+			{ params },
 		);
 		return response.data;
 	}
 
 	async getTodaySchedules(
-		autoSync: boolean = true
+		autoSync: boolean = true,
 	): Promise<ScheduleResponse[]> {
 		const response = await this.client.get<ScheduleResponse[]>(
 			'/api/v1/schedules/today',
-			{ params: { auto_sync: autoSync } }
+			{ params: { auto_sync: autoSync } },
 		);
 		return response.data;
 	}
 
 	async getSchedule(scheduleId: number): Promise<ScheduleResponse> {
 		const response = await this.client.get<ScheduleResponse>(
-			`/api/v1/schedules/${scheduleId}`
+			`/api/v1/schedules/${scheduleId}`,
 		);
 		return response.data;
 	}
@@ -1361,18 +1376,18 @@ class APIClient {
 	async createSchedule(data: ScheduleCreate): Promise<ScheduleResponse> {
 		const response = await this.client.post<ScheduleResponse>(
 			'/api/v1/schedules/',
-			data
+			data,
 		);
 		return response.data;
 	}
 
 	async updateSchedule(
 		scheduleId: number,
-		data: ScheduleUpdate
+		data: ScheduleUpdate,
 	): Promise<ScheduleResponse> {
 		const response = await this.client.put<ScheduleResponse>(
 			`/api/v1/schedules/${scheduleId}`,
-			data
+			data,
 		);
 		return response.data;
 	}
@@ -1383,35 +1398,35 @@ class APIClient {
 
 	async assignVehicle(
 		scheduleId: number,
-		vehicleId: number
+		vehicleId: number,
 	): Promise<ScheduleResponse> {
 		const response = await this.client.post<ScheduleResponse>(
 			`/api/v1/schedules/${scheduleId}/assign-vehicle`,
-			{ vehicle_id: vehicleId }
+			{ vehicle_id: vehicleId },
 		);
 		return response.data;
 	}
 
 	async confirmSchedule(scheduleId: number): Promise<ScheduleResponse> {
 		const response = await this.client.post<ScheduleResponse>(
-			`/api/v1/schedules/${scheduleId}/confirm`
+			`/api/v1/schedules/${scheduleId}/confirm`,
 		);
 		return response.data;
 	}
 
 	async batchConfirmSchedules(
-		scheduleIds: number[]
+		scheduleIds: number[],
 	): Promise<BatchConfirmResponse> {
 		const response = await this.client.post<BatchConfirmResponse>(
 			'/api/v1/schedules/batch-confirm',
-			{ schedule_ids: scheduleIds }
+			{ schedule_ids: scheduleIds },
 		);
 		return response.data;
 	}
 
 	async sendScheduleSMS(scheduleId: number): Promise<SMSHistoryResponse> {
 		const response = await this.client.post<SMSHistoryResponse>(
-			`/api/v1/schedules/${scheduleId}/send-sms`
+			`/api/v1/schedules/${scheduleId}/send-sms`,
 		);
 		return response.data;
 	}
@@ -1432,7 +1447,7 @@ class APIClient {
 		const response = await this.client.post(
 			'/api/v1/schedules/sync-date',
 			null,
-			{ params: { sync_date: syncDate } }
+			{ params: { sync_date: syncDate } },
 		);
 		return response.data;
 	}
@@ -1456,7 +1471,7 @@ class APIClient {
 					'Content-Type': 'multipart/form-data',
 				},
 				params,
-			}
+			},
 		);
 		return response.data;
 	}
@@ -1486,7 +1501,7 @@ class APIClient {
 	// Products
 	async getProducts(): Promise<ProductResponse[]> {
 		const response = await this.client.get<ProductResponse[]>(
-			'/api/v1/assets/products'
+			'/api/v1/assets/products',
 		);
 		// console.log('🚀 => APIClient => getProducts => response:', response);
 		return response.data;
@@ -1494,7 +1509,7 @@ class APIClient {
 
 	async getProduct(productId: number): Promise<ProductResponse> {
 		const response = await this.client.get<ProductResponse>(
-			`/api/v1/assets/products/${productId}`
+			`/api/v1/assets/products/${productId}`,
 		);
 		return response.data;
 	}
@@ -1502,18 +1517,18 @@ class APIClient {
 	async createProduct(data: ProductCreate): Promise<ProductResponse> {
 		const response = await this.client.post<ProductResponse>(
 			'/api/v1/assets/products',
-			data
+			data,
 		);
 		return response.data;
 	}
 
 	async updateProduct(
 		productId: number,
-		data: ProductUpdate
+		data: ProductUpdate,
 	): Promise<ProductResponse> {
 		const response = await this.client.put<ProductResponse>(
 			`/api/v1/assets/products/${productId}`,
-			data
+			data,
 		);
 		return response.data;
 	}
@@ -1524,20 +1539,20 @@ class APIClient {
 
 	// Product Inventory
 	async getProductInventory(
-		productId: number
+		productId: number,
 	): Promise<ProductInventoryResponse[]> {
 		const response = await this.client.get<ProductInventoryResponse[]>(
-			`/api/v1/assets/products/${productId}/inventory`
+			`/api/v1/assets/products/${productId}/inventory`,
 		);
 		return response.data;
 	}
 
 	async addInventory(
-		data: ProductInventoryCreate
+		data: ProductInventoryCreate,
 	): Promise<ProductInventoryResponse> {
 		const response = await this.client.post<ProductInventoryResponse>(
 			'/api/v1/assets/inventory',
-			data
+			data,
 		);
 		return response.data;
 	}
@@ -1551,7 +1566,7 @@ class APIClient {
 	}): Promise<InventoryChangeResponse[]> {
 		const response = await this.client.get<InventoryChangeResponse[]>(
 			'/api/v1/assets/inventory-changes',
-			{ params }
+			{ params },
 		);
 		return response.data;
 	}
@@ -1564,53 +1579,53 @@ class APIClient {
 	}): Promise<ProductBorrowResponse[]> {
 		const response = await this.client.get<ProductBorrowResponse[]>(
 			'/api/v1/assets/borrows',
-			{ params }
+			{ params },
 		);
 		return response.data;
 	}
 
 	async getProductBorrow(borrowId: number): Promise<ProductBorrowResponse> {
 		const response = await this.client.get<ProductBorrowResponse>(
-			`/api/v1/assets/borrows/${borrowId}`
+			`/api/v1/assets/borrows/${borrowId}`,
 		);
 		return response.data;
 	}
 
 	async createProductBorrow(
-		data: ProductBorrowCreate
+		data: ProductBorrowCreate,
 	): Promise<ProductBorrowResponse> {
 		const response = await this.client.post<ProductBorrowResponse>(
 			'/api/v1/assets/borrows',
-			data
+			data,
 		);
 		return response.data;
 	}
 
 	async returnProductBorrow(
 		borrowId: number,
-		data: ProductBorrowReturn
+		data: ProductBorrowReturn,
 	): Promise<ProductBorrowResponse> {
 		const response = await this.client.post<ProductBorrowResponse>(
 			`/api/v1/assets/borrows/${borrowId}/return`,
-			data
+			data,
 		);
 		return response.data;
 	}
 
 	async listProductBorrowsForProduct(
-		productId: number
+		productId: number,
 	): Promise<ProductBorrowResponse[]> {
 		const response = await this.client.get<ProductBorrowResponse[]>(
-			`/api/v1/assets/products/${productId}/borrows`
+			`/api/v1/assets/products/${productId}/borrows`,
 		);
 		return response.data;
 	}
 
 	async listProductBorrowsForDriver(
-		driverId: number
+		driverId: number,
 	): Promise<ProductBorrowResponse[]> {
 		const response = await this.client.get<ProductBorrowResponse[]>(
-			`/api/v1/assets/drivers/${driverId}/borrows`
+			`/api/v1/assets/drivers/${driverId}/borrows`,
 		);
 		return response.data;
 	}
@@ -1630,7 +1645,7 @@ class APIClient {
 
 	async updateAsset(
 		assetId: number,
-		data: AssetUpdate
+		data: AssetUpdate,
 	): Promise<AssetResponse> {
 		return this.updateProduct(assetId, data);
 	}
@@ -1641,7 +1656,7 @@ class APIClient {
 
 	async getBorrowRecords(
 		productId?: number,
-		driverId?: number
+		driverId?: number,
 	): Promise<BorrowRecordResponse[]> {
 		return this.getProductBorrows({
 			product_id: productId,
@@ -1650,14 +1665,14 @@ class APIClient {
 	}
 
 	async createBorrowRecord(
-		data: BorrowRecordCreate
+		data: BorrowRecordCreate,
 	): Promise<BorrowRecordResponse> {
 		return this.createProductBorrow(data);
 	}
 
 	async returnBorrowRecord(
 		recordId: number,
-		notes?: string
+		notes?: string,
 	): Promise<BorrowRecordResponse> {
 		return this.returnProductBorrow(recordId, { notes });
 	}
@@ -1675,7 +1690,7 @@ class APIClient {
 	 */
 	async getSystemConfig(): Promise<SystemConfigResponse> {
 		const response = await this.client.get<SystemConfigResponse>(
-			'/api/v1/settings/config'
+			'/api/v1/settings/config',
 		);
 		return response.data;
 	}
@@ -1684,11 +1699,11 @@ class APIClient {
 	 * Create/initialize system configuration
 	 */
 	async createSystemConfig(
-		data: SystemConfigUpdate
+		data: SystemConfigUpdate,
 	): Promise<SystemConfigResponse> {
 		const response = await this.client.post<SystemConfigResponse>(
 			'/api/v1/settings/config',
-			data
+			data,
 		);
 		return response.data;
 	}
@@ -1697,11 +1712,11 @@ class APIClient {
 	 * Update system configuration (batch update)
 	 */
 	async updateSystemConfig(
-		data: SystemConfigUpdate
+		data: SystemConfigUpdate,
 	): Promise<SystemConfigResponse> {
 		const response = await this.client.put<SystemConfigResponse>(
 			'/api/v1/settings/config',
-			data
+			data,
 		);
 		return response.data;
 	}
@@ -1722,7 +1737,7 @@ class APIClient {
 	async getSMSHistory(
 		driverId?: number,
 		startDate?: string,
-		endDate?: string
+		endDate?: string,
 	): Promise<SMSHistoryResponse[]> {
 		const params: Record<string, string | number> = {};
 		if (driverId) params.driver_id = driverId;
@@ -1731,7 +1746,7 @@ class APIClient {
 
 		const response = await this.client.get<SMSHistoryResponse[]>(
 			'/api/v1/sms/history',
-			{ params }
+			{ params },
 		);
 		return response.data;
 	}
@@ -1742,14 +1757,14 @@ class APIClient {
 
 	async getDashboardStats(): Promise<DashboardStatsResponse> {
 		const response = await this.client.get<DashboardStatsResponse>(
-			'/api/v1/dashboard/stats'
+			'/api/v1/dashboard/stats',
 		);
 		return response.data;
 	}
 
 	async getDashboardAlerts(): Promise<DashboardAlertsResponse> {
 		const response = await this.client.get<DashboardAlertsResponse>(
-			'/api/v1/dashboard/alerts'
+			'/api/v1/dashboard/alerts',
 		);
 		return response.data;
 	}
@@ -1760,7 +1775,7 @@ class APIClient {
 
 	async uploadFile(
 		file: File,
-		folder: string = 'uploads'
+		folder: string = 'uploads',
 	): Promise<FileRecordResponse> {
 		const formData = new FormData();
 		formData.append('file', file);
@@ -1773,14 +1788,14 @@ class APIClient {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 				},
-			}
+			},
 		);
 		return response.data;
 	}
 
 	async batchUploadFiles(
 		files: File[],
-		folder: string = 'uploads'
+		folder: string = 'uploads',
 	): Promise<FileRecordResponse[]> {
 		const formData = new FormData();
 		files.forEach((file) => {
@@ -1795,7 +1810,7 @@ class APIClient {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 				},
-			}
+			},
 		);
 		return response.data;
 	}
@@ -1804,7 +1819,7 @@ class APIClient {
 		const params = folder ? { folder } : {};
 		const response = await this.client.get<FileRecordResponse[]>(
 			'/api/v1/files/list',
-			{ params }
+			{ params },
 		);
 		return response.data;
 	}
@@ -1831,7 +1846,7 @@ class APIClient {
 			`/api/v1/files/download/${fileId}`,
 			{
 				responseType: 'blob',
-			}
+			},
 		);
 		return response.data;
 	}
@@ -1849,7 +1864,7 @@ class APIClient {
 		const response = await this.client.post(
 			'/api/v1/tasks/send-schedule-reminders',
 			null,
-			{ params }
+			{ params },
 		);
 		return response.data;
 	}
@@ -1860,7 +1875,7 @@ class APIClient {
 	 */
 	async checkDocumentExpiry(): Promise<any> {
 		const response = await this.client.post(
-			'/api/v1/tasks/check-document-expiry'
+			'/api/v1/tasks/check-document-expiry',
 		);
 		return response.data;
 	}
@@ -1871,7 +1886,7 @@ class APIClient {
 	 */
 	async checkVehicleMaintenance(): Promise<any> {
 		const response = await this.client.post(
-			'/api/v1/tasks/check-vehicle-maintenance'
+			'/api/v1/tasks/check-vehicle-maintenance',
 		);
 		return response.data;
 	}
@@ -1890,7 +1905,7 @@ class APIClient {
 		};
 	}> {
 		const response = await this.client.post(
-			`/api/v1/vehicles/${vehicleId}/send-maintenance-email`
+			`/api/v1/vehicles/${vehicleId}/send-maintenance-email`,
 		);
 		return response.data;
 	}
@@ -1901,7 +1916,7 @@ class APIClient {
 	 */
 	async checkLowStock(): Promise<any> {
 		const response = await this.client.post(
-			'/api/v1/tasks/check-low-stock'
+			'/api/v1/tasks/check-low-stock',
 		);
 		return response.data;
 	}

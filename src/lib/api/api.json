@@ -3626,6 +3626,37 @@
         }
       }
     },
+    "/api/v1/supervise/rosters/synced-drivers": {
+      "get": {
+        "tags": [
+          "Deputy Integration"
+        ],
+        "summary": "Get Synced Deputy Drivers",
+        "description": "Get the list of drivers involved in the last roster sync.\nReturns the driver details (id, name, deputy_id) corresponding to the IDs stored in RosterSyncState.",
+        "operationId": "get_synced_deputy_drivers_api_v1_supervise_rosters_synced_drivers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SyncedDriver"
+                  },
+                  "type": "array",
+                  "title": "Response Get Synced Deputy Drivers Api V1 Supervise Rosters Synced Drivers Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/files/upload": {
       "post": {
         "tags": [
@@ -5126,7 +5157,7 @@
           "Manual Tasks"
         ],
         "summary": "Manual Send Schedule Reminders",
-        "description": "手动触发：发送排班提醒短信（第1次短信）\n\n**自动执行时间**: 每天 04:00 AM\n\n**功能**:\n- 查找指定日期的所有排班（未发送提醒的）\n- 发送简单提醒短信：\"你有排班 for [日期]\"\n- 不包含路线和车辆信息\n- 设置 reminder_sms_sent = True\n\n**短信内容**: \"Hi {name}, you have a shift scheduled for {date}, Please reply Y to confirm or N to decline.\"\n\n**返回**: 发送统计（sent, failed, skipped）",
+        "description": "手动触发：发送排班提醒短信（第1次短信）\n\n**自动执行时间**: 每天 04:00 AM\n\n**功能**:\n- 查找指定日期的所有排班（未发送提醒的）\n- 发送简单提醒短信：\"你有排班 for [日期]\"\n- 不包含路线和车辆信息\n- 设置 reminder_sms_sent = True\n\n**短信内容**: \"Hi {name}, you have a shift scheduled for {date}, Please reply Y to confirm.\"\n\n**返回**: 发送统计（sent, failed, skipped）",
         "operationId": "manual_send_schedule_reminders_api_v1_tasks_send_schedule_reminders_post",
         "security": [
           {
@@ -7939,6 +7970,39 @@
         ],
         "title": "SkippedRosterInfo",
         "description": "Information about a skipped roster."
+      },
+      "SyncedDriver": {
+        "properties": {
+          "driver_id": {
+            "type": "integer",
+            "title": "Driver Id",
+            "description": "Internal Driver ID"
+          },
+          "deputy_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deputy Id",
+            "description": "Deputy Employee ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Driver Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "driver_id",
+          "name"
+        ],
+        "title": "SyncedDriver",
+        "description": "Simple driver info for synced roster response."
       },
       "SyncedScheduleInfo": {
         "properties": {

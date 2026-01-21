@@ -30,7 +30,7 @@ export default function BorrowsPage() {
 				.includes(searchTerm.toLowerCase()) ||
 			record.operated_by_name
 				?.toLowerCase()
-				.includes(searchTerm.toLowerCase())
+				.includes(searchTerm.toLowerCase()),
 	);
 
 	if (isLoading) {
@@ -135,7 +135,9 @@ export default function BorrowsPage() {
 														'-'}
 												</TableCell>
 												<TableCell>
-													{record.quantity}
+													{record.change_type === 'IN'
+														? record.quantity
+														: '-' + record.quantity}
 												</TableCell>
 												<TableCell>
 													{record.change_date}

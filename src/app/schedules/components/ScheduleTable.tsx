@@ -166,6 +166,15 @@ export function ScheduleTable({
 					) : (
 						schedules.map((schedule) => {
 							const isFailed = failedIdsSet.has(schedule.id);
+							// 🔑 核心修复点：统一 driver 派生状态
+							const hasDriver =
+								schedule.driver !== null &&
+								typeof schedule.driver === 'object' &&
+								schedule.driver.id > 0;
+
+							const currentDriverId = hasDriver
+								? schedule.driver!.id
+								: 0;
 
 							return (
 								<TableRow
@@ -176,20 +185,15 @@ export function ScheduleTable({
 											: ''
 									}`}>
 									{/* Driver Name Column */}
+									{/* ===== Driver Column (FIXED) ===== */}
 									<TableCell>
 										{isEditable ? (
 											<Select
-												value={
-													schedule.driver?.id?.toString() ||
-													''
-												}
+												value={String(currentDriverId)}
 												onValueChange={(value) => {
 													const driverId =
-														parseInt(value);
-													if (
-														!isNaN(driverId) &&
-														onDriverChange
-													) {
+														Number(value);
+													if (onDriverChange) {
 														onDriverChange(
 															schedule.id,
 															driverId,
@@ -200,46 +204,70 @@ export function ScheduleTable({
 													<SelectValue>
 														<div className='flex items-center gap-2'>
 															<User className='h-4 w-4 text-gray-500' />
-															<span className='font-medium text-gray-900'>
-																{schedule.driver
-																	?.name ||
-																	'-'}
+															<span className='font-medium'>
+																{hasDriver
+																	? schedule
+																			.driver!
+																			.name
+																	: 'Unassigned'}
 															</span>
 														</div>
 													</SelectValue>
 												</SelectTrigger>
+
 												<SelectContent>
-													{getAvailableDriversForSchedule &&
-														getAvailableDriversForSchedule(
-															schedule,
-														).map((driver) => (
-															<SelectItem
-																key={driver.id}
-																value={driver.id.toString()}>
-																<div className='flex items-center gap-2'>
-																	<User className='h-4 w-4 text-gray-500' />
-																	{
-																		driver.name
+													<SelectItem value='0'>
+														<div className='flex items-center gap-2 text-orange-600'>
+															<User className='h-4 w-4' />
+															Unassign Driver
+														</div>
+													</SelectItem>
+
+													{getAvailableDriversForSchedule?.(
+														schedule,
+													)
+														.filter(
+															(d) =>
+																d && d.id > 0,
+														)
+														.map((driver) => {
+															const isCurrent =
+																driver.id ===
+																currentDriverId;
+
+															return (
+																<SelectItem
+																	key={
+																		driver.id
 																	}
-																	{schedule
-																		.driver
-																		?.id ===
-																		driver.id && (
-																		<span className='text-xs text-gray-500'>
-																			(current)
+																	value={String(
+																		driver.id,
+																	)}>
+																	<div className='flex items-center gap-2'>
+																		<User className='h-4 w-4 text-gray-500' />
+																		<span>
+																			{
+																				driver.name
+																			}
 																		</span>
-																	)}
-																</div>
-															</SelectItem>
-														))}
+																		{isCurrent && (
+																			<span className='text-xs text-gray-500'>
+																				(current)
+																			</span>
+																		)}
+																	</div>
+																</SelectItem>
+															);
+														})}
 												</SelectContent>
 											</Select>
 										) : (
 											<div className='flex items-center gap-2'>
 												<User className='h-4 w-4 text-gray-500' />
-												<span className='font-medium text-gray-900'>
-													{schedule.driver?.name ||
-														'-'}
+												<span className='font-medium'>
+													{hasDriver
+														? schedule.driver!.name
+														: 'Unassigned'}
 												</span>
 											</div>
 										)}

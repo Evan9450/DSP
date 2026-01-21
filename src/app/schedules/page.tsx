@@ -36,7 +36,7 @@ import { useToast } from '@/components/ui/use-toast';
 export default function ScheduleTablePage() {
 	const { toast } = useToast();
 	const [selectedDate, setSelectedDate] = useState<string>(
-		format(new Date(), 'yyyy-MM-dd')
+		format(new Date(), 'yyyy-MM-dd'),
 	);
 	const [isLoadingSchedules, setIsLoadingSchedules] = useState(false);
 	const [isSyncingToday, setIsSyncingToday] = useState(false);
@@ -57,6 +57,10 @@ export default function ScheduleTablePage() {
 	const [scheduleData, setScheduleData] = useState<ScheduleResponse[]>([]);
 	const [allVehicles, setAllVehicles] = useState<any[]>([]);
 	const [allDrivers, setAllDrivers] = useState<any[]>([]);
+	const [syncedDriverIds, setSyncedDriverIds] = useState<Set<number>>(
+		new Set(),
+	);
+	console.log('syncedDriverIds', syncedDriverIds);
 	const [isImporting, setIsImporting] = useState(false);
 	// Track failed schedule IDs after batch confirm - rows will show red border
 	const [failedScheduleIds, setFailedScheduleIds] = useState<number[]>([]);
@@ -64,14 +68,14 @@ export default function ScheduleTablePage() {
 
 	// Get available vehicles for a specific schedule
 	const getAvailableVehiclesForSchedule = (
-		currentSchedule: ScheduleResponse
+		currentSchedule: ScheduleResponse,
 	) => {
 		// Get all vehicle aliases that are already assigned to OTHER schedules
 		const assignedVehicleAliases = scheduleData
 			.filter(
 				(s) =>
 					s.id !== currentSchedule.id &&
-					(s.vehicle_rego || s.vehicle_alias)
+					(s.vehicle_rego || s.vehicle_alias),
 			) // Exclude current schedule
 			.map((s) => s.vehicle_alias);
 
@@ -79,7 +83,7 @@ export default function ScheduleTablePage() {
 		return allVehicles.filter(
 			(v) =>
 				!assignedVehicleAliases.includes(v.alias) &&
-				v.condition !== 'unavailable'
+				v.condition !== 'unavailable',
 		);
 	};
 
@@ -89,7 +93,7 @@ export default function ScheduleTablePage() {
 			const data = await apiClient.getVehicles();
 			console.log(
 				'✅ All vehicles loaded (count: ' + data.length + '):',
-				data
+				data,
 			);
 			setAllVehicles(data);
 		} catch (error) {
@@ -104,7 +108,7 @@ export default function ScheduleTablePage() {
 			const data = await apiClient.getDrivers();
 			console.log(
 				'✅ All drivers loaded (count: ' + data.length + '):',
-				data
+				data,
 			);
 			setAllDrivers(data);
 		} catch (error) {
@@ -144,7 +148,7 @@ export default function ScheduleTablePage() {
 					(d) =>
 						(d.deputy_id &&
 							d.deputy_id === schedule.driver.deputy_id) ||
-						d.name === schedule.driver.name
+						d.name === schedule.driver.name,
 				);
 				return {
 					...schedule,
@@ -157,6 +161,21 @@ export default function ScheduleTablePage() {
 
 			setScheduleData(enrichedData);
 			console.log('✅ Schedule data updated in state');
+
+			// Fetch synced drivers for the roster
+			try {
+				const syncedDrivers = await apiClient.getSyncedDeputyDrivers();
+				console.log(
+					'🚀 => fetchSchedules => syncedDrivers:',
+					syncedDrivers,
+				);
+				const ids = new Set(syncedDrivers.map((d) => d.driver_id));
+				console.log('🚀 => fetchSchedules => ids:', ids);
+				setSyncedDriverIds(ids);
+				console.log('✅ Synced drivers loaded:', ids.size);
+			} catch (error) {
+				console.error('❌ Failed to fetch synced drivers:', error);
+			}
 		} catch (error) {
 			console.error('❌ Failed to fetch schedules:', error);
 			toast({
@@ -176,90 +195,218 @@ export default function ScheduleTablePage() {
 
 	const handleDriverChange = async (
 		scheduleId: number,
-		newDriverId: number
+		newDriverId: number,
 	) => {
 		console.log(
 			'🔄 Changing driver for schedule',
 			scheduleId,
 			'to driver',
-			newDriverId
+			newDriverId,
 		);
 
-		// Find the new driver info
+		// 1. Handle Unassign Case
+		if (newDriverId === 0) {
+			const previousSchedule = scheduleData.find(
+				(s) => s.id === scheduleId,
+			);
+			if (!previousSchedule) return;
+
+			// Optimistic update
+			setScheduleData((prevData) =>
+				prevData.map((schedule) =>
+					schedule.id === scheduleId
+						? {
+								...schedule,
+								driver: {
+									...schedule.driver,
+									id: 0,
+									name: '',
+									amazon_id: null,
+									phone: null,
+									is_active: false,
+									has_password: false,
+								},
+								confirm_status: 'pending' as const,
+								// @ts-ignore
+								_driver_id: 0,
+							}
+						: schedule,
+				),
+			);
+
+			try {
+				const updatedSchedule = await apiClient.updateSchedule(
+					scheduleId,
+					{
+						driver_id: null as any,
+						confirm_status: 'pending',
+					},
+				);
+
+				setScheduleData((prevData) =>
+					prevData.map((schedule) =>
+						schedule.id === scheduleId
+							? {
+									...updatedSchedule,
+									// @ts-ignore
+									_driver_id: 0,
+								}
+							: schedule,
+					),
+				);
+
+				toast({
+					title: 'Driver Unassigned',
+					description: 'Driver has been removed from this schedule',
+				});
+			} catch (error: any) {
+				console.error('❌ Failed to unassign driver:', error);
+				// Revert
+				setScheduleData((prevData) =>
+					prevData.map((schedule) =>
+						schedule.id === scheduleId
+							? previousSchedule
+							: schedule,
+					),
+				);
+				toast({
+					title: 'Error',
+					description: 'Failed to unassign driver',
+					variant: 'destructive',
+				});
+			}
+			return;
+		}
+
+		// 2. Handle Reassign Case (with potential stealing)
 		const newDriver = allDrivers.find((d) => d.id === newDriverId);
 		if (!newDriver) {
 			console.error('❌ Driver not found:', newDriverId);
 			return;
 		}
 
-		console.log('✅ Found driver:', newDriver);
+		// Check if driver is already assigned to another schedule
+		const oldScheduleWithDriver = scheduleData.find(
+			(s) =>
+				s.id !== scheduleId &&
+				((s as any)._driver_id === newDriverId ||
+					s.driver.id === newDriverId),
+		);
 
 		// Save previous state for manual revert
-		const previousSchedule = scheduleData.find((s) => s.id === scheduleId);
-		if (!previousSchedule) return;
+		const previousTargetSchedule = scheduleData.find(
+			(s) => s.id === scheduleId,
+		);
+		const previousSourceSchedule = oldScheduleWithDriver
+			? scheduleData.find((s) => s.id === oldScheduleWithDriver.id)
+			: null;
 
-		// Optimistic update: Update local state immediately for instant UI feedback
+		if (!previousTargetSchedule) return;
+
+		// Optimistic update: Update both rows if stealing
 		setScheduleData((prevData) => {
-			const updated = prevData.map((schedule) =>
-				schedule.id === scheduleId
-					? {
-							...schedule,
-							deputy_id:
-								newDriver.deputy_id ||
-								schedule.driver.deputy_id,
-							driver_name: newDriver.name,
+			return prevData.map((schedule) => {
+				// Update target schedule
+				if (schedule.id === scheduleId) {
+					return {
+						...schedule,
+						driver: {
+							...schedule.driver,
+							id: newDriver.id,
+							name: newDriver.name,
 							amazon_id: newDriver.amazon_id || null,
-							confirm_status: 'pending' as const,
-							// @ts-ignore - Temporary field to track driver_id
-							_driver_id: newDriverId,
-						}
-					: schedule
-			);
-			console.log(
-				'📝 Optimistic update applied with driver_id:',
-				newDriverId
-			);
-			return updated;
+							deputy_id: newDriver.deputy_id || '',
+						},
+						confirm_status: 'pending' as const,
+						// @ts-ignore
+						_driver_id: newDriverId,
+					};
+				}
+				// Update source schedule (unassign)
+				if (
+					oldScheduleWithDriver &&
+					schedule.id === oldScheduleWithDriver.id
+				) {
+					return {
+						...schedule,
+						driver: {
+							...schedule.driver,
+							id: 0,
+							name: '',
+							amazon_id: null,
+							phone: null,
+							is_active: false,
+							has_password: false,
+						},
+						confirm_status: 'pending' as const,
+						// @ts-ignore
+						_driver_id: 0,
+					};
+				}
+				return schedule;
+			});
 		});
 
 		try {
+			// If stealing, unassign from old schedule first (or parallel)
+			if (oldScheduleWithDriver) {
+				console.log(
+					`Unassigning driver ${newDriverId} from old schedule ${oldScheduleWithDriver.id}`,
+				);
+				await apiClient.updateSchedule(oldScheduleWithDriver.id, {
+					driver_id: null as any,
+					confirm_status: 'pending',
+				});
+			}
+
 			console.log('🌐 Calling API to update schedule...');
 			const updatedSchedule = await apiClient.updateSchedule(scheduleId, {
 				driver_id: newDriverId,
-				confirm_status: 'pending', // Reset to pending when driver changes
+				confirm_status: 'pending',
 			});
 			console.log('✅ API update successful:', updatedSchedule);
 
 			// Single-row replacement: use API response to update the specific row
 			setScheduleData((prevData) =>
-				prevData.map((schedule) =>
-					schedule.id === scheduleId
-						? {
-								...updatedSchedule,
-								// Preserve local computed field
-								// @ts-ignore
-								_driver_id: newDriverId,
-							}
-						: schedule
-				)
+				prevData.map((schedule) => {
+					if (schedule.id === scheduleId) {
+						return {
+							...updatedSchedule,
+							// Preserve local computed field
+							// @ts-ignore
+							_driver_id: newDriverId,
+						};
+					}
+					// For the source schedule, we keep the optimistic update state
+					// since we didn't fetch the fresh record, but unassigning is safe.
+					return schedule;
+				}),
 			);
-			console.log('✅ Single row updated without full refresh');
 
 			toast({
 				title: 'Driver Changed',
-				description: 'Driver has been reassigned, please confirm again',
+				description: oldScheduleWithDriver
+					? `Driver moved from another schedule to this one.`
+					: 'Driver has been reassigned, please confirm again',
 			});
 		} catch (error: any) {
 			console.error('❌ Failed to update driver:', error);
 
-			// Manual revert: restore previous state without reload
+			// Manual revert
 			setScheduleData((prevData) =>
-				prevData.map((schedule) =>
-					schedule.id === scheduleId ? previousSchedule : schedule
-				)
+				prevData.map((schedule) => {
+					if (schedule.id === scheduleId)
+						return previousTargetSchedule;
+					if (
+						oldScheduleWithDriver &&
+						schedule.id === oldScheduleWithDriver.id &&
+						previousSourceSchedule
+					)
+						return previousSourceSchedule;
+					return schedule;
+				}),
 			);
 
-			// Show detailed error message from backend
 			const errorMessage =
 				error.response?.data?.detail ||
 				error.message ||
@@ -274,12 +421,12 @@ export default function ScheduleTablePage() {
 
 	const handleVehicleAssignment = async (
 		scheduleId: number,
-		vehicleAlias: string
+		vehicleAlias: string,
 	) => {
 		// Handle unassign case
 		if (!vehicleAlias) {
 			const previousSchedule = scheduleData.find(
-				(s) => s.id === scheduleId
+				(s) => s.id === scheduleId,
 			);
 			if (!previousSchedule) return;
 
@@ -292,15 +439,18 @@ export default function ScheduleTablePage() {
 								vehicle_rego: null,
 								vehicle_alias: null,
 							}
-						: schedule
-				)
+						: schedule,
+				),
 			);
 
 			try {
-				const updatedSchedule = await apiClient.updateSchedule(scheduleId, {
-					vehicle_rego: '',
-					vehicle_alias: '',
-				});
+				const updatedSchedule = await apiClient.updateSchedule(
+					scheduleId,
+					{
+						vehicle_rego: null as any,
+						vehicle_alias: null as any,
+					},
+				);
 				// Single-row replacement
 				setScheduleData((prevData) =>
 					prevData.map((schedule) =>
@@ -310,8 +460,8 @@ export default function ScheduleTablePage() {
 									// @ts-ignore - Preserve local computed field
 									_driver_id: (schedule as any)._driver_id,
 								}
-							: schedule
-					)
+							: schedule,
+					),
 				);
 				toast({
 					title: 'Vehicle Unassigned',
@@ -321,8 +471,10 @@ export default function ScheduleTablePage() {
 				console.error('❌ Failed to unassign vehicle:', error);
 				setScheduleData((prevData) =>
 					prevData.map((schedule) =>
-						schedule.id === scheduleId ? previousSchedule : schedule
-					)
+						schedule.id === scheduleId
+							? previousSchedule
+							: schedule,
+					),
 				);
 				toast({
 					title: 'Error',
@@ -354,8 +506,8 @@ export default function ScheduleTablePage() {
 							vehicle_alias: vehicle.alias,
 							confirm_status: 'pending' as const,
 						}
-					: schedule
-			)
+					: schedule,
+			),
 		);
 
 		try {
@@ -373,8 +525,8 @@ export default function ScheduleTablePage() {
 								// @ts-ignore - Preserve local computed field
 								_driver_id: (schedule as any)._driver_id,
 							}
-						: schedule
-				)
+						: schedule,
+				),
 			);
 			toast({
 				title: 'Vehicle Assigned',
@@ -386,8 +538,8 @@ export default function ScheduleTablePage() {
 			// Manual revert: restore previous state without reload
 			setScheduleData((prevData) =>
 				prevData.map((schedule) =>
-					schedule.id === scheduleId ? previousSchedule : schedule
-				)
+					schedule.id === scheduleId ? previousSchedule : schedule,
+				),
 			);
 
 			// Show detailed error message from backend
@@ -410,7 +562,7 @@ export default function ScheduleTablePage() {
 
 			// 筛选出未确认的 schedules
 			const pendingSchedules = scheduleData.filter(
-				(s) => s.confirm_status !== 'confirmed'
+				(s) => s.confirm_status !== 'confirmed',
 			);
 
 			if (pendingSchedules.length === 0) {
@@ -421,18 +573,18 @@ export default function ScheduleTablePage() {
 			// 前端验证：检查必填字段
 			// Required: driver, amazon_id, route, vehicle, has_password
 			const canConfirm = (s: ScheduleResponse) => {
-				const hasDriver = !!s.driver?.id;
+				// const hasDriver = !!s.driver?.id;
 				const hasAmazonId = !!s.driver?.amazon_id;
 				const hasRoute = !!s.route;
 				const hasVehicle = !!s.vehicle_alias || !!s.vehicle_rego;
 				const hasPassword = !!s.driver?.has_password;
-				return (
-					hasDriver && hasAmazonId && hasRoute && hasVehicle && hasPassword
-				);
+				return hasAmazonId && hasRoute && hasVehicle && hasPassword;
 			};
 
 			const validSchedules = pendingSchedules.filter(canConfirm);
-			const invalidSchedules = pendingSchedules.filter((s) => !canConfirm(s));
+			const invalidSchedules = pendingSchedules.filter(
+				(s) => !canConfirm(s),
+			);
 
 			// 如果有无效的 schedules，标记红色边框并阻止确认
 			if (invalidSchedules.length > 0) {
@@ -441,11 +593,11 @@ export default function ScheduleTablePage() {
 
 				if (validSchedules.length === 0) {
 					notify.error(
-						`All ${invalidSchedules.length} schedules are missing required fields (Driver, Amazon ID, Route, Vehicle, or Password). Cannot confirm.`
+						`All ${invalidSchedules.length} schedules are missing required fields (Driver, Amazon ID, Route, Vehicle, or Password). Cannot confirm.`,
 					);
 				} else {
 					notify.warning(
-						`${invalidSchedules.length} schedules are missing required fields and cannot be confirmed. Please fix the highlighted rows first.`
+						`${invalidSchedules.length} schedules are missing required fields and cannot be confirmed. Please fix the highlighted rows first.`,
 					);
 				}
 				return;
@@ -462,9 +614,12 @@ export default function ScheduleTablePage() {
 				setScheduleData((prevData) =>
 					prevData.map((schedule) =>
 						successIds.has(schedule.id)
-							? { ...schedule, confirm_status: 'confirmed' as const }
-							: schedule
-					)
+							? {
+									...schedule,
+									confirm_status: 'confirmed' as const,
+								}
+							: schedule,
+					),
 				);
 			}
 
@@ -477,12 +632,12 @@ export default function ScheduleTablePage() {
 			// 显示结果
 			if (result.total_failed === 0) {
 				notify.success(
-					`${result.total_success} schedules confirmed and SMS sent`
+					`${result.total_success} schedules confirmed and SMS sent`,
 				);
 			} else if (result.total_success > 0) {
 				// 部分成功
 				notify.warning(
-					`${result.total_success} confirmed, ${result.total_failed} failed. Failed rows are highlighted.`
+					`${result.total_success} confirmed, ${result.total_failed} failed. Failed rows are highlighted.`,
 				);
 				// 显示失败详情
 				result.failed?.forEach((item) => {
@@ -491,7 +646,7 @@ export default function ScheduleTablePage() {
 			} else {
 				// 全部失败
 				notify.error(
-					'All confirmations failed. Please check the highlighted rows.'
+					'All confirmations failed. Please check the highlighted rows.',
 				);
 				result.failed?.forEach((item) => {
 					console.error(`Schedule ${item.id}: ${item.error}`);
@@ -517,31 +672,13 @@ export default function ScheduleTablePage() {
 	 * Only includes drivers from today's roster who are not already confirmed
 	 */
 	const getAvailableDriversForSchedule = (currentSchedule: any) => {
-		// Get all driver_ids from today's schedules
-		// Use _driver_id if available (manually changed), otherwise match by deputy_id
-		const todayDriverIds = new Set<number>();
-		scheduleData.forEach((s) => {
-			const scheduleWithDriverId = s as any;
-			if (scheduleWithDriverId._driver_id) {
-				todayDriverIds.add(scheduleWithDriverId._driver_id);
-			} else if (s.driver.deputy_id) {
-				// Find driver by deputy_id
-				const driver = allDrivers.find(
-					(d) => d.deputy_id === s.driver.deputy_id
-				);
-				if (driver) {
-					todayDriverIds.add(driver.id);
-				}
-			}
-		});
-
 		// Get driver_ids that are already confirmed (and not the current schedule)
 		const confirmedDriverIds = new Set<number>();
 		scheduleData
 			.filter(
 				(s) =>
 					s.confirm_status === 'confirmed' &&
-					s.id !== currentSchedule.id
+					s.id !== currentSchedule.id,
 			)
 			.forEach((s) => {
 				const scheduleWithDriverId = s as any;
@@ -549,7 +686,7 @@ export default function ScheduleTablePage() {
 					confirmedDriverIds.add(scheduleWithDriverId._driver_id);
 				} else if (s.driver.deputy_id) {
 					const driver = allDrivers.find(
-						(d) => d.deputy_id === s.driver.deputy_id
+						(d) => d.deputy_id === s.driver.deputy_id,
 					);
 					if (driver) {
 						confirmedDriverIds.add(driver.id);
@@ -558,10 +695,10 @@ export default function ScheduleTablePage() {
 			});
 
 		// Filter drivers:
-		// 1. Must be in today's roster
+		// 1. Must be in today's synced roster (fetched from /synced-drivers)
 		// 2. Must not be confirmed for another schedule
 		return allDrivers.filter((driver) => {
-			const isInTodayRoster = todayDriverIds.has(driver.id);
+			const isInTodayRoster = syncedDriverIds.has(driver.id);
 			const isAlreadyConfirmed = confirmedDriverIds.has(driver.id);
 			return isInTodayRoster && !isAlreadyConfirmed;
 		});
@@ -626,7 +763,7 @@ export default function ScheduleTablePage() {
 	};
 
 	const handleImportRoutes = async (
-		event: React.ChangeEvent<HTMLInputElement>
+		event: React.ChangeEvent<HTMLInputElement>,
 	) => {
 		const file = event.target.files?.[0];
 		if (!file) return;
@@ -697,7 +834,8 @@ export default function ScheduleTablePage() {
 									variant='outline'
 									className={cn(
 										'w-[240px] justify-start text-left font-normal',
-										!selectedDate && 'text-muted-foreground'
+										!selectedDate &&
+											'text-muted-foreground',
 									)}>
 									<CalendarIcon className='mr-2 h-4 w-4' />
 									{selectedDate ? (
@@ -716,7 +854,7 @@ export default function ScheduleTablePage() {
 									onSelect={(date) => {
 										if (date) {
 											setSelectedDate(
-												format(date, 'yyyy-MM-dd')
+												format(date, 'yyyy-MM-dd'),
 											);
 										}
 									}}

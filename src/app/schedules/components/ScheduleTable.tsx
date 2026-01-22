@@ -138,7 +138,13 @@ export function ScheduleTable({
 						<TableHead>Shift Time</TableHead>
 						<TableHead>Vehicle</TableHead>
 						<TableHead>Confirm Status</TableHead>
-						<TableHead className='text-center'>Action</TableHead>
+						{isEditable ? (
+							<TableHead className='text-center'>
+								Action
+							</TableHead>
+						) : (
+							<> </>
+						)}
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -502,27 +508,31 @@ export function ScheduleTable({
 									</TableCell>
 
 									{/* Actions Column - Resend SMS */}
-									<TableCell className='text-center'>
-										<Button
-											variant='outline'
-											size='sm'
-											onClick={() =>
-												handleResendSMS(schedule.id)
-											}
-											disabled={sendingSmsIds.has(
-												schedule.id,
-											)}
-											className='gap-1.5'>
-											{/* {sendingSmsIds.has(schedule.id) ? (
+									{isEditable ? (
+										<TableCell className='text-center'>
+											<Button
+												variant='outline'
+												size='sm'
+												onClick={() =>
+													handleResendSMS(schedule.id)
+												}
+												disabled={sendingSmsIds.has(
+													schedule.id,
+												)}
+												className='gap-1.5'>
+												{/* {sendingSmsIds.has(schedule.id) ? (
 												<Loader2 className='h-4 w-4 animate-spin' />
 											) : (
 												<MessageSquare className='h-4 w-4' />
 											)} */}
-											<span className='hidden sm:inline'>
-												Resend
-											</span>
-										</Button>
-									</TableCell>
+												<span className='hidden sm:inline'>
+													Resend
+												</span>
+											</Button>
+										</TableCell>
+									) : (
+										<></>
+									)}
 								</TableRow>
 							);
 						})

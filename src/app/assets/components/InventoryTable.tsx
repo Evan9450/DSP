@@ -9,7 +9,8 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-
+import { TablePagination } from '@/components/TablePagination';
+import { usePagination } from '@/hooks/use-pagination';
 import type { Asset } from '@/types/schedule';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -53,6 +54,16 @@ const InventoryTable = ({
 		}
 		return <Badge className='bg-green-500 text-white'>Available</Badge>;
 	};
+
+	const {
+		currentItems: paginatedChanges,
+		currentPage,
+		totalPages,
+		goToPage,
+	} = usePagination({
+		data: filteredAssets,
+		itemsPerPage: 20,
+	});
 	return (
 		<Card className='mb-6'>
 			<div className='p-6'>
@@ -78,7 +89,7 @@ const InventoryTable = ({
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{filteredAssets.map((asset) => {
+							{paginatedChanges.map((asset) => {
 								return (
 									<TableRow key={asset.id}>
 										<TableCell className='font-medium'>
@@ -154,6 +165,11 @@ const InventoryTable = ({
 							})}
 						</TableBody>
 					</Table>
+					<TablePagination
+							currentPage={currentPage}
+							totalPages={totalPages}
+							onPageChange={goToPage}
+						/>
 				</div>
 			</div>
 		</Card>

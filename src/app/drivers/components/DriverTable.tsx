@@ -26,8 +26,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { TablePagination } from '@/components/TablePagination';
 import { calculateDocumentStatus } from '@/lib/helpers';
 import { convertDriver } from '@/lib/api/converters';
+import { usePagination } from '@/hooks/use-pagination';
 
 type Driver = ReturnType<typeof convertDriver>;
 interface DriverTableProps {
@@ -61,6 +63,16 @@ const DriverTable = ({
 			expired: expired.length,
 		};
 	};
+	const {
+		currentItems: paginatedChanges,
+		currentPage,
+		totalPages,
+		goToPage,
+	} = usePagination({
+		data: filteredDrivers,
+		itemsPerPage: 20,
+	});
+	// const docStatus = getDriverDocumentStatus(driver.id);
 
 	return (
 		<Card className='bg-white shadow-sm hover:shadow-md transition-shadow rounded-lg overflow-x-auto p-6'>
@@ -92,8 +104,17 @@ const DriverTable = ({
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{filteredDrivers.map((driver) => {
+					{paginatedChanges.map((driver) => {
 						const docStatus = getDriverDocumentStatus(driver.id);
+						const hasDocs = docStatus.total > 0;
+						const hasExpired = docStatus.expired > 0;
+
+						const label = hasDocs
+							? docStatus.total
+							: 'No documents';
+						const labelColor = hasDocs
+							? 'text-gray-600'
+							: 'text-gray-400';
 						return (
 							<TableRow
 								key={driver.id}
@@ -168,7 +189,7 @@ const DriverTable = ({
 										<span className='text-gray-400'>-</span>
 									)}
 								</TableCell> */}
-								<TableCell>
+								{/* <TableCell>
 									{docStatus.total > 0 ? (
 										<div className='space-y-1'>
 											<div className='flex items-center gap-1'>
@@ -184,11 +205,39 @@ const DriverTable = ({
 											)}
 										</div>
 									) : (
-										<span className='text-xs text-gray-400'>
-											No documents
-										</span>
+										<div className='space-y-1'>
+											<div className='flex items-center gap-1'>
+												<FileText className='h-3 w-3 text-gray-500' />
+												<span className='text-xs text-gray-400'>
+													No documents
+												</span>
+											</div>
+											{docStatus.expired > 0 && (
+												<Badge className='bg-rose-500 text-white text-xs hover:bg-rose-600'>
+													{docStatus.expired} Expired
+												</Badge>
+											)}
+										</div>
 									)}
+								</TableCell> */}
+								<TableCell>
+									<div className='space-y-1'>
+										<div className='flex items-center gap-1'>
+											<FileText className='h-3 w-3 text-gray-500' />
+											<span
+												className={`text-xs ${labelColor}`}>
+												{label}
+											</span>
+										</div>
+
+										{hasExpired && (
+											<Badge className='bg-rose-500 text-white text-xs hover:bg-rose-600'>
+												{docStatus.expired} Expired
+											</Badge>
+										)}
+									</div>
 								</TableCell>
+
 								<TableCell>
 									<div className='flex items-center gap-1'>
 										<div
@@ -210,7 +259,7 @@ const DriverTable = ({
 												e.stopPropagation();
 												handleDeleteClick(
 													driver.id,
-													driver.name
+													driver.name,
 												);
 											}}>
 											<Trash2 className='h-4 w-4' />
@@ -223,6 +272,11 @@ const DriverTable = ({
 					})}
 				</TableBody>
 			</Table>
+			<TablePagination
+				currentPage={currentPage}
+				totalPages={totalPages}
+				onPageChange={goToPage}
+			/>
 		</Card>
 	);
 };

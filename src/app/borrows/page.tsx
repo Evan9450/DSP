@@ -13,7 +13,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { TablePagination } from '@/components/TablePagination';
 import { useInventoryChanges } from '@/hooks/use-assets';
+import { usePagination } from '@/hooks/use-pagination';
 import { useState } from 'react';
 
 export default function BorrowsPage() {
@@ -32,6 +34,16 @@ export default function BorrowsPage() {
 				?.toLowerCase()
 				.includes(searchTerm.toLowerCase()),
 	);
+
+	const {
+		currentItems: paginatedChanges,
+		currentPage,
+		totalPages,
+		goToPage,
+	} = usePagination({
+		data: filteredChanges,
+		itemsPerPage: 20,
+	});
 
 	if (isLoading) {
 		return (
@@ -101,7 +113,7 @@ export default function BorrowsPage() {
 											</TableCell>
 										</TableRow>
 									) : (
-										filteredChanges.map((record) => (
+										paginatedChanges.map((record) => (
 											<TableRow
 												key={`${record.change_type}-${record.id}`}>
 												<TableCell>
@@ -148,6 +160,11 @@ export default function BorrowsPage() {
 								</TableBody>
 							</Table>
 						</div>
+						<TablePagination
+							currentPage={currentPage}
+							totalPages={totalPages}
+							onPageChange={goToPage}
+						/>
 					</div>
 				</Card>
 			</div>

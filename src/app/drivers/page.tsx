@@ -88,6 +88,22 @@ export default function DriversPage() {
 				d.email?.toLowerCase().includes(searchTerm.toLowerCase())
 		)
 		.sort((a, b) => {
+			const isExpired = (d: any) => {
+				const licenseExpired =
+					d.license_expiry_date &&
+					calculateDocumentStatus(new Date(d.license_expiry_date)) === 'expired';
+				const visaExpired =
+					d.visa_expiry_date &&
+					calculateDocumentStatus(new Date(d.visa_expiry_date)) === 'expired';
+				return licenseExpired || visaExpired;
+			};
+
+			const aExpired = isExpired(a);
+			const bExpired = isExpired(b);
+
+			if (aExpired && !bExpired) return -1;
+			if (!aExpired && bExpired) return 1;
+
 			if (a.isActive === b.isActive) return 0;
 			return a.isActive ? 1 : -1;
 		});

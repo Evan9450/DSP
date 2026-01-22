@@ -85,10 +85,10 @@ export default function VehicleDetailPage({
 	const [isEditing, setIsEditing] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [editForm, setEditForm] = useState<Partial<VehicleDetailResponse>>(
-		{}
+		{},
 	);
 	const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(
-		null
+		null,
 	);
 	const [isSendingEmail, setIsSendingEmail] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -99,7 +99,7 @@ export default function VehicleDetailPage({
 			'🔍 Vehicle Detail - params.id:',
 			resolvedParams.id,
 			'type:',
-			typeof resolvedParams.id
+			typeof resolvedParams.id,
 		);
 		if (resolvedParams.id) {
 			fetchVehicleDetail();
@@ -194,7 +194,7 @@ export default function VehicleDetailPage({
 			console.log('💾 Full update payload:', updateData);
 			const response = await apiClient.updateVehicle(
 				vehicle.id,
-				updateData
+				updateData,
 			);
 			console.log('✅ Backend response:', response);
 			toast({
@@ -276,7 +276,7 @@ export default function VehicleDetailPage({
 		}
 
 		setSelectedPhotoIndex((prev) =>
-			prev === 0 ? photoCount - 1 : (prev || 0) - 1
+			prev === 0 ? photoCount - 1 : (prev || 0) - 1,
 		);
 	};
 
@@ -297,7 +297,7 @@ export default function VehicleDetailPage({
 		}
 
 		setSelectedPhotoIndex((prev) =>
-			prev === photoCount - 1 ? 0 : (prev || 0) + 1
+			prev === photoCount - 1 ? 0 : (prev || 0) + 1,
 		);
 	};
 
@@ -703,7 +703,7 @@ export default function VehicleDetailPage({
 														mileage: e.target.value
 															? parseInt(
 																	e.target
-																		.value
+																		.value,
 																)
 															: undefined,
 													})
@@ -729,7 +729,7 @@ export default function VehicleDetailPage({
 															e.target.value
 																? parseInt(
 																		e.target
-																			.value
+																			.value,
 																	)
 																: undefined,
 													})
@@ -921,9 +921,9 @@ export default function VehicleDetailPage({
 													{editForm.last_maintenance_date ? (
 														format(
 															new Date(
-																editForm.last_maintenance_date
+																editForm.last_maintenance_date,
 															),
-															'PPP'
+															'PPP',
 														)
 													) : (
 														<span>Pick a date</span>
@@ -936,7 +936,7 @@ export default function VehicleDetailPage({
 													selected={
 														editForm.last_maintenance_date
 															? new Date(
-																	editForm.last_maintenance_date
+																	editForm.last_maintenance_date,
 																)
 															: undefined
 													}
@@ -947,7 +947,7 @@ export default function VehicleDetailPage({
 																date
 																	? format(
 																			date,
-																			'yyyy-MM-dd'
+																			'yyyy-MM-dd',
 																		)
 																	: undefined,
 														})
@@ -968,9 +968,9 @@ export default function VehicleDetailPage({
 													{editForm.next_maintenance_date ? (
 														format(
 															new Date(
-																editForm.next_maintenance_date
+																editForm.next_maintenance_date,
 															),
-															'PPP'
+															'PPP',
 														)
 													) : (
 														<span>Pick a date</span>
@@ -983,7 +983,7 @@ export default function VehicleDetailPage({
 													selected={
 														editForm.next_maintenance_date
 															? new Date(
-																	editForm.next_maintenance_date
+																	editForm.next_maintenance_date,
 																)
 															: undefined
 													}
@@ -994,7 +994,7 @@ export default function VehicleDetailPage({
 																date
 																	? format(
 																			date,
-																			'yyyy-MM-dd'
+																			'yyyy-MM-dd',
 																		)
 																	: undefined,
 														})
@@ -1004,53 +1004,67 @@ export default function VehicleDetailPage({
 											</PopoverContent>
 										</Popover>
 									</div>
-							<div className='space-y-2'>
-								<Label>Scheduled Maintenance Date</Label>
-								<Popover>
-									<PopoverTrigger asChild>
-										<Button
-											variant='outline'
-											className='w-full justify-start text-left font-normal'>
-											<CalendarIcon className='mr-2 h-4 w-4' />
-											{editForm.scheduled_maintenance_date ? (
-												format(
-													new Date(
-														editForm.scheduled_maintenance_date
-													),
-													'PPP'
-												)
-											) : (
-												<span>Pick a date</span>
-											)}
-										</Button>
-									</PopoverTrigger>
-									<PopoverContent className='w-auto p-0'>
-										<Calendar
-											mode='single'
-											selected={
-												editForm.scheduled_maintenance_date
-													? new Date(
-															editForm.scheduled_maintenance_date
+									<div className='space-y-2'>
+										<Label>
+											Scheduled Maintenance Date
+										</Label>
+										<Popover>
+											<PopoverTrigger asChild>
+												<Button
+													variant='outline'
+													className='w-full justify-start text-left font-normal'>
+													<CalendarIcon className='mr-2 h-4 w-4' />
+													{editForm.scheduled_maintenance_date ? (
+														format(
+															new Date(
+																editForm.scheduled_maintenance_date,
+															),
+															'PPP',
 														)
-													: undefined
-											}
-											onSelect={(date) =>
-												setEditForm({
-													...editForm,
-													scheduled_maintenance_date:
-														date
-															? format(
-																	date,
-																	'yyyy-MM-dd'
+													) : (
+														<span>Pick a date</span>
+													)}
+												</Button>
+											</PopoverTrigger>
+											<PopoverContent className='w-auto p-0'>
+												<Calendar
+													mode='single'
+													selected={
+														editForm.scheduled_maintenance_date
+															? new Date(
+																	editForm.scheduled_maintenance_date,
 																)
-															: undefined,
-												})
-											}
-											initialFocus
+															: undefined
+													}
+													onSelect={(date) =>
+														setEditForm({
+															...editForm,
+															scheduled_maintenance_date:
+																date
+																	? format(
+																			date,
+																			'yyyy-MM-dd',
+																		)
+																	: undefined,
+														})
+													}
+													initialFocus
+												/>
+											</PopoverContent>
+										</Popover>
+									</div>
+									{/* TODO: Scheduled Mileage */}
+									<div className='space-y-2'>
+										<Label htmlFor='edit-location'>
+											Scheduled Mileage
+										</Label>
+										<Input
+											id='edit-location'
+											value={''}
+											onChange={(e) => console.log(e)}
+											placeholder='Scheduled Mileage'
 										/>
-									</PopoverContent>
-								</Popover>
-							</div>
+									</div>
 									<div className='space-y-2'>
 										<Label htmlFor='edit-location'>
 											Maintenance Location
@@ -1102,9 +1116,9 @@ export default function VehicleDetailPage({
 											{vehicle.last_maintenance_date ? (
 												format(
 													new Date(
-														vehicle.last_maintenance_date
+														vehicle.last_maintenance_date,
 													),
-													'MMM dd, yyyy'
+													'MMM dd, yyyy',
 												)
 											) : (
 												<span className='text-gray-400'>
@@ -1122,9 +1136,9 @@ export default function VehicleDetailPage({
 											{vehicle.next_maintenance_date ? (
 												format(
 													new Date(
-														vehicle.next_maintenance_date
+														vehicle.next_maintenance_date,
 													),
-													'MMM dd, yyyy'
+													'MMM dd, yyyy',
 												)
 											) : (
 												<span className='text-gray-400'>
@@ -1133,25 +1147,44 @@ export default function VehicleDetailPage({
 											)}
 										</p>
 									</div>
-							<div>
-								<p className='text-sm text-gray-600'>
-									Scheduled Maintenance
-								</p>
-								<p className='font-semibold'>
-									{vehicle.scheduled_maintenance_date ? (
-										format(
-											new Date(
-												vehicle.scheduled_maintenance_date
-											),
-											'MMM dd, yyyy'
-										)
-									) : (
-										<span className='text-gray-400'>
-											Not scheduled
-										</span>
-									)}
-								</p>
-							</div>
+									<div>
+										<p className='text-sm text-gray-600'>
+											Scheduled Maintenance
+										</p>
+										<p className='font-semibold'>
+											{vehicle.scheduled_maintenance_date ? (
+												format(
+													new Date(
+														vehicle.scheduled_maintenance_date,
+													),
+													'MMM dd, yyyy',
+												)
+											) : (
+												<span className='text-gray-400'>
+													Not scheduled
+												</span>
+											)}
+										</p>
+									</div>
+									<div>
+										<p className='text-sm text-gray-600'>
+											Scheduled Mileage
+										</p>
+										<p className='font-semibold'>
+											{vehicle.scheduled_maintenance_date ? (
+												format(
+													new Date(
+														vehicle.scheduled_maintenance_date,
+													),
+													'MMM dd, yyyy',
+												)
+											) : (
+												<span className='text-gray-400'>
+													Not scheduled
+												</span>
+											)}
+										</p>
+									</div>
 									<div>
 										<p className='text-sm text-gray-600'>
 											Maintenance Location
@@ -1315,7 +1348,7 @@ export default function VehicleDetailPage({
 											(inspection: any) => {
 												// Parse photo URLs
 												const getPhotoCount = (
-													urls: any
+													urls: any,
 												): number => {
 													if (!urls) return 0;
 													if (Array.isArray(urls))
@@ -1326,10 +1359,10 @@ export default function VehicleDetailPage({
 														try {
 															const parsed =
 																JSON.parse(
-																	urls
+																	urls,
 																);
 															return Array.isArray(
-																parsed
+																parsed,
 															)
 																? parsed.length
 																: 0;
@@ -1342,7 +1375,7 @@ export default function VehicleDetailPage({
 
 												const photoCount =
 													getPhotoCount(
-														inspection.inspection_urls
+														inspection.inspection_urls,
 													);
 
 												return (
@@ -1353,9 +1386,9 @@ export default function VehicleDetailPage({
 															{inspection.inspection_date
 																? format(
 																		new Date(
-																			inspection.inspection_date
+																			inspection.inspection_date,
 																		),
-																		'MMM dd, yyyy'
+																		'MMM dd, yyyy',
 																	)
 																: '-'}
 														</TableCell>
@@ -1441,7 +1474,7 @@ export default function VehicleDetailPage({
 																size='sm'
 																onClick={() =>
 																	router.push(
-																		`/inspections/${vehicle.id}?inspection_id=${inspection.id}`
+																		`/inspections/${vehicle.id}?inspection_id=${inspection.id}`,
 																	)
 																}>
 																<Eye className='h-4 w-4 mr-1' />
@@ -1450,7 +1483,7 @@ export default function VehicleDetailPage({
 														</TableCell>
 													</TableRow>
 												);
-											}
+											},
 										)}
 									</TableBody>
 								</Table>
@@ -1464,86 +1497,6 @@ export default function VehicleDetailPage({
 							)}
 						</Card>
 					</div>
-
-					{/* Sidebar */}
-					{/* <div className='space-y-6'>
-						<Card className='p-4'>
-							<h3 className='font-semibold text-gray-900 mb-3'>
-								Quick Actions
-							</h3>
-							<div className='space-y-2'>
-								<Button
-									variant='outline'
-									className='w-full justify-start'>
-									<Calendar className='h-4 w-4 mr-2' />
-									Schedule Maintenance
-								</Button>
-								<Button
-									variant='outline'
-									className='w-full justify-start'>
-									<Package className='h-4 w-4 mr-2' />
-									Assign to Schedule
-								</Button>
-								<Button
-									variant='outline'
-									className='w-full justify-start text-red-600 hover:text-red-700'>
-									<Trash2 className='h-4 w-4 mr-2' />
-									Delete Vehicle
-								</Button>
-							</div>
-						</Card> */}
-
-					{/* Timeline/History */}
-					{/* <Card className='p-4'>
-							<h3 className='font-semibold text-gray-900 mb-3'>
-								Activity
-							</h3>
-							<div className='space-y-3 text-sm'>
-								<div className='flex gap-3'>
-									<div className='w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0'>
-										<Car className='h-4 w-4 text-blue-700' />
-									</div>
-									<div>
-										<p className='font-medium text-gray-900'>
-											Vehicle created
-										</p>
-										<p className='text-gray-500 text-xs'>
-											{vehicle.created_at
-												? format(
-														new Date(
-															vehicle.created_at
-														),
-														'MMM dd, yyyy'
-													)
-												: '-'}
-										</p>
-									</div>
-								</div>
-								{vehicle.updated_at &&
-									vehicle.updated_at !==
-										vehicle.created_at && (
-										<div className='flex gap-3'>
-											<div className='w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0'>
-												<Edit className='h-4 w-4 text-orange-700' />
-											</div>
-											<div>
-												<p className='font-medium text-gray-900'>
-													Last updated
-												</p>
-												<p className='text-gray-500 text-xs'>
-													{format(
-														new Date(
-															vehicle.updated_at
-														),
-														'MMM dd, yyyy'
-													)}
-												</p>
-											</div>
-										</div>
-									)}
-							</div>
-						</Card>
-					</div> */}
 				</div>
 
 				{/* Photo Lightbox Dialog */}

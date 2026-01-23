@@ -27,7 +27,7 @@ export interface DriverInfo {
 
 export interface TodayInfoResponse {
 	schedule: ScheduleInfo | null;
-	existing_inspection: InspectionInfo | null;
+	existing_inspection: InspectionInfo[] | null;
 }
 
 export interface ScheduleInfo {

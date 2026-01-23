@@ -433,7 +433,7 @@ export default function InspectionDetailPage() {
 									Current Mileage
 								</div>
 								<div className='text-2xl font-bold text-blue-700 font-mono'>
-									{inspection.mileage_at_inspection.toLocaleString()}{' '}
+									{inspection.mileage_at_inspection?.toLocaleString()}{' '}
 									km
 								</div>
 							</div>
@@ -445,7 +445,7 @@ export default function InspectionDetailPage() {
 										Previous Mileage
 									</div>
 									<div className='text-2xl font-bold text-gray-700 font-mono'>
-										{previousInspection.mileage_at_inspection.toLocaleString()}{' '}
+										{previousInspection.mileage_at_inspection?.toLocaleString()}{' '}
 										km
 									</div>
 									<div className='text-xs text-gray-500 mt-1'>

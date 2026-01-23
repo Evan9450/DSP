@@ -11,6 +11,7 @@ import {
 	Truck,
 	Upload,
 	X,
+	CheckCircle,
 } from 'lucide-react';
 import type {
 	InspectionInfo,
@@ -44,7 +45,6 @@ export default function DriverInspectionPage() {
 	const [schedule, setSchedule] = useState<ScheduleInfo | null>(null);
 	const [existingInspection, setExistingInspection] =
 		useState<InspectionInfo | null>(null);
-	const [mode, setMode] = useState<'create' | 'edit' | 'loading'>('loading');
 
 	// Form State
 	const [mileage, setMileage] = useState('');
@@ -61,6 +61,7 @@ export default function DriverInspectionPage() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState('');
+	const [submitSuccess, setSubmitSuccess] = useState('');
 
 	// ========================================================================
 	// Initialization
@@ -114,22 +115,25 @@ export default function DriverInspectionPage() {
 			const data = await driverApiClient.getTodayInfo();
 			setTodayInfo(data);
 			setSchedule(data.schedule);
-			setExistingInspection(data.existing_inspection);
+			// Handle case where existing_inspection is returned as an array
+			const inspection = Array.isArray(data.existing_inspection)
+				? data.existing_inspection[0]
+				: data.existing_inspection; // Fallback in case it's not an array
 
-			// Determine mode
-			if (data.existing_inspection) {
-				// Edit mode
-				setMode('edit');
+			setExistingInspection(inspection || null);
+
+			if (inspection) {
+				console.log(
+					'🚀 => loadTodayData => inspection.mileage_at_inspection:',
+					inspection.mileage_at_inspection,
+				);
 				setMileage(
-					data.existing_inspection.mileage_at_inspection.toString(),
+					inspection.mileage_at_inspection.toString(),
 				);
-				setNotes(data.existing_inspection.notes || '');
+				setNotes(inspection.notes || '');
 				setExistingPhotoUrls(
-					data.existing_inspection.inspection_urls || [],
+					inspection.inspection_urls || [],
 				);
-			} else {
-				// Create mode
-				setMode('create');
 			}
 		} catch (error) {
 			console.error('❌ Failed to load today data:', error);
@@ -165,8 +169,9 @@ export default function DriverInspectionPage() {
 		const newPreviews = files.map((file) => URL.createObjectURL(file));
 		setNewFilesPreviews([...newFilesPreviews, ...newPreviews]);
 
-		// Clear submit error when user adds photos
+		// Clear submit error/success when user adds photos
 		if (submitError) setSubmitError('');
+		if (submitSuccess) setSubmitSuccess('');
 	};
 
 	const handleRemoveNewPhoto = (index: number) => {
@@ -189,9 +194,9 @@ export default function DriverInspectionPage() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setSubmitError(''); // Clear previous errors
+		setSubmitSuccess(''); // Clear previous success
 
 		console.log('🔵 handleSubmit called');
-		console.log('Mode:', mode);
 		console.log('Existing photos:', existingPhotoUrls.length);
 		console.log('New files:', newFiles.length);
 		console.log('Mileage:', mileage);
@@ -223,23 +228,6 @@ export default function DriverInspectionPage() {
 			return;
 		}
 
-		// Only validate vehicle_id in create mode (update mode doesn't need it)
-		if (
-			mode === 'create' &&
-			(!schedule?.vehicle_id || schedule.vehicle_id === null)
-		) {
-			console.log('❌ Validation failed: No vehicle_id');
-			const errorMsg =
-				'ERROR: No vehicle assigned in your schedule. Please contact your manager to assign a vehicle before submitting inspection.';
-			setSubmitError(errorMsg);
-			toast({
-				title: 'Vehicle Not Assigned',
-				description: errorMsg,
-				variant: 'destructive',
-			});
-			return;
-		}
-
 		console.log('✅ Validation passed, starting submission...');
 		setIsSubmitting(true);
 
@@ -264,53 +252,24 @@ export default function DriverInspectionPage() {
 
 			console.log('📋 Final photo URLs:', finalPhotoUrls);
 
-			// Step 2: Create or Update inspection
-			if (mode === 'create') {
-				console.log('🆕 Creating new inspection...');
+			// Step 2: Update inspection
+			console.log('✏️ Updating existing inspection...');
+			const payload = {
+				mileage_at_inspection: parseInt(mileage),
+				inspection_urls: finalPhotoUrls,
+				notes: notes.trim() || undefined,
+			};
+			console.log('Payload:', payload);
 
-				// Type safety check (should already be validated above)
-				if (!schedule?.vehicle_id || schedule.vehicle_id === null) {
-					throw new Error(
-						'No vehicle_id available for creating inspection',
-					);
-				}
+			await driverApiClient.updateInspection(payload);
+			console.log('✅ Inspection updated');
 
-				const payload = {
-					vehicle_id: schedule.vehicle_id,
-					mileage_at_inspection: parseInt(mileage),
-					inspection_urls: finalPhotoUrls,
-					notes: notes.trim() || undefined,
-				};
-				console.log('Payload:', payload);
-
-				await driverApiClient.createInspection(payload);
-				console.log('✅ Inspection created');
-
-				setSubmitError(''); // Clear any previous errors
-				toast({
-					title: 'Inspection Submitted',
-					description:
-						'Your vehicle inspection has been submitted successfully',
-				});
-			} else {
-				console.log('✏️ Updating existing inspection...');
-				const payload = {
-					mileage_at_inspection: parseInt(mileage),
-					inspection_urls: finalPhotoUrls,
-					notes: notes.trim() || undefined,
-				};
-				console.log('Payload:', payload);
-
-				await driverApiClient.updateInspection(payload);
-				console.log('✅ Inspection updated');
-
-				setSubmitError(''); // Clear any previous errors
-				toast({
-					title: 'Inspection Updated',
-					description:
-						'Your inspection has been updated successfully',
-				});
-			}
+			setSubmitError(''); // Clear any previous errors
+			setSubmitSuccess('Inspection submitted successfully!');
+			toast({
+				title: 'Inspection Updated',
+				description: 'Your inspection has been updated successfully',
+			});
 
 			// Step 3: Reload data
 			console.log('🔄 Reloading today data...');
@@ -435,12 +394,8 @@ export default function DriverInspectionPage() {
 
 				{/* Mode Indicator */}
 				<div className='mb-4'>
-					<Badge
-						variant={mode === 'create' ? 'secondary' : 'default'}
-						className='text-sm'>
-						{mode === 'create'
-							? 'New Inspection'
-							: "Editing Today's Inspection"}
+					<Badge variant='default' className='text-sm'>
+						Editing Today's Inspection
 					</Badge>
 				</div>
 
@@ -600,6 +555,7 @@ export default function DriverInspectionPage() {
 							onChange={(e) => {
 								setMileage(e.target.value);
 								if (submitError) setSubmitError('');
+								if (submitSuccess) setSubmitSuccess('');
 							}}
 							className='text-lg'
 							min='0'
@@ -644,6 +600,21 @@ export default function DriverInspectionPage() {
 						</div>
 					)}
 
+					{/* Success Display */}
+					{submitSuccess && (
+						<div className='flex items-start gap-3 p-4 bg-green-50 border-2 border-green-300 rounded-lg'>
+							<CheckCircle className='h-6 w-6 text-green-600 flex-shrink-0 mt-0.5' />
+							<div>
+								<p className='font-semibold text-green-900 mb-1'>
+									Success
+								</p>
+								<p className='text-sm text-green-700'>
+									{submitSuccess}
+								</p>
+							</div>
+						</div>
+					)}
+
 					{/* Submit Button */}
 					<Button
 						type='submit'
@@ -656,15 +627,10 @@ export default function DriverInspectionPage() {
 								'Current state - isSubmitting:',
 								isSubmitting,
 							);
-							console.log('Current state - mode:', mode);
 						}}
 						className='w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg'
 						disabled={isSubmitting}>
-						{isSubmitting
-							? 'Submitting...'
-							: mode === 'create'
-								? 'Submit Inspection'
-								: 'Update Inspection'}
+						{isSubmitting ? 'Submitting...' : 'Update Inspection'}
 					</Button>
 				</form>
 

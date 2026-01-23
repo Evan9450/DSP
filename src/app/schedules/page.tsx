@@ -197,6 +197,13 @@ export default function ScheduleTablePage() {
 		scheduleId: number,
 		newDriverId: number,
 	) => {
+		// Check if schedule is confirmed
+		const targetSchedule = scheduleData.find((s) => s.id === scheduleId);
+		if (targetSchedule?.confirm_status === 'confirmed') {
+			notify.warning('Cannot change driver for a confirmed schedule');
+			return;
+		}
+
 		console.log(
 			'🔄 Changing driver for schedule',
 			scheduleId,
@@ -423,6 +430,13 @@ export default function ScheduleTablePage() {
 		scheduleId: number,
 		vehicleAlias: string,
 	) => {
+		// Check if schedule is confirmed
+		const targetSchedule = scheduleData.find((s) => s.id === scheduleId);
+		if (targetSchedule?.confirm_status === 'confirmed') {
+			notify.warning('Cannot change vehicle for a confirmed schedule');
+			return;
+		}
+
 		// Handle unassign case
 		if (!vehicleAlias) {
 			const previousSchedule = scheduleData.find(

@@ -195,6 +195,10 @@ export function ScheduleTable({
 									<TableCell>
 										{isEditable ? (
 											<Select
+												disabled={
+													schedule.confirm_status ===
+													'confirmed'
+												}
 												value={String(currentDriverId)}
 												onValueChange={(value) => {
 													const driverId =
@@ -214,61 +218,61 @@ export function ScheduleTable({
 																className={`font-medium
 																	${hasDriver ? '' : 'text-red-500'}`}>
 																{hasDriver
-																	? schedule
-																			.driver!
-																			.name
-																	: 'Unassigned'}
-															</span>
-														</div>
-													</SelectValue>
-												</SelectTrigger>
+ 																	? schedule
+ 																			.driver!
+ 																			.name
+ 																	: 'Unassigned'}
+ 															</span>
+ 														</div>
+ 													</SelectValue>
+ 												</SelectTrigger>
 
-												<SelectContent>
-													<SelectItem value='0'>
-														<div className='flex items-center gap-2 text-orange-600'>
-															<User className='h-4 w-4' />
-															Unassign Driver
-														</div>
-													</SelectItem>
+ 												<SelectContent>
+ 													<SelectItem value='0'>
+ 														<div className='flex items-center gap-2 text-orange-600'>
+ 															<User className='h-4 w-4' />
+ 															Unassign Driver
+ 														</div>
+ 													</SelectItem>
 
-													{getAvailableDriversForSchedule?.(
-														schedule,
-													)
-														.filter(
-															(d) =>
-																d && d.id > 0,
-														)
-														.map((driver) => {
-															const isCurrent =
-																driver.id ===
-																currentDriverId;
+ 													{getAvailableDriversForSchedule?.(
+ 														schedule,
+ 													)
+ 														.filter(
+ 															(d) =>
+ 																d && d.id > 0,
+ 														)
+ 														.map((driver) => {
+ 															const isCurrent =
+ 																driver.id ===
+ 																currentDriverId;
 
-															return (
-																<SelectItem
-																	key={
-																		driver.id
-																	}
-																	value={String(
-																		driver.id,
-																	)}>
-																	<div className='flex items-center gap-2'>
-																		<User className='h-4 w-4 text-gray-500' />
-																		<span>
-																			{
-																				driver.name
-																			}
-																		</span>
-																		{isCurrent && (
-																			<span className='text-xs text-gray-500'>
-																				(current)
-																			</span>
-																		)}
-																	</div>
-																</SelectItem>
-															);
-														})}
-												</SelectContent>
-											</Select>
+ 															return (
+ 																<SelectItem
+ 																	key={
+ 																		driver.id
+ 																	}
+ 																	value={String(
+ 																		driver.id,
+ 																	)}>
+ 																	<div className='flex items-center gap-2'>
+ 																		<User className='h-4 w-4 text-gray-500' />
+ 																		<span>
+ 																			{
+ 																				driver.name
+ 																			}
+ 																		</span>
+ 																		{isCurrent && (
+ 																			<span className='text-xs text-gray-500'>
+ 																				(current)
+ 																			</span>
+ 																		)}
+ 																	</div>
+ 																</SelectItem>
+ 															);
+ 														})}
+ 												</SelectContent>
+ 											</Select>
 										) : (
 											<div className='flex items-center gap-2'>
 												<User className='h-4 w-4 text-gray-500' />
@@ -381,6 +385,10 @@ export function ScheduleTable({
 									<TableCell>
 										{isEditable ? (
 											<Select
+												disabled={
+													schedule.confirm_status ===
+													'confirmed'
+												}
 												value={
 													schedule.vehicle_alias ||
 													'unassigned'

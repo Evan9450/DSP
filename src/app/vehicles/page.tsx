@@ -54,15 +54,58 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { VehicleCondition } from '@/types/schedule';
+// import { VehicleCondition } from '@/types/schedule';
 import { apiClient } from '@/lib/api/client';
-import { apiConditionToString } from '@/lib/helpers';
+// import { apiConditionToString } from '@/lib/helpers';
 import { convertVehicle } from '@/lib/api/converters';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useVehicles } from '@/hooks/use-vehicles';
+
+/* =========================
+   Domain Types
+========================= */
+
+type VehicleCondition = 'available' | 'need-repair' | 'unavailable';
+type VehicleStatus = 'in-use' | 'not-in-use';
+
+/* =========================
+   UI Config
+========================= */
+
+const CONDITION_UI: Record<
+	VehicleCondition,
+	{ label: string; dot: string; text: string }
+> = {
+	available: {
+		label: 'Available',
+		dot: 'bg-green-500',
+		text: 'text-green-700',
+	},
+	'need-repair': {
+		label: 'Needs Repair',
+		dot: 'bg-yellow-500',
+		text: 'text-yellow-700',
+	},
+	unavailable: {
+		label: 'Unavailable',
+		dot: 'bg-red-500',
+		text: 'text-red-700',
+	},
+};
+
+const STATUS_UI: Record<VehicleStatus, { label: string; className: string }> = {
+	'in-use': {
+		label: 'In Use',
+		className: 'bg-blue-600 text-white',
+	},
+	'not-in-use': {
+		label: 'Not In Use',
+		className: 'bg-gray-300 text-black',
+	},
+};
 
 export default function VehiclesPage() {
 	const router = useRouter();
@@ -110,6 +153,10 @@ export default function VehiclesPage() {
 		return matchesSearch && matchesCondition;
 	});
 
+	/* =========================
+	   Stats (same source!)
+	========================= */
+
 	const conditionStats = {
 		available: vehicles.filter((v) => v.condition === 'available').length,
 		'need-repair': vehicles.filter((v) => v.condition === 'need-repair')
@@ -118,41 +165,41 @@ export default function VehiclesPage() {
 			.length,
 	};
 
-	const statusConfig: Record<
-		'in-use' | 'not-in-use',
-		{ label: string; className: string }
-	> = {
-		'in-use': { label: 'In Use', className: 'bg-blue-600 text-white' },
-		'not-in-use': {
-			label: 'Not In Use',
-			className: 'bg-gray-300 text-black',
-		},
-	};
+	// const statusConfig: Record<
+	// 	'in-use' | 'not-in-use',
+	// 	{ label: string; className: string }
+	// > = {
+	// 	'in-use': { label: 'In Use', className: 'bg-blue-600 text-white' },
+	// 	'not-in-use': {
+	// 		label: 'Not In Use',
+	// 		className: 'bg-gray-300 text-black',
+	// 	},
+	// };
 
-	const conditionConfig = {
-		green: {
-			label: 'Available',
-			className: 'bg-green-500',
-			textClass: 'text-green-700',
-		},
-		yellow: {
-			label: 'Needs Repair',
-			className: 'bg-yellow-500',
-			textClass: 'text-yellow-700',
-		},
-		red: {
-			label: 'Unavailable',
-			className: 'bg-red-500',
-			textClass: 'text-red-700',
-		},
-	};
+	// const conditionConfig = {
+	// 	green: {
+	// 		label: 'Available',
+	// 		className: 'bg-green-500',
+	// 		textClass: 'text-green-700',
+	// 	},
+	// 	yellow: {
+	// 		label: 'Needs Repair',
+	// 		className: 'bg-yellow-500',
+	// 		textClass: 'text-yellow-700',
+	// 	},
+	// 	red: {
+	// 		label: 'Unavailable',
+	// 		className: 'bg-red-500',
+	// 		textClass: 'text-red-700',
+	// 	},
+	// };
 
 	const handleRowClick = (vehicleId: string) => {
 		console.log(
 			'🚗 Clicking vehicle with ID:',
 			vehicleId,
 			'type:',
-			typeof vehicleId
+			typeof vehicleId,
 		);
 
 		if (!vehicleId || vehicleId === 'undefined') {
@@ -168,7 +215,7 @@ export default function VehiclesPage() {
 
 	const handleScheduleMaintenance = (
 		vehicleId: string,
-		e: React.MouseEvent
+		e: React.MouseEvent,
 	) => {
 		e.stopPropagation();
 		// TODO: Implement schedule maintenance functionality
@@ -178,7 +225,7 @@ export default function VehiclesPage() {
 	const handleDeleteClick = (
 		vehicleId: string,
 		rego: string,
-		e: React.MouseEvent
+		e: React.MouseEvent,
 	) => {
 		e.stopPropagation();
 		setVehicleToDelete({ id: vehicleId, rego });
@@ -199,7 +246,7 @@ export default function VehiclesPage() {
 			console.error('Failed to delete vehicle:', error);
 			handleApiError(
 				error,
-				errorMessages.vehicle.deleteFailed(vehicleToDelete?.rego)
+				errorMessages.vehicle.deleteFailed(vehicleToDelete?.rego),
 			);
 		}
 	};
@@ -232,7 +279,7 @@ export default function VehiclesPage() {
 		(v) =>
 			v.nextMaintenanceDate &&
 			(isMaintenanceOverdue(v.nextMaintenanceDate) ||
-				isMaintenanceDueSoon(v.nextMaintenanceDate))
+				isMaintenanceDueSoon(v.nextMaintenanceDate)),
 	);
 
 	if (isLoading) {
@@ -253,6 +300,50 @@ export default function VehiclesPage() {
 					<h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>
 						Vehicle Management
 					</h1>
+				</div>
+
+				{/* Stats Cards */}
+
+				<div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6'>
+					<Card className='p-4 bg-green-50 border-green-200'>
+						<div className='flex items-center justify-between'>
+							<div>
+								<p className='text-sm text-green-700 font-medium'>
+									Ready Vehicles
+								</p>
+								<p className='text-2xl font-bold text-green-900 mt-1'>
+									{conditionStats.available}
+								</p>
+							</div>
+							<div className='w-3 h-3 rounded-full bg-green-500'></div>
+						</div>
+					</Card>
+					<Card className='p-4 bg-yellow-50 border-yellow-200'>
+						<div className='flex items-center justify-between'>
+							<div>
+								<p className='text-sm text-yellow-700 font-medium'>
+									Needs Repair
+								</p>
+								<p className='text-2xl font-bold text-yellow-900 mt-1'>
+									{conditionStats['need-repair']}
+								</p>
+							</div>
+							<div className='w-3 h-3 rounded-full bg-yellow-500'></div>
+						</div>
+					</Card>
+					<Card className='p-4 bg-red-50 border-red-200'>
+						<div className='flex items-center justify-between'>
+							<div>
+								<p className='text-sm text-red-700 font-medium'>
+									Unavailable
+								</p>
+								<p className='text-2xl font-bold text-red-900 mt-1'>
+									{conditionStats.unavailable}
+								</p>
+							</div>
+							<div className='w-3 h-3 rounded-full bg-red-500'></div>
+						</div>
+					</Card>
 				</div>
 
 				{/* Search and Filters */}
@@ -374,23 +465,23 @@ export default function VehiclesPage() {
 								const maintenanceDays =
 									vehicle.nextMaintenanceDate
 										? getDaysUntilMaintenance(
-												vehicle.nextMaintenanceDate
+												vehicle.nextMaintenanceDate,
 											)
 										: null;
 								const isOverdue = vehicle.nextMaintenanceDate
 									? isMaintenanceOverdue(
-											vehicle.nextMaintenanceDate
+											vehicle.nextMaintenanceDate,
 										)
 									: false;
 								const isDueSoon = vehicle.nextMaintenanceDate
 									? isMaintenanceDueSoon(
-											vehicle.nextMaintenanceDate
+											vehicle.nextMaintenanceDate,
 										)
 									: false;
 
-								const conditionStr = apiConditionToString(
-									vehicle.condition
-								);
+								// const conditionStr = apiConditionToString(
+								// 	vehicle.condition,
+								// );
 								// vehicle.status is already a string: 'in-use' | 'not-in-use'
 								const statusStr = vehicle.status;
 
@@ -426,14 +517,15 @@ export default function VehiclesPage() {
 										</TableCell>
 										<TableCell>
 											<div className='flex items-center gap-2'>
-												<div
-													className={`w-3 h-3 rounded-full ${conditionConfig[conditionStr]?.className}`}></div>
 												<span
-													className={`font-medium ${conditionConfig[conditionStr]?.textClass}`}>
+													className={`w-3 h-3 rounded-full ${CONDITION_UI[vehicle.condition].dot}`}
+												/>
+												<span
+													className={`font-medium ${CONDITION_UI[vehicle.condition].text}`}>
 													{
-														conditionConfig[
-															conditionStr
-														]?.label
+														CONDITION_UI[
+															vehicle.condition
+														].label
 													}
 												</span>
 											</div>
@@ -441,10 +533,10 @@ export default function VehiclesPage() {
 										<TableCell>
 											<Badge
 												className={
-													statusConfig[statusStr]
-														?.className
+													STATUS_UI[vehicle.status]
+														.className
 												}>
-												{statusConfig[statusStr]?.label}
+												{STATUS_UI[vehicle.status].label}
 											</Badge>
 										</TableCell>
 										<TableCell>
@@ -466,7 +558,7 @@ export default function VehiclesPage() {
 														className={`text-sm ${isOverdue ? 'text-red-600 font-semibold' : isDueSoon ? 'text-orange-600 font-medium' : 'text-gray-600'}`}>
 														{format(
 															vehicle.nextMaintenanceDate,
-															'MMM dd, yyyy'
+															'MMM dd, yyyy',
 														)}
 													</p>
 													{/* {maintenanceDays !==

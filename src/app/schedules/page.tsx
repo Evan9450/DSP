@@ -877,13 +877,12 @@ export default function ScheduleTablePage() {
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50'>
 			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl'>
 				<div className='mb-4 sm:mb-6 flex items-center justify-between'>
-					<div></div>
-					{/* <div className='flex items-center gap-4'>
-
+					<div className='flex items-center gap-4'>
 						<Popover>
 							<PopoverTrigger asChild>
 								<Button
 									variant='outline'
+									disabled
 									className={cn(
 										'w-[240px] justify-start text-left font-normal',
 										!selectedDate &&
@@ -902,6 +901,7 @@ export default function ScheduleTablePage() {
 								align='start'>
 								<Calendar
 									mode='single'
+									// disabled
 									selected={new Date(selectedDate)}
 									onSelect={(date) => {
 										if (date) {
@@ -914,7 +914,7 @@ export default function ScheduleTablePage() {
 								/>
 							</PopoverContent>
 						</Popover>
-					</div> */}
+					</div>
 					<div className='flex items-center gap-2'>
 						<Button
 							variant='outline'

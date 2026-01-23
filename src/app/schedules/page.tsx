@@ -869,6 +869,11 @@ export default function ScheduleTablePage() {
 			}
 
 			notify.success(description);
+
+			// 添加这段代码：如果当前已经是今天，则手动刷新；如果不是今天，useEffect 会自动刷新
+			if (selectedDate === today) {
+				await fetchSchedules();
+			}
 		} catch (error: any) {
 			// Show detailed error message from backend
 			const errorMessage =

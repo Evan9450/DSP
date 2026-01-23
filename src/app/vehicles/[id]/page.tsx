@@ -424,7 +424,7 @@ export default function VehicleDetailPage({
 
 	const conditionConfig = {
 		green: {
-			label: 'Ready',
+			label: 'Available',
 			className: 'bg-green-500',
 			textClass: 'text-green-700',
 		},

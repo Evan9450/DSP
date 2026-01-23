@@ -149,10 +149,10 @@ export default function VehicleDetailPage({
 			setVehicle(data);
 			setEditForm(data);
 		} catch (error) {
-			console.error('Failed to fetch vehicle detail:', error);
+			console.error('Unavailable to fetch vehicle detail:', error);
 			toast({
 				title: 'Error',
-				description: 'Failed to load vehicle details.',
+				description: 'Unavailable to load vehicle details.',
 				variant: 'destructive',
 			});
 		} finally {
@@ -204,10 +204,10 @@ export default function VehicleDetailPage({
 			setIsEditing(false);
 			fetchVehicleDetail();
 		} catch (error) {
-			console.error('Failed to update vehicle:', error);
+			console.error('Unavailable to update vehicle:', error);
 			toast({
 				title: 'Error',
-				description: 'Failed to update vehicle.',
+				description: 'Unavailable to update vehicle.',
 				variant: 'destructive',
 			});
 		} finally {
@@ -227,10 +227,10 @@ export default function VehicleDetailPage({
 			});
 			fetchVehicleDetail();
 		} catch (error) {
-			console.error('Failed to upload photos:', error);
+			console.error('Unavailable to upload photos:', error);
 			toast({
 				title: 'Error',
-				description: 'Failed to upload photos.',
+				description: 'Unavailable to upload photos.',
 				variant: 'destructive',
 			});
 		} finally {
@@ -250,10 +250,10 @@ export default function VehicleDetailPage({
 			fetchVehicleDetail();
 			setSelectedPhotoIndex(null);
 		} catch (error) {
-			console.error('Failed to delete photo:', error);
+			console.error('Unavailable to delete photo:', error);
 			toast({
 				title: 'Error',
-				description: 'Failed to delete photo.',
+				description: 'Unavailable to delete photo.',
 				variant: 'destructive',
 			});
 		}
@@ -313,10 +313,10 @@ export default function VehicleDetailPage({
 					result.message || 'Maintenance email sent successfully.',
 			});
 		} catch (error: any) {
-			console.error('Failed to send maintenance email:', error);
+			console.error('Unavailable to send maintenance email:', error);
 			const errorMessage =
 				error.response?.data?.detail ||
-				'Failed to send maintenance email.';
+				'Unavailable to send maintenance email.';
 			toast({
 				title: 'Error',
 				description: errorMessage,
@@ -341,10 +341,10 @@ export default function VehicleDetailPage({
 			// Navigate back to vehicles list
 			router.push('/vehicles');
 		} catch (error) {
-			console.error('Failed to delete vehicle:', error);
+			console.error('Unavailable to delete vehicle:', error);
 			toast({
 				title: 'Error',
-				description: `Failed to delete vehicle ${vehicle.rego}.`,
+				description: `Unavailable to delete vehicle ${vehicle.rego}.`,
 				variant: 'destructive',
 			});
 		}
@@ -404,7 +404,7 @@ export default function VehicleDetailPage({
 
 					return cleanedUrls;
 				} catch (error) {
-					console.error('Failed to parse photo_urls:', error);
+					console.error('Unavailable to parse photo_urls:', error);
 					console.log('Original photo_urls:', vehicle.photo_urls);
 					return [];
 				}
@@ -1283,7 +1283,7 @@ export default function VehicleDetailPage({
 														onError={(e) => {
 															// Handle image load error
 															console.error(
-																`Failed to load photo ${index + 1}:`,
+																`Unavailable to load photo ${index + 1}:`,
 																url
 															);
 															const target =
@@ -1394,7 +1394,7 @@ export default function VehicleDetailPage({
 														</TableCell>
 														<TableCell>
 															{inspection.driver_id ? (
-																`Driver #${inspection.driver_id}`
+																inspection.driver_name
 															) : (
 																<span className='text-gray-400'>
 																	-
@@ -1427,31 +1427,31 @@ export default function VehicleDetailPage({
 															)}
 														</TableCell>
 														<TableCell>
-															{inspection.inspection_status ===
-																'pending' && (
+															{inspection.condition ===
+																'need-repair' && (
 																<Badge
 																	variant='outline'
 																	className='border-yellow-300 bg-yellow-50 text-yellow-800'>
 																	<Clock className='h-3 w-3 mr-1' />
-																	Pending
+																	Need Repair
 																</Badge>
 															)}
-															{inspection.inspection_status ===
-																'passed' && (
+															{inspection.condition ===
+																'available' && (
 																<Badge
 																	variant='outline'
 																	className='border-green-300 bg-green-50 text-green-800'>
 																	<CheckCircle2 className='h-3 w-3 mr-1' />
-																	Passed
+																	Available
 																</Badge>
 															)}
-															{inspection.inspection_status ===
-																'failed' && (
+															{inspection.condition ===
+																'unavailable' && (
 																<Badge
 																	variant='outline'
 																	className='border-red-300 bg-red-50 text-red-800'>
 																	<XCircle className='h-3 w-3 mr-1' />
-																	Failed
+																	Unavailable
 																</Badge>
 															)}
 														</TableCell>

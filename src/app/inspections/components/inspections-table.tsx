@@ -38,33 +38,33 @@ const getPhotoUrls = (urls: any): string[] => {
 	return [];
 };
 
-const getInspectionStatusBadge = (status: 'pending' | 'passed' | 'failed') => {
+const getInspectionStatusBadge = (status: string) => {
 	switch (status) {
-		case 'pending':
+		case 'need-repair':
 			return (
 				<Badge
 					variant='outline'
 					className='border-yellow-300 bg-yellow-50 text-yellow-800'>
 					<Clock className='h-3 w-3 mr-1' />
-					Pending
+					need repair
 				</Badge>
 			);
-		case 'passed':
+		case 'available':
 			return (
 				<Badge
 					variant='outline'
 					className='border-green-300 bg-green-50 text-green-800'>
 					<CheckCircle2 className='h-3 w-3 mr-1' />
-					Passed
+					available
 				</Badge>
 			);
-		case 'failed':
+		case 'unavailable':
 			return (
 				<Badge
 					variant='outline'
 					className='border-red-300 bg-red-50 text-red-800'>
 					<XCircle className='h-3 w-3 mr-1' />
-					Failed
+					unavailable
 				</Badge>
 			);
 		default:
@@ -149,7 +149,7 @@ export function InspectionsTable({
 							<TableBody>
 								{inspections.map((inspection) => {
 									const photoUrls = getPhotoUrls(
-										inspection.inspection_urls
+										inspection.inspection_urls,
 									);
 									return (
 										<TableRow
@@ -158,7 +158,7 @@ export function InspectionsTable({
 											onClick={() =>
 												handleViewDetails(
 													inspection.id,
-													inspection.vehicle_id
+													inspection.vehicle_id,
 												)
 											}>
 											<TableCell className='font-medium'>
@@ -179,9 +179,9 @@ export function InspectionsTable({
 											<TableCell>
 												{format(
 													new Date(
-														inspection.inspection_date
+														inspection.inspection_date,
 													),
-													'MMM dd, yyyy'
+													'MMM dd, yyyy',
 												)}
 											</TableCell>
 											<TableCell className='font-mono'>
@@ -196,12 +196,12 @@ export function InspectionsTable({
 
 											<TableCell>
 												{getInspectionStatusBadge(
-													inspection.inspection_status
+													inspection.condition,
 												)}
 											</TableCell>
 											<TableCell>
 												{getReviewStatusBadge(
-													inspection.reviewed_by_admin
+													inspection.reviewed_by_admin,
 												)}
 											</TableCell>
 										</TableRow>

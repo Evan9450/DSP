@@ -160,7 +160,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VehicleInspectionResponse"
+                  "$ref": "#/components/schemas/DriverVehicleInspectionResponse"
                 }
               }
             }
@@ -187,7 +187,7 @@
           "Driver App"
         ],
         "summary": "Create Inspection",
-        "description": "Create today's vehicle inspection record.\n\nDriver can only create one inspection per day.\nPhoto URLs should be obtained from /api/v1/files/batch-upload first.\n\nWorkflow:\n1. Driver uploads photos to /api/v1/files/batch-upload\n2. Get photo URLs from response\n3. Call this endpoint with inspection_urls array",
+        "description": "Update today's vehicle inspection record (created automatically when schedule is confirmed).\n\nDriver CANNOT create new inspection - it must be auto-created when admin confirms the schedule.\nThis endpoint only allows updating the existing inspection with photos, mileage, and notes.\n\nWorkflow:\n1. Admin confirms schedule → Inspection auto-created (empty)\n2. Driver uploads photos to /api/v1/files/batch-upload\n3. Get photo URLs from response\n4. Call this endpoint to update inspection with photos and details\n\nNote: This endpoint will return 404 if no inspection exists for today.",
         "operationId": "create_inspection_api_v1_driver_inspection_post",
         "requestBody": {
           "content": {
@@ -205,7 +205,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VehicleInspectionResponse"
+                  "$ref": "#/components/schemas/DriverVehicleInspectionResponse"
                 }
               }
             }
@@ -1883,7 +1883,7 @@
             "schema": {
               "anyOf": [
                 {
-                  "$ref": "#/components/schemas/CheckinStatus"
+                  "$ref": "#/components/schemas/app__models__driver_checkin__CheckinStatus"
                 },
                 {
                   "type": "null"
@@ -3632,7 +3632,7 @@
           "Deputy Integration"
         ],
         "summary": "Get Synced Deputy Drivers",
-        "description": "Get the list of drivers involved in the last roster sync.\nReturns the driver details (id, name, deputy_id) corresponding to the IDs stored in RosterSyncState.",
+        "description": "Get the list of drivers involved in the last roster sync.\nReturns the driver details (id, name, deputy_id) corresponding to the IDs stored in RosterSyncState.\n\nNote: RosterSyncState is updated by both:\n- Manual sync via POST /rosters/sync\n- Scheduled task sync_today_rosters() at 06:00 daily",
         "operationId": "get_synced_deputy_drivers_api_v1_supervise_rosters_synced_drivers_get",
         "responses": {
           "200": {
@@ -4474,7 +4474,7 @@
           "Inspection Management"
         ],
         "summary": "List Inspections",
-        "description": "获取 inspection 列表（支持多种过滤条件）\n\n**核心功能**：\n- 按日期查看某天所有 inspection\n- 按车辆查看 inspection 历史\n- 按司机查看 inspection 历史\n- 按状态过滤（待审核、通过、失败）\n- 日期范围查询\n\n**示例**：\n- 查看某天所有 inspection: `?inspection_date=2026-01-04`\n- 查看某车所有 inspection: `?vehicle_id=1`\n- 查看待审核的 inspection: `?inspection_status=pending&reviewed=false`\n- 日期范围: `?start_date=2026-01-01&end_date=2026-01-31`",
+        "description": "获取 inspection 列表（支持多种过滤条件）\n\n**核心功能**：\n- 按日期查看某天所有 inspection\n- 按车辆查看 inspection 历史\n- 按司机查看 inspection 历史\n- 按状态过滤（待审核、通过、失败）\n- 日期范围查询\n\n**示例**：\n- 查看某天所有 inspection: `?inspection_date=2026-01-04`\n- 查看某车所有 inspection: `?vehicle_id=1`\n- 查看待维修的 inspection: `?condition=need-repair&reviewed=false`\n- 日期范围: `?start_date=2026-01-01&end_date=2026-01-31`",
         "operationId": "list_inspections_api_v1_inspections__get",
         "security": [
           {
@@ -4538,23 +4538,23 @@
             "description": "按司机过滤"
           },
           {
-            "name": "inspection_status",
+            "name": "condition",
             "in": "query",
             "required": false,
             "schema": {
               "anyOf": [
                 {
                   "type": "string",
-                  "pattern": "^(pending|passed|failed)$"
+                  "pattern": "^(available|need-repair|unavailable)$"
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "按状态过滤（pending/passed/failed）",
-              "title": "Inspection Status"
+              "description": "按车况过滤（available/need-repair/unavailable）",
+              "title": "Condition"
             },
-            "description": "按状态过滤（pending/passed/failed）"
+            "description": "按车况过滤（available/need-repair/unavailable）"
           },
           {
             "name": "reviewed",
@@ -4670,7 +4670,7 @@
           "Inspection Management"
         ],
         "summary": "Get Inspection Stats",
-        "description": "获取 inspection 统计数据\n\n**返回**：\n- total: 总数\n- pending: 待审核数量\n- passed: 通过数量\n- failed: 失败数量\n- pass_rate: 通过率（已审核中通过的比例）\n- reviewed_count: 已审核总数\n\n**示例**：\n- 查看某天统计: `?inspection_date=2026-01-04`\n- 查看某车统计: `?vehicle_id=1`\n- 日期范围统计: `?start_date=2026-01-01&end_date=2026-01-31`",
+        "description": "获取 inspection 统计数据\n\n**返回**：\n- total: 总数\n- available: 可用数量\n- need-repair: 需维修数量\n- unavailable: 不可用数量\n- reviewed_count: 已审核总数\n- reviewed_count: 已审核总数\n\n**示例**：\n- 查看某天统计: `?inspection_date=2026-01-04`\n- 查看某车统计: `?vehicle_id=1`\n- 日期范围统计: `?start_date=2026-01-01&end_date=2026-01-31`",
         "operationId": "get_inspection_stats_api_v1_inspections_stats_get",
         "security": [
           {
@@ -4908,7 +4908,7 @@
           "Inspection Management"
         ],
         "summary": "Batch Review Inspections",
-        "description": "批量审核 inspection\n\n**功能**：\n- 批量设置多个 inspection 的状态\n- 批量添加管理员备注\n\n**示例**：\n```\nPOST /api/v1/inspections/batch-review?inspection_ids=1&inspection_ids=2&inspection_ids=3&inspection_status=passed&admin_notes=All good\n```",
+        "description": "批量审核 inspection\n\n**功能**：\n- 批量设置多个 inspection 的状态\n- 批量添加管理员备注\n\n**示例**：\n```\nPOST /api/v1/inspections/batch-review?inspection_ids=1&inspection_ids=2&inspection_ids=3&condition=available&admin_notes=All good\n```",
         "operationId": "batch_review_inspections_api_v1_inspections_batch_review_post",
         "security": [
           {
@@ -4931,16 +4931,16 @@
             "description": "Inspection ID 列表"
           },
           {
-            "name": "inspection_status",
+            "name": "condition",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^(pending|passed|failed)$",
-              "description": "批量设置的状态（pending/passed/failed）",
-              "title": "Inspection Status"
+              "pattern": "^(available|need-repair|unavailable)$",
+              "description": "批量设置的状态（available/need-repair/unavailable）",
+              "title": "Condition"
             },
-            "description": "批量设置的状态（pending/passed/failed）"
+            "description": "批量设置的状态（available/need-repair/unavailable）"
           },
           {
             "name": "admin_notes",
@@ -5881,7 +5881,7 @@
         "title": "BulkSMSResponse",
         "description": "Response model for bulk SMS operations."
       },
-      "CheckinStatus": {
+      "CheckinStatus-Output": {
         "type": "string",
         "enum": [
           "not_checked_in",
@@ -6374,6 +6374,135 @@
         ],
         "title": "DriverToken",
         "description": "Schema for driver authentication token response."
+      },
+      "DriverVehicleInspectionResponse": {
+        "properties": {
+          "inspection_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Inspection Date"
+          },
+          "mileage_at_inspection": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mileage At Inspection",
+            "description": "Vehicle mileage at time of inspection"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "Inspection notes"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "vehicle_id": {
+            "type": "integer",
+            "title": "Vehicle Id"
+          },
+          "driver_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Id"
+          },
+          "vehicle_alias": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Alias"
+          },
+          "driver_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Name"
+          },
+          "inspection_urls": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inspection Urls"
+          },
+          "condition": {
+            "type": "integer",
+            "title": "Condition"
+          },
+          "reviewed_by_admin": {
+            "type": "boolean",
+            "title": "Reviewed By Admin"
+          },
+          "admin_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admin Notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "inspection_date",
+          "id",
+          "vehicle_id",
+          "driver_id",
+          "inspection_urls",
+          "condition",
+          "reviewed_by_admin",
+          "admin_notes",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "DriverVehicleInspectionResponse",
+        "description": "Schema for driver app response (legacy compatibility: condition as int)."
       },
       "EmailResponse": {
         "properties": {
@@ -6915,6 +7044,28 @@
             "type": "string",
             "format": "date-time",
             "title": "Updated At"
+          },
+          "operated_by_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operated By Id"
+          },
+          "operated_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operated By Name"
           }
         },
         "type": "object",
@@ -7508,7 +7659,7 @@
           "checkin_status": {
             "allOf": [
               {
-                "$ref": "#/components/schemas/CheckinStatus"
+                "$ref": "#/components/schemas/CheckinStatus-Output"
               }
             ],
             "description": "Driver check-in status (enum string). Possible values: 'not_checked_in', 'checked_in'.",
@@ -7727,7 +7878,7 @@
           "checkin_status": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/CheckinStatus"
+                "$ref": "#/components/schemas/app__models__schedule__CheckinStatus"
               },
               {
                 "type": "null"
@@ -8694,6 +8845,18 @@
             "title": "Mileage",
             "description": "Current mileage"
           },
+          "scheduled_mileage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Mileage",
+            "description": "Scheduled/target mileage"
+          },
           "notes": {
             "anyOf": [
               {
@@ -8860,6 +9023,17 @@
             ],
             "title": "Mileage"
           },
+          "scheduled_mileage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Mileage"
+          },
           "notes": {
             "anyOf": [
               {
@@ -8993,6 +9167,7 @@
           "status",
           "condition",
           "mileage",
+          "scheduled_mileage",
           "notes",
           "maintenance_cycle_days",
           "maintenance_location",
@@ -9092,9 +9267,9 @@
             "title": "Photo Full Urls",
             "default": []
           },
-          "inspection_status": {
+          "condition": {
             "type": "string",
-            "title": "Inspection Status"
+            "title": "Condition"
           },
           "reviewed_by_admin": {
             "type": "boolean",
@@ -9140,7 +9315,7 @@
           "inspection_date",
           "mileage_at_inspection",
           "notes",
-          "inspection_status",
+          "condition",
           "reviewed_by_admin",
           "admin_notes",
           "created_at",
@@ -9235,9 +9410,9 @@
             "title": "Photo Full Urls",
             "default": []
           },
-          "inspection_status": {
+          "condition": {
             "type": "string",
-            "title": "Inspection Status"
+            "title": "Condition"
           },
           "reviewed_by_admin": {
             "type": "boolean",
@@ -9273,7 +9448,7 @@
           "inspection_date",
           "mileage_at_inspection",
           "notes",
-          "inspection_status",
+          "condition",
           "reviewed_by_admin",
           "admin_notes",
           "created_at",
@@ -9365,9 +9540,9 @@
             ],
             "title": "Inspection Urls"
           },
-          "inspection_status": {
+          "condition": {
             "type": "string",
-            "title": "Inspection Status"
+            "title": "Condition"
           },
           "reviewed_by_admin": {
             "type": "boolean",
@@ -9402,7 +9577,7 @@
           "vehicle_id",
           "driver_id",
           "inspection_urls",
-          "inspection_status",
+          "condition",
           "reviewed_by_admin",
           "admin_notes",
           "created_at",
@@ -9413,11 +9588,10 @@
       },
       "VehicleInspectionReview": {
         "properties": {
-          "inspection_status": {
+          "condition": {
             "type": "string",
-            "pattern": "^(pending|passed|failed)$",
-            "title": "Inspection Status",
-            "description": "Inspection status: 'pending', 'passed', or 'failed'"
+            "title": "Condition",
+            "description": "Vehicle condition: 'available', 'need-repair', or 'unavailable'"
           },
           "admin_notes": {
             "anyOf": [
@@ -9446,7 +9620,7 @@
         },
         "type": "object",
         "required": [
-          "inspection_status"
+          "condition"
         ],
         "title": "VehicleInspectionReview",
         "description": "Schema for admin to review/approve inspection."
@@ -9602,6 +9776,17 @@
             ],
             "title": "Mileage"
           },
+          "scheduled_mileage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Mileage"
+          },
           "notes": {
             "anyOf": [
               {
@@ -9725,6 +9910,7 @@
           "status",
           "condition",
           "mileage",
+          "scheduled_mileage",
           "notes",
           "maintenance_cycle_days",
           "maintenance_location",
@@ -9823,6 +10009,17 @@
               }
             ],
             "title": "Mileage"
+          },
+          "scheduled_mileage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Mileage"
           },
           "notes": {
             "anyOf": [
@@ -10002,6 +10199,23 @@
         ],
         "title": "VehicleUsageHistoryResponse",
         "description": "Schema for comprehensive vehicle usage history."
+      },
+      "app__models__driver_checkin__CheckinStatus": {
+        "type": "string",
+        "enum": [
+          "not_checked_in",
+          "checked_in"
+        ],
+        "title": "CheckinStatus"
+      },
+      "app__models__schedule__CheckinStatus": {
+        "type": "string",
+        "enum": [
+          "not_checked_in",
+          "checked_in"
+        ],
+        "title": "CheckinStatus",
+        "description": "Driver check-in status."
       }
     },
     "securitySchemes": {

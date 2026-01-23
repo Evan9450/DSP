@@ -233,6 +233,7 @@ export interface VehicleInspectionResponse {
 	id: number;
 	vehicle_id: number;
 	vehicle_alias?: string;
+	condition: string;
 	driver_id: number;
 	driver_name?: string; // Driver name included in detail endpoint
 	inspection_date: string;
@@ -263,8 +264,9 @@ export interface VehicleInspectionUpdate {
 }
 
 export interface VehicleInspectionReview {
-	inspection_status: InspectionStatus;
-	admin_notes?: string;
+	condition: 'available' | 'need-repair' | 'unavailable';
+	admin_notes?: string | null;
+	mileage_at_inspection?: number | null;
 }
 
 // Simplified previous inspection data (only date, mileage, photos, driver name)
@@ -1241,7 +1243,7 @@ class APIClient {
 		data: VehicleInspectionReview,
 	): Promise<VehicleInspectionResponse> {
 		const response = await this.client.post<VehicleInspectionResponse>(
-			`/api/v1/vehicles/inspections/${inspectionId}/review`,
+			`/api/v1/inspections/${inspectionId}/review`,
 			data,
 		);
 		return response.data;

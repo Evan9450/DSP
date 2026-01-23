@@ -26,33 +26,33 @@ import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
-const getInspectionStatusBadge = (status: 'pending' | 'passed' | 'failed') => {
+const getInspectionStatusBadge = (status: string) => {
 	switch (status) {
-		case 'pending':
+		case 'need-repair':
 			return (
 				<Badge
 					variant='outline'
 					className='border-yellow-300 bg-yellow-50 text-yellow-800'>
 					<Clock className='h-3 w-3 mr-1' />
-					Pending
+					need repair
 				</Badge>
 			);
-		case 'passed':
+		case 'available':
 			return (
 				<Badge
 					variant='outline'
 					className='border-green-300 bg-green-50 text-green-800'>
 					<CheckCircle2 className='h-3 w-3 mr-1' />
-					Passed
+					available
 				</Badge>
 			);
-		case 'failed':
+		case 'unavailable':
 			return (
 				<Badge
 					variant='outline'
 					className='border-red-300 bg-red-50 text-red-800'>
 					<XCircle className='h-3 w-3 mr-1' />
-					Failed
+					unavailable
 				</Badge>
 			);
 		default:
@@ -141,7 +141,9 @@ export default function InspectionDetailPage() {
 	}, [vehicleId, inspectionId]);
 
 	// Handle admin review submission
-	const handleReview = async (status: 'pending' | 'passed' | 'failed') => {
+	const handleReview = async (
+		condition: 'available' | 'need-repair' | 'unavailable',
+	) => {
 		if (!inspection) return;
 
 		try {
@@ -149,7 +151,7 @@ export default function InspectionDetailPage() {
 			const updatedInspection = await apiClient.reviewInspection(
 				inspection.id,
 				{
-					inspection_status: status,
+					condition,
 					admin_notes: adminNotes || undefined,
 				},
 			);
@@ -158,12 +160,12 @@ export default function InspectionDetailPage() {
 			setAdminNotes('');
 
 			const statusText =
-				status === 'passed'
-					? 'Passed'
-					: status === 'failed'
-						? 'Failed'
-						: 'Pending';
-			toast.success(`Inspection marked as ${statusText}`);
+				condition === 'available'
+					? 'Available'
+					: condition === 'need-repair'
+						? 'Need Repair'
+						: 'Unavailable';
+			toast.success(`Vehicle marked as ${statusText}`);
 		} catch (err) {
 			toast.error('Failed to review inspection');
 			console.error('Review error:', err);
@@ -244,6 +246,12 @@ export default function InspectionDetailPage() {
 
 	const photoUrls = getPhotoUrls(inspection);
 
+	// Check if inspection can be reviewed (requires mileage and at least 1 photo)
+	const canReview =
+		inspection.mileage_at_inspection &&
+		inspection.mileage_at_inspection > 0 &&
+		photoUrls.length >= 1;
+
 	// Get previous inspection photos
 	const getPreviousPhotoUrls = (): string[] => {
 		if (!previousInspection) return [];
@@ -291,7 +299,7 @@ export default function InspectionDetailPage() {
 								)}
 							</p>
 						</div>
-						{getInspectionStatusBadge(inspection.inspection_status)}
+						{getInspectionStatusBadge(inspection.condition)}
 					</div>
 				</div>
 
@@ -373,6 +381,27 @@ export default function InspectionDetailPage() {
 							</CardTitle>
 						</CardHeader>
 						<CardContent className='pt-6 space-y-4'>
+							{/* Warning if inspection cannot be reviewed */}
+							{!canReview && (
+								<div className='p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2'>
+									<AlertCircle className='h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5' />
+									<div className='text-sm text-yellow-800'>
+										<div className='font-medium mb-1'>
+											Cannot review this inspection
+										</div>
+										<div className='text-yellow-700'>
+											{!inspection.mileage_at_inspection ||
+											inspection.mileage_at_inspection === 0
+												? 'Mileage is required. '
+												: ''}
+											{photoUrls.length < 1
+												? 'At least 1 photo is required.'
+												: ''}
+										</div>
+									</div>
+								</div>
+							)}
+
 							<div>
 								<label className='text-sm font-medium text-gray-700 mb-2 block'>
 									Review Notes (Optional)
@@ -385,32 +414,36 @@ export default function InspectionDetailPage() {
 									placeholder='Add any notes about this inspection...'
 									rows={3}
 									className='w-full'
-									disabled={isReviewing}
+									disabled={isReviewing || !canReview}
 								/>
 							</div>
 							<div className='flex gap-3'>
+								{inspection.condition === 'available' && (
+									<Button
+										onClick={() =>
+											handleReview('available')
+										}
+										disabled={isReviewing || !canReview}
+										className='flex-1 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed'>
+										<CheckCircle2 className='h-4 w-4 mr-2' />
+										Mark as Available
+									</Button>
+								)}
 								<Button
-									onClick={() => handleReview('passed')}
-									disabled={isReviewing}
-									className='flex-1 bg-green-600 hover:bg-green-700 text-white'>
-									<CheckCircle2 className='h-4 w-4 mr-2' />
-									Mark as Passed
-								</Button>
-								<Button
-									onClick={() => handleReview('failed')}
-									disabled={isReviewing}
-									variant='destructive'
-									className='flex-1'>
-									<XCircle className='h-4 w-4 mr-2' />
-									Mark as Failed
-								</Button>
-								<Button
-									onClick={() => handleReview('pending')}
-									disabled={isReviewing}
+									onClick={() => handleReview('need-repair')}
+									disabled={isReviewing || !canReview}
 									variant='outline'
-									className='flex-1'>
+									className='flex-1 border-yellow-300 bg-yellow-50 text-yellow-800 hover:bg-yellow-100 disabled:opacity-50 disabled:cursor-not-allowed'>
 									<Clock className='h-4 w-4 mr-2' />
-									Mark as Pending
+									Mark as Need Repair
+								</Button>
+								<Button
+									onClick={() => handleReview('unavailable')}
+									disabled={isReviewing || !canReview}
+									variant='destructive'
+									className='flex-1 disabled:opacity-50 disabled:cursor-not-allowed'>
+									<XCircle className='h-4 w-4 mr-2' />
+									Mark as Unavailable
 								</Button>
 							</div>
 						</CardContent>

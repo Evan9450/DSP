@@ -512,25 +512,32 @@ export function ScheduleTable({
 									{/* Actions Column - Resend SMS */}
 									{isEditable ? (
 										<TableCell className='text-center'>
-											<Button
-												variant='outline'
-												size='sm'
-												onClick={() =>
-													handleResendSMS(schedule.id)
-												}
-												disabled={sendingSmsIds.has(
-													schedule.id,
-												)}
-												className='gap-1.5'>
-												{/* {sendingSmsIds.has(schedule.id) ? (
+											{schedule.confirm_status ===
+											'confirmed' ? (
+												<Button
+													variant='outline'
+													size='sm'
+													onClick={() =>
+														handleResendSMS(
+															schedule.id,
+														)
+													}
+													disabled={sendingSmsIds.has(
+														schedule.id,
+													)}
+													className='gap-1.5'>
+													{/* {sendingSmsIds.has(schedule.id) ? (
 												<Loader2 className='h-4 w-4 animate-spin' />
 											) : (
 												<MessageSquare className='h-4 w-4' />
 											)} */}
-												<span className='hidden sm:inline'>
-													Resend
-												</span>
-											</Button>
+													<span className='hidden sm:inline'>
+														Resend
+													</span>
+												</Button>
+											) : (
+												<></>
+											)}
 										</TableCell>
 									) : (
 										<></>

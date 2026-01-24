@@ -37,7 +37,7 @@ export function DateSelector({
 							variant='outline'
 							className={cn(
 								'w-full md:w-[280px] justify-between font-normal',
-								!selectedDate && 'text-muted-foreground'
+								!selectedDate && 'text-muted-foreground',
 							)}>
 							{selectedDate ? (
 								format(selectedDate, 'PPP')
@@ -52,6 +52,14 @@ export function DateSelector({
 						align='start'>
 						<Calendar
 							mode='single'
+							fromYear={1900}
+							toYear={2999}
+							classNames={{
+								caption:
+									'flex items-center justify-center gap-2 pt-1',
+								caption_label: 'hidden', // ❗只对 dropdown 隐藏 label
+								vhidden: 'hidden', // ❗把 rdp-vhidden 隐藏掉
+							}}
 							selected={selectedDate}
 							captionLayout='dropdown'
 							onSelect={(date) => {

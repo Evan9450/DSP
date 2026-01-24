@@ -14,7 +14,7 @@ import { format } from 'date-fns';
 export default function InspectionsPage() {
 	// Filter states
 	const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-		new Date()
+		new Date(),
 	);
 	const [selectedVehicle, setSelectedVehicle] = useState<
 		number | undefined
@@ -22,7 +22,7 @@ export default function InspectionsPage() {
 
 	// Data states
 	const [inspections, setInspections] = useState<VehicleInspectionResponse[]>(
-		[]
+		[],
 	);
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -58,7 +58,7 @@ export default function InspectionsPage() {
 					// Only vehicle: use optimized by-vehicle endpoint
 					data =
 						await apiClient.getInspectionsByVehicle(
-							selectedVehicle
+							selectedVehicle,
 						);
 				} else {
 					data = [];
@@ -99,19 +99,6 @@ export default function InspectionsPage() {
 						selectedDate={selectedDate}
 						onDateChange={setSelectedDate}
 					/>
-					{/* <VehicleSelector
-						selectedVehicle={selectedVehicle}
-						onVehicleChange={setSelectedVehicle}
-					/>
-					{hasActiveFilters && (
-						<Button
-							variant='ghost'
-							onClick={handleClearFilters}
-							className='text-sm text-gray-600 hover:text-gray-900'>
-							<X className='h-4 w-4 mr-1' />
-							Clear Filters
-						</Button>
-					)} */}
 				</div>
 
 				{/* Show prompt when no filters are active */}

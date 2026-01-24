@@ -1,7 +1,15 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Clock, Eye, Image, XCircle } from 'lucide-react';
+import {
+	CheckCircle2,
+	Clock,
+	Eye,
+	FileCheck,
+	FileX,
+	Image,
+	XCircle,
+} from 'lucide-react';
 import {
 	Table,
 	TableBody,
@@ -21,22 +29,6 @@ interface InspectionsTableProps {
 	inspections: VehicleInspectionResponse[];
 	selectedDate?: string;
 }
-
-// Helper function to parse inspection_urls (handles both array and JSON string)
-const getPhotoUrls = (urls: any): string[] => {
-	if (!urls) return [];
-	if (Array.isArray(urls)) return urls;
-	if (typeof urls === 'string') {
-		try {
-			const parsed = JSON.parse(urls);
-			return Array.isArray(parsed) ? parsed : [];
-		} catch (e) {
-			console.error('Failed to parse inspection_urls:', e);
-			return [];
-		}
-	}
-	return [];
-};
 
 const getInspectionStatusBadge = (status: string) => {
 	switch (status) {
@@ -91,12 +83,49 @@ const getReviewStatusBadge = (reviewed: boolean) => {
 	);
 };
 
+const getSubmissionStatusBadge = (mileage: number | null) => {
+	if (mileage !== null && mileage !== undefined) {
+		return (
+			<Badge
+				variant='outline'
+				className='border-green-300 bg-green-50 text-green-800'>
+				<FileCheck className='h-3 w-3 mr-1' />
+				Submitted
+			</Badge>
+		);
+	}
+	return (
+		<Badge
+			variant='outline'
+			className='border-orange-300 bg-orange-50 text-orange-800'>
+			<FileX className='h-3 w-3 mr-1' />
+			Not Submitted
+		</Badge>
+	);
+};
+
 export function InspectionsTable({
 	inspections,
 	selectedDate,
 }: InspectionsTableProps) {
 	console.log('🚀 => InspectionsTable => inspections:', inspections);
 	const router = useRouter();
+
+	// Sort inspections: unreviewed first, then reviewed
+	const sortedInspections = [...inspections].sort((a, b) => {
+		// Not reviewed should come first
+		if (!a.reviewed_by_admin && b.reviewed_by_admin) return -1;
+		if (a.reviewed_by_admin && !b.reviewed_by_admin) return 1;
+		// If both have same review status, maintain original order
+		return 0;
+	});
+
+	// Calculate statistics
+	const submittedCount = inspections.filter(
+		(i) => i.mileage_at_inspection !== null && i.mileage_at_inspection !== undefined
+	).length;
+	const reviewedCount = inspections.filter((i) => i.reviewed_by_admin).length;
+	const totalCount = inspections.length;
 
 	const handleViewDetails = (inspectionId: number, vehicleId: number) => {
 		router.push(`/inspections/${vehicleId}?inspection_id=${inspectionId}`);
@@ -116,9 +145,17 @@ export function InspectionsTable({
 							</span>
 						)}
 					</span>
-					<Badge variant='secondary' className='text-lg'>
-						{inspections.length} Total
-					</Badge>
+					<div className='flex items-center gap-2'>
+						<Badge variant='outline' className='text-sm border-green-300 bg-green-50 text-green-800'>
+							{submittedCount} Submitted
+						</Badge>
+						<Badge variant='outline' className='text-sm border-blue-300 bg-blue-50 text-blue-800'>
+							{reviewedCount} Reviewed
+						</Badge>
+						<Badge variant='secondary' className='text-sm'>
+							{totalCount} Total
+						</Badge>
+					</div>
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
@@ -142,15 +179,13 @@ export function InspectionsTable({
 									<TableHead>Driver </TableHead>
 									<TableHead>Inspection Date</TableHead>
 									<TableHead>Mileage</TableHead>
+									<TableHead>Submission Status</TableHead>
 									<TableHead>Status</TableHead>
 									<TableHead>Review Status</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{inspections.map((inspection) => {
-									const photoUrls = getPhotoUrls(
-										inspection.inspection_urls,
-									);
+								{sortedInspections.map((inspection) => {
 									return (
 										<TableRow
 											key={inspection.id}
@@ -193,7 +228,11 @@ export function InspectionsTable({
 													</span>
 												)}
 											</TableCell>
-
+											<TableCell>
+												{getSubmissionStatusBadge(
+													inspection.mileage_at_inspection,
+												)}
+											</TableCell>
 											<TableCell>
 												{getInspectionStatusBadge(
 													inspection.condition,

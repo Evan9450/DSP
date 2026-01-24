@@ -391,7 +391,8 @@ export default function InspectionDetailPage() {
 										</div>
 										<div className='text-yellow-700'>
 											{!inspection.mileage_at_inspection ||
-											inspection.mileage_at_inspection === 0
+											inspection.mileage_at_inspection ===
+												0
 												? 'Mileage is required. '
 												: ''}
 											{photoUrls.length < 1
@@ -418,17 +419,14 @@ export default function InspectionDetailPage() {
 								/>
 							</div>
 							<div className='flex gap-3'>
-								{inspection.condition === 'available' && (
-									<Button
-										onClick={() =>
-											handleReview('available')
-										}
-										disabled={isReviewing || !canReview}
-										className='flex-1 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed'>
-										<CheckCircle2 className='h-4 w-4 mr-2' />
-										Mark as Available
-									</Button>
-								)}
+								<Button
+									onClick={() => handleReview('available')}
+									disabled={isReviewing || !canReview}
+									className='flex-1 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed'>
+									<CheckCircle2 className='h-4 w-4 mr-2' />
+									Mark as Available
+								</Button>
+
 								<Button
 									onClick={() => handleReview('need-repair')}
 									disabled={isReviewing || !canReview}

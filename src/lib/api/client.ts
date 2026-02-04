@@ -93,6 +93,11 @@ export interface DriverResponse {
 	visa_file_url?: string[]; // Array of file URLs (single file, replaces on new upload)
 	created_at: string;
 	updated_at: string;
+	asset_history?: {
+		product_name: string;
+		quantity: number;
+		borrow_date: string;
+	}[];
 }
 
 export interface DriverCreate {
@@ -164,6 +169,7 @@ export interface VehicleResponse {
 	id: number;
 	rego: string;
 	alias: string;
+	nickname?: string;
 	brand?: string;
 	model?: string;
 	condition: VehicleCondition;

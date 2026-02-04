@@ -16,9 +16,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -122,9 +120,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -142,7 +138,7 @@
           "Driver App"
         ],
         "summary": "Update Inspection",
-        "description": "Update today's inspection record.\n\nDriver can only update today's inspection.\nAllows updating photos, mileage, and notes multiple times within the same day.",
+        "description": "Update today's inspection record.\n\nDriver can only update today's inspection.\nAllows updating photos, mileage, and notes multiple times within the same day.\n\nNote: Once admin has reviewed the inspection, it cannot be modified by driver.",
         "operationId": "update_inspection_api_v1_driver_inspection_put",
         "requestBody": {
           "content": {
@@ -627,9 +623,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -811,9 +805,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -874,9 +866,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -931,9 +921,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -988,9 +976,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -1037,9 +1023,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -1227,71 +1211,13 @@
         ]
       }
     },
-    "/api/v1/vehicles/inspections/{inspection_id}/review": {
-      "post": {
-        "tags": [
-          "Vehicles"
-        ],
-        "summary": "Review Inspection",
-        "description": "Admin review/approve inspection (admin only).\n\nAdmins can:\n- Set inspection status (inspection_status: \"pending\", \"passed\", \"failed\")\n- Add review notes/feedback (admin_notes)\n\nAdmins CANNOT update the inspection content (date, mileage, photos).",
-        "operationId": "review_inspection_api_v1_vehicles_inspections__inspection_id__review_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "inspection_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Inspection Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/VehicleInspectionReview"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VehicleInspectionResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/vehicles/inspections": {
       "get": {
         "tags": [
           "Vehicles"
         ],
         "summary": "List Inspections",
-        "description": "List vehicle inspection records with optional filters.\n\nQuery parameters:\n- vehicle_id: Filter by vehicle ID\n- driver_id: Filter by driver ID\n- reviewed: Filter by review status (true/false)\n- inspection_status: Filter by inspection status (\"pending\", \"passed\", \"failed\")\n- inspection_date: Filter by specific date (YYYY-MM-DD)\n- start_date: Filter by date range start (YYYY-MM-DD)\n- end_date: Filter by date range end (YYYY-MM-DD)\n- skip: Pagination offset\n- limit: Maximum records to return\n\nExamples:\n- Get all inspections for vehicle 1: ?vehicle_id=1\n- Get inspections on specific date: ?inspection_date=2025-11-22\n- Get inspections in date range: ?start_date=2025-11-01&end_date=2025-11-30\n- Get unreviewed inspections: ?reviewed=false\n- Get pending inspections: ?inspection_status=pending\n- Get passed inspections: ?inspection_status=passed\n- Get failed inspections: ?inspection_status=failed",
+        "description": "List vehicle inspection records with optional filters.\n\nQuery parameters:\n- vehicle_id: Filter by vehicle ID\n- driver_id: Filter by driver ID\n- reviewed: Filter by review status (true/false)\n- condition: Filter by vehicle condition (\"available\", \"need-repair\", \"unavailable\")\n- inspection_date: Filter by specific date (YYYY-MM-DD)\n- start_date: Filter by date range start (YYYY-MM-DD)\n- end_date: Filter by date range end (YYYY-MM-DD)\n- skip: Pagination offset\n- limit: Maximum records to return\n\nExamples:\n- Get all inspections for vehicle 1: ?vehicle_id=1\n- Get inspections on specific date: ?inspection_date=2025-11-22\n- Get inspections in date range: ?start_date=2025-11-01&end_date=2025-11-30\n- Get unreviewed inspections: ?reviewed=false\n- Get inspections with available condition: ?condition=available\n- Get inspections that need repair: ?condition=need-repair\n- Get unavailable inspections: ?condition=unavailable",
         "operationId": "list_inspections_api_v1_vehicles_inspections_get",
         "security": [
           {
@@ -1327,7 +1253,7 @@
             }
           },
           {
-            "name": "inspection_status",
+            "name": "condition",
             "in": "query",
             "required": false,
             "schema": {
@@ -1339,7 +1265,7 @@
                   "type": "null"
                 }
               ],
-              "title": "Inspection Status"
+              "title": "Condition"
             }
           },
           {
@@ -1806,9 +1732,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -2165,9 +2089,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -2197,9 +2119,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -2217,7 +2137,7 @@
           "Schedules"
         ],
         "summary": "Import Routes",
-        "description": "上传 Amazon route 文件并自动匹配更新排班的 route 字段\n\n- **file**: Amazon route Excel 文件 (.xlsx)\n- **import_date**: 要更新的排班日期（默认今天）\n\n**工作流程**:\n1. 解析 Excel 文件获取 route_code \u003C-\u003E transporter_id 映射\n2. 查询指定日期的所有排班\n3. 通过 schedule.amazon_id == transporter_id 匹配\n4. 批量更新匹配到的 schedule.route = route_code\n5. 返回详细的匹配和更新统计\n\n**必需字段**: Route code, Transporter ID",
+        "description": "上传 Amazon route 文件并自动匹配更新排班的 route 字段\n如果不匹配，则创建新的 Schedule (Driver=Unassigned)\n\n- **file**: Amazon route Excel 文件 (.xlsx)\n- **import_date**: 要更新/创建的排班日期（默认今天）\n\n**工作流程**:\n1. 解析 Excel 文件获取 Route code 和可选 Transporter ID\n2. 查询指定日期的所有排班\n3. 尝试通过 Transporter ID 匹配现有排班\n4. 如果匹配成功 -\u003E 更新现有排班的 route\n5. 如果匹配失败（无 Transporter ID 或 ID 不匹配）-\u003E 创建新排班 (Driver=Unassigned)\n\n**必需字段**: Route code\n**可选字段**: Transporter ID",
         "operationId": "import_routes_api_v1_schedules_import_routes_post",
         "security": [
           {
@@ -3273,9 +3193,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -3300,9 +3218,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -3733,9 +3649,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -3834,9 +3748,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -3881,9 +3793,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -3934,9 +3844,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -4087,9 +3995,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -4119,9 +4025,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -4240,9 +4144,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -4267,9 +4169,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -4294,9 +4194,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -4449,9 +4347,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -4777,9 +4673,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -4850,7 +4744,7 @@
           "Inspection Management"
         ],
         "summary": "Review Inspection",
-        "description": "审核 inspection（管理员）\n\n**功能**：\n- 设置审核状态（pending/passed/failed）\n- 添加管理员备注\n- 更新里程数（可选，不受审核状态影响）\n- 标记为已审核\n\n**重要**：\n- 里程数可以在任何审核状态下更新（pending/passed/failed）\n- 里程数更新独立于审核结果",
+        "description": "审核 inspection（管理员）\n\n**功能**：\n- 设置车辆状态（available/need-repair/unavailable）\n- 添加管理员备注\n- 更新里程数（可选，不受审核状态影响）\n- 标记为已审核\n- 自动将车辆状态设置为 not-in-use（结束当天使用）\n\n**重要**：\n- 里程数可以在任何审核状态下更新\n- 里程数更新独立于审核结果\n- 审核后车辆自动变为 not-in-use 状态",
         "operationId": "review_inspection_api_v1_inspections__inspection_id__review_post",
         "security": [
           {
@@ -4908,7 +4802,7 @@
           "Inspection Management"
         ],
         "summary": "Batch Review Inspections",
-        "description": "批量审核 inspection\n\n**功能**：\n- 批量设置多个 inspection 的状态\n- 批量添加管理员备注\n\n**示例**：\n```\nPOST /api/v1/inspections/batch-review?inspection_ids=1&inspection_ids=2&inspection_ids=3&condition=available&admin_notes=All good\n```",
+        "description": "批量审核 inspection\n\n**功能**：\n- 批量设置多个 inspection 的状态\n- 批量添加管理员备注\n- 自动将所有车辆状态设置为 not-in-use（结束当天使用）\n\n**示例**：\n```\nPOST /api/v1/inspections/batch-review?inspection_ids=1&inspection_ids=2&inspection_ids=3&condition=available&admin_notes=All good\n```",
         "operationId": "batch_review_inspections_api_v1_inspections_batch_review_post",
         "security": [
           {
@@ -4966,9 +4860,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -5409,9 +5301,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -5452,7 +5342,13 @@
             "minItems": 1,
             "title": "Schedule Ids",
             "description": "List of schedule IDs to confirm.",
-            "example": [1, 2, 3, 4, 5]
+            "example": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
           }
         },
         "type": "object",
@@ -5890,6 +5786,61 @@
         "title": "CheckinStatus",
         "description": "Driver check-in status."
       },
+      "CreatedScheduleInfo": {
+        "properties": {
+          "schedule_id": {
+            "type": "integer",
+            "title": "Schedule Id",
+            "description": "New Schedule ID",
+            "example": 99
+          },
+          "route_code": {
+            "type": "string",
+            "title": "Route Code",
+            "description": "Route code",
+            "example": "CX203"
+          },
+          "schedule_date": {
+            "type": "string",
+            "title": "Schedule Date",
+            "description": "Date",
+            "example": "2025-12-26"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schedule_id",
+          "route_code",
+          "schedule_date"
+        ],
+        "title": "CreatedScheduleInfo",
+        "description": "Information about a newly created schedule from route import."
+      },
+      "DriverAssetHistory": {
+        "properties": {
+          "product_name": {
+            "type": "string",
+            "title": "Product Name"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          },
+          "borrow_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Borrow Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_name",
+          "quantity",
+          "borrow_date"
+        ],
+        "title": "DriverAssetHistory",
+        "description": "Schema for driver asset borrowing history."
+      },
       "DriverCreate": {
         "properties": {
           "name": {
@@ -6315,6 +6266,14 @@
             "title": "Visa Reminder Sent",
             "default": false
           },
+          "asset_history": {
+            "items": {
+              "$ref": "#/components/schemas/DriverAssetHistory"
+            },
+            "type": "array",
+            "title": "Asset History",
+            "default": []
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -6459,7 +6418,7 @@
             "title": "Inspection Urls"
           },
           "condition": {
-            "type": "integer",
+            "type": "string",
             "title": "Condition"
           },
           "reviewed_by_admin": {
@@ -7481,11 +7440,17 @@
             "description": "Number of schedules successfully updated",
             "example": 18
           },
+          "created_new_schedules": {
+            "type": "integer",
+            "title": "Created New Schedules",
+            "description": "Number of new schedules created",
+            "example": 2
+          },
           "not_matched": {
             "type": "integer",
             "title": "Not Matched",
-            "description": "Number of routes that couldn't be matched",
-            "example": 2
+            "description": "Number of routes that couldn't be matched (should be 0 now)",
+            "example": 0
           },
           "no_amazon_id": {
             "type": "integer",
@@ -7500,6 +7465,14 @@
             "type": "array",
             "title": "Updated Schedules",
             "description": "List of successfully updated schedules"
+          },
+          "created_schedules": {
+            "items": {
+              "$ref": "#/components/schemas/CreatedScheduleInfo"
+            },
+            "type": "array",
+            "title": "Created Schedules",
+            "description": "List of newly created schedules"
           },
           "unmatched_routes": {
             "items": {
@@ -7517,6 +7490,7 @@
           "total_routes_in_file",
           "total_schedules_today",
           "matched_and_updated",
+          "created_new_schedules",
           "not_matched",
           "no_amazon_id"
         ],
@@ -8341,7 +8315,14 @@
             "example": "CX999"
           },
           "transporter_id": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Transporter Id",
             "description": "Transporter ID from file",
             "example": "A1234567890"
@@ -8356,11 +8337,10 @@
         "type": "object",
         "required": [
           "route_code",
-          "transporter_id",
           "reason"
         ],
         "title": "UnmatchedRouteInfo",
-        "description": "Information about an unmatched route from the file."
+        "description": "Information about an unmatched route from the file (Deprecated/Unused in new logic if all create schedules)."
       },
       "UpdatedScheduleInfo": {
         "properties": {
@@ -8548,7 +8528,10 @@
       },
       "UserRole": {
         "type": "integer",
-        "enum": [0, 1],
+        "enum": [
+          0,
+          1
+        ],
         "title": "UserRole",
         "description": "User roles in the system.\n\n0: Admin (Superuser) - Only one allowed in the system\n1: Manager - Can have multiple"
       },
@@ -8802,6 +8785,19 @@
             "title": "Alias",
             "description": "Vehicle nickname/alias"
           },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname",
+            "description": "Vehicle nickname"
+          },
           "brand": {
             "anyOf": [
               {
@@ -8973,6 +8969,19 @@
             ],
             "title": "Alias",
             "description": "Vehicle nickname/alias"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname",
+            "description": "Vehicle nickname"
           },
           "brand": {
             "anyOf": [
@@ -9727,6 +9736,19 @@
             "title": "Alias",
             "description": "Vehicle nickname/alias"
           },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname",
+            "description": "Vehicle nickname"
+          },
           "brand": {
             "anyOf": [
               {
@@ -9950,6 +9972,18 @@
               }
             ],
             "title": "Alias"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
           },
           "brand": {
             "anyOf": [

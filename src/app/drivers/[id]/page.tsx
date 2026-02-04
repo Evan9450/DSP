@@ -32,6 +32,7 @@ import { DocumentInfoCard } from './components/DocumentInfoCard';
 import { SetPasswordDialog } from './components/SetPasswordDialog';
 import { DriverHeader } from './components/DriverHeader';
 import { BasicInformationCard } from './components/BasicInformationCard';
+import { AssetHistoryCard } from './components/AssetHistoryCard';
 
 export default function DriverDetailPage() {
 	const params = useParams();
@@ -556,6 +557,13 @@ export default function DriverDetailPage() {
 							}}
 							onDeleteFile={handleDeleteFile}
 							onUpload={handleFileUpload}
+						/>
+					</div>
+
+					{/* Asset History Card */}
+					<div className='w-full'>
+						<AssetHistoryCard
+							assetHistory={driver.asset_history || []}
 						/>
 					</div>
 				</div>

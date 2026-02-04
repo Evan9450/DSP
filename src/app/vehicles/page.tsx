@@ -165,34 +165,7 @@ export default function VehiclesPage() {
 			.length,
 	};
 
-	// const statusConfig: Record<
-	// 	'in-use' | 'not-in-use',
-	// 	{ label: string; className: string }
-	// > = {
-	// 	'in-use': { label: 'In Use', className: 'bg-blue-600 text-white' },
-	// 	'not-in-use': {
-	// 		label: 'Not In Use',
-	// 		className: 'bg-gray-300 text-black',
-	// 	},
-	// };
 
-	// const conditionConfig = {
-	// 	green: {
-	// 		label: 'Available',
-	// 		className: 'bg-green-500',
-	// 		textClass: 'text-green-700',
-	// 	},
-	// 	yellow: {
-	// 		label: 'Needs Repair',
-	// 		className: 'bg-yellow-500',
-	// 		textClass: 'text-yellow-700',
-	// 	},
-	// 	red: {
-	// 		label: 'Unavailable',
-	// 		className: 'bg-red-500',
-	// 		textClass: 'text-red-700',
-	// 	},
-	// };
 
 	const handleRowClick = (vehicleId: string) => {
 		console.log(
@@ -451,7 +424,8 @@ export default function VehiclesPage() {
 							<TableRow>
 								<TableHead className='w-[60px]'></TableHead>
 								<TableHead>Rego</TableHead>
-								<TableHead>Vehicle</TableHead>
+								<TableHead>Nickname</TableHead>
+								<TableHead>VIN number</TableHead>
 								<TableHead>Condition</TableHead>
 								<TableHead>Status</TableHead>
 								<TableHead>Mileage</TableHead>
@@ -501,6 +475,19 @@ export default function VehiclesPage() {
 											<div className='font-semibold text-gray-900 font-mono'>
 												{vehicle.rego}
 											</div>
+										</TableCell>
+										<TableCell>
+											{vehicle.nickname ? (
+												<div>
+													<p className='font-medium text-gray-900'>
+														{vehicle.nickname}
+													</p>
+												</div>
+											) : (
+												<span className='text-gray-400'>
+													-
+												</span>
+											)}
 										</TableCell>
 										<TableCell>
 											{vehicle.alias ? (

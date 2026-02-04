@@ -76,6 +76,7 @@ export function convertVehicle(apiVehicle: VehicleResponse): Vehicle {
 		id: apiVehicle.id.toString(),
 		rego: apiVehicle.rego,
 		alias: apiVehicle.alias,
+		nickname: apiVehicle.nickname,
 		brand: apiVehicle.brand,
 		model: apiVehicle.model,
 		condition: apiVehicle.condition, // API strings: 'available', 'need-repair', 'unavailable'

@@ -54,7 +54,6 @@ export function BorrowDialog({
 	const { toast } = useToast();
 
 	const [selectedAsset, setSelectedAsset] = useState<Asset>();
-	console.log('🚀 => BorrowDialog => selectedAsset:', selectedAsset);
 	const [borrowDriverId, setBorrowDriverId] = useState<string | null>(null);
 	const [driverError, setDriverError] = useState(false);
 
@@ -199,9 +198,7 @@ export function BorrowDialog({
 										<SelectItem
 											key={driver.id}
 											value={driver.id}>
-											{driver.name}{' '}
-											{driver.amazonId &&
-												`(${driver.amazonId})`}
+											{driver.name}
 										</SelectItem>
 									))}
 								</SelectContent>

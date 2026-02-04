@@ -12,6 +12,7 @@ export type UserRole = 'admin' | 'staff';
 export interface Vehicle {
 	id: string;
 	alias: string;
+	nickname?: string;
 	rego: string; // Registration number (primary identifier per PRD)
 	brand?: string;
 	model?: string;

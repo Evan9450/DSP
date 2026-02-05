@@ -4,7 +4,7 @@ import { AuthProvider } from '@/contexts/auth-context';
 import { Inter } from 'next/font/google';
 import { LayoutWrapper } from '@/components/layout/layout-wrapper';
 import type { Metadata } from 'next';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster as ShadcnToaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,11 +20,11 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang='en'>
-			<body className={inter.className}>
+			<body className={inter.className} suppressHydrationWarning>
 				<AuthProvider>
 					<LayoutWrapper>{children}</LayoutWrapper>
 				</AuthProvider>
-				<Toaster />
+				<ShadcnToaster />
 			</body>
 		</html>
 	);

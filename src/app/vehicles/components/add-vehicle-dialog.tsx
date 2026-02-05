@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiClient, VehicleCreate } from '@/lib/api/client';
+import { RepairSupplierSelect } from './repair-supplier-select';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -237,34 +238,48 @@ export function AddVehicleDialog({
 								placeholder='90'
 							/>
 						</div>
+
+						<div className='space-y-2'>
+							<Label htmlFor='maintenance_cycle_mileage'>
+								Maintenance Cycle (km)
+							</Label>
+							<Input
+								id='maintenance_cycle_mileage'
+								type='number'
+								value={formData.maintenance_cycle_mileage || ''}
+								onChange={(e) =>
+									setFormData({
+										...formData,
+										maintenance_cycle_mileage: e.target.value
+											? parseInt(e.target.value)
+											: undefined,
+									})
+								}
+								placeholder='10000'
+							/>
+						</div>
 					</div>
 
 					<div className='grid grid-cols-2 gap-4'>
 						<div className='space-y-2'>
-							<Label htmlFor='maintenance_location'>Maintenance Location</Label>
+							<Label htmlFor='nickname'>Nickname</Label>
 							<Input
-								id='maintenance_location'
-								value={formData.maintenance_location || ''}
+								id='nickname'
+								value={formData.nickname || ''}
 								onChange={(e) =>
-									setFormData({
-										...formData,
-										maintenance_location: e.target.value,
-									})
+									setFormData({ ...formData, nickname: e.target.value })
 								}
-								placeholder='Main Workshop'
+								placeholder='Van 1'
 							/>
 						</div>
 
 						<div className='space-y-2'>
-							<Label htmlFor='workshop_email'>Workshop Email</Label>
-							<Input
-								id='workshop_email'
-								type='email'
-								value={formData.workshop_email || ''}
-								onChange={(e) =>
-									setFormData({ ...formData, workshop_email: e.target.value })
+							<Label htmlFor='repair_supplier'>Repair Supplier</Label>
+							<RepairSupplierSelect
+								value={formData.repair_supplier_id}
+								onValueChange={(value) =>
+									setFormData({ ...formData, repair_supplier_id: value })
 								}
-								placeholder='workshop@example.com'
 							/>
 						</div>
 					</div>

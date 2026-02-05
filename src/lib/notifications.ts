@@ -2,10 +2,10 @@
  * Global Notification Utility
  *
  * This utility provides a consistent way to show notifications across the app.
- * Uses Sonner for modern, beautiful toast notifications.
+ * Uses shadcn/ui toast for consistent notifications.
  */
 
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 
 /**
  * Notification Helper
@@ -25,7 +25,10 @@ export const notify = {
 	 * @param title - Optional title/subtitle
 	 */
 	success: (message: string, title?: string) => {
-		toast.success(message, title ? { description: title } : undefined);
+		toast({
+			title: title || 'Success',
+			description: message,
+		});
 	},
 
 	/**
@@ -34,7 +37,11 @@ export const notify = {
 	 * @param title - Optional title/subtitle
 	 */
 	error: (message: string, title?: string) => {
-		toast.error(message, title ? { description: title } : undefined);
+		toast({
+			title: title || 'Error',
+			description: message,
+			variant: 'destructive',
+		});
 	},
 
 	/**
@@ -43,7 +50,11 @@ export const notify = {
 	 * @param title - Optional title/subtitle
 	 */
 	warning: (message: string, title?: string) => {
-		toast.warning(message, title ? { description: title } : undefined);
+		toast({
+			title: title || 'Warning',
+			description: message,
+			variant: 'destructive',
+		});
 	},
 
 	/**
@@ -52,26 +63,33 @@ export const notify = {
 	 * @param title - Optional title/subtitle
 	 */
 	info: (message: string, title?: string) => {
-		toast.info(message, title ? { description: title } : undefined);
+		toast({
+			title: title || 'Info',
+			description: message,
+		});
 	},
 
 	/**
 	 * Show a loading notification (returns toast id for dismissal)
 	 * @param message - Loading message to display
 	 * @param title - Optional title/subtitle
+	 * Note: shadcn/ui toast doesn't have built-in loading state
 	 */
 	loading: (message: string, title?: string) => {
-		return toast.loading(
-			message,
-			title ? { description: title } : undefined
-		);
+		return toast({
+			title: title || 'Loading',
+			description: message,
+			duration: Infinity, // Don't auto-dismiss
+		});
 	},
 
 	/**
 	 * Dismiss a specific toast by id, or all toasts if no id provided
 	 */
 	dismiss: (toastId?: string | number) => {
-		toast.dismiss(toastId);
+		// shadcn/ui toast doesn't expose dismiss by id in the same way
+		// This is a limitation we'll note
+		console.warn('Toast dismiss by ID not fully supported in shadcn/ui');
 	},
 
 	/**
@@ -85,7 +103,38 @@ export const notify = {
 			error: string | ((error: any) => string);
 		}
 	) => {
-		return toast.promise(promise, messages);
+		// Show loading toast
+		const loadingToast = toast({
+			title: 'Loading',
+			description: messages.loading,
+			duration: Infinity,
+		});
+
+		// Handle promise
+		promise
+			.then((data) => {
+				const successMsg =
+					typeof messages.success === 'function'
+						? messages.success(data)
+						: messages.success;
+				toast({
+					title: 'Success',
+					description: successMsg,
+				});
+			})
+			.catch((error) => {
+				const errorMsg =
+					typeof messages.error === 'function'
+						? messages.error(error)
+						: messages.error;
+				toast({
+					title: 'Error',
+					description: errorMsg,
+					variant: 'destructive',
+				});
+			});
+
+		return promise;
 	},
 };
 

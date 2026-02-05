@@ -165,23 +165,63 @@ export type DriverDocumentCreate = DriverFileCreate;
 export type VehicleStatus = 'in-use' | 'not-in-use';
 export type VehicleCondition = 'available' | 'need-repair' | 'unavailable';
 
+// RepairSupplier Types
+export interface RepairSupplierSimple {
+	id: number;
+	name: string;
+	location?: string;
+	email?: string;
+	phone?: string;
+	is_active: boolean;
+}
+
+export interface RepairSupplierResponse extends RepairSupplierSimple {
+	notes?: string;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface RepairSupplierCreate {
+	name: string;
+	location?: string;
+	email?: string;
+	phone?: string;
+	notes?: string;
+	is_active?: boolean;
+}
+
+export interface RepairSupplierUpdate {
+	name?: string;
+	location?: string;
+	email?: string;
+	phone?: string;
+	notes?: string;
+	is_active?: boolean;
+}
+
 export interface VehicleResponse {
 	id: number;
 	rego: string;
-	alias: string;
+	alias?: string;
 	nickname?: string;
 	brand?: string;
 	model?: string;
 	condition: VehicleCondition;
 	status: VehicleStatus;
-	maintenance_cycle_days?: number;
-	maintenance_location?: string;
-	workshop_email?: string;
 	mileage?: number;
+	scheduled_mileage?: number;
 	notes?: string;
+	inspection_urls?: string;
+	photos?: string[];
+	maintenance_cycle_days?: number;
+	maintenance_cycle_mileage?: number;
+	repair_supplier_id?: number;
+	repair_supplier?: RepairSupplierSimple;
 	last_maintenance_date?: string;
 	next_maintenance_date?: string;
 	scheduled_maintenance_date?: string;
+	email_sent: boolean;
+	email_sent_at?: string;
 	created_at: string;
 	updated_at: string;
 }
@@ -200,14 +240,15 @@ export interface VehicleDetailResponse extends VehicleResponse {
 
 export interface VehicleCreate {
 	rego: string;
-	alias: string;
+	alias?: string;
+	nickname?: string;
 	brand?: string;
 	model?: string;
 	condition?: VehicleCondition;
 	status?: VehicleStatus;
 	maintenance_cycle_days?: number;
-	maintenance_location?: string;
-	workshop_email?: string;
+	maintenance_cycle_mileage?: number;
+	repair_supplier_id?: number;
 	mileage?: number;
 	notes?: string;
 	last_maintenance_date?: string;
@@ -218,13 +259,14 @@ export interface VehicleCreate {
 export interface VehicleUpdate {
 	rego?: string;
 	alias?: string;
+	nickname?: string;
 	brand?: string;
 	model?: string;
 	condition?: VehicleCondition;
 	status?: VehicleStatus;
 	maintenance_cycle_days?: number;
-	maintenance_location?: string;
-	workshop_email?: string;
+	maintenance_cycle_mileage?: number;
+	repair_supplier_id?: number;
 	mileage?: number;
 	notes?: string;
 	last_maintenance_date?: string;
@@ -475,6 +517,58 @@ export type AssetUpdate = ProductUpdate;
 export type BorrowRecordResponse = ProductBorrowResponse;
 export type BorrowRecordCreate = ProductBorrowCreate;
 export type BorrowRecordUpdate = ProductBorrowReturn;
+
+// Vehicle Maintenance Types
+export interface VehicleMaintenanceResponse {
+	id: number;
+	vehicle_id: number;
+	maintenance_date: string;
+	location?: string;
+	description?: string;
+	cost?: string;
+	supplier_id?: number;
+	supplier?: RepairSupplierSimple;
+	confirmation_received_at?: string;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface VehicleMaintenanceCreate {
+	maintenance_date: string;
+	location?: string;
+	description?: string;
+	cost?: number;
+	supplier_id?: number;
+}
+
+export interface VehicleMaintenanceComplete {
+	maintenance_date: string;
+	description?: string;
+	cost?: number;
+	location?: string;
+	supplier_id?: number;
+}
+
+export interface SendMaintenanceEmailResponse {
+	success: boolean;
+	message: string;
+	vehicle_info: {
+		id: number;
+		rego: string;
+		alias?: string;
+		nickname?: string;
+		repair_supplier: {
+			id: number;
+			name: string;
+			email: string;
+			location?: string;
+		};
+		scheduled_maintenance_date?: string;
+		next_maintenance_date?: string;
+		email_sent: boolean;
+		email_sent_at?: string;
+	};
+}
 
 // Settings Types - System Configuration
 export interface SystemConfigResponse {
@@ -1125,6 +1219,103 @@ class APIClient {
 		);
 	}
 
+	// ============================================================================
+	// RepairSupplier API
+	// ============================================================================
+
+	async getRepairSuppliers(params?: {
+		is_active?: boolean;
+	}): Promise<RepairSupplierResponse[]> {
+		const response = await this.client.get<RepairSupplierResponse[]>(
+			'/api/v1/repair-suppliers/',
+			{ params },
+		);
+		return response.data;
+	}
+
+	async getRepairSupplier(id: number): Promise<RepairSupplierResponse> {
+		const response = await this.client.get<RepairSupplierResponse>(
+			`/api/v1/repair-suppliers/${id}`,
+		);
+		return response.data;
+	}
+
+	async createRepairSupplier(
+		data: RepairSupplierCreate,
+	): Promise<RepairSupplierResponse> {
+		const response = await this.client.post<RepairSupplierResponse>(
+			'/api/v1/repair-suppliers/',
+			data,
+		);
+		return response.data;
+	}
+
+	async updateRepairSupplier(
+		id: number,
+		data: RepairSupplierUpdate,
+	): Promise<RepairSupplierResponse> {
+		const response = await this.client.put<RepairSupplierResponse>(
+			`/api/v1/repair-suppliers/${id}`,
+			data,
+		);
+		return response.data;
+	}
+
+	async deleteRepairSupplier(id: number): Promise<void> {
+		await this.client.delete(`/api/v1/repair-suppliers/${id}`);
+	}
+
+	// ============================================================================
+	// Vehicle Maintenance API
+	// ============================================================================
+
+	async getVehicleMaintenanceHistory(
+		vehicleId: number,
+	): Promise<VehicleMaintenanceResponse[]> {
+		const response = await this.client.get<VehicleMaintenanceResponse[]>(
+			`/api/v1/vehicles/${vehicleId}/maintenance-history`,
+		);
+		return response.data;
+	}
+
+	async createVehicleMaintenanceRecord(
+		vehicleId: number,
+		data: VehicleMaintenanceCreate,
+	): Promise<VehicleMaintenanceResponse> {
+		const response = await this.client.post<VehicleMaintenanceResponse>(
+			`/api/v1/vehicles/${vehicleId}/maintenance-history`,
+			data,
+		);
+		return response.data;
+	}
+
+	/**
+	 * Complete maintenance for a vehicle
+	 * @param vehicleId Vehicle ID
+	 * @param data Completion data
+	 * @returns Success response
+	 */
+	async completeMaintenance(
+		vehicleId: number,
+		data: VehicleMaintenanceComplete,
+	): Promise<any> {
+		const response = await this.client.post(
+			`/api/v1/vehicles/${vehicleId}/complete-maintenance`,
+			data,
+		);
+		return response.data;
+	}
+
+	async sendMaintenanceEmail(
+		vehicleId: number,
+	): Promise<SendMaintenanceEmailResponse> {
+		const response = await this.client.post<SendMaintenanceEmailResponse>(
+			`/api/v1/vehicles/${vehicleId}/send-maintenance-email`,
+		);
+		return response.data;
+	}
+
+	// ============================================================================
 	// Vehicle Inspections
 	/**
 	 * List vehicle inspection records with optional filters
@@ -1895,25 +2086,6 @@ class APIClient {
 	async checkVehicleMaintenance(): Promise<any> {
 		const response = await this.client.post(
 			'/api/v1/tasks/check-vehicle-maintenance',
-		);
-		return response.data;
-	}
-
-	/**
-	 * Send maintenance booking email to workshop
-	 * Requires vehicle to have workshop_email and next_maintenance_date set
-	 */
-	async sendMaintenanceEmail(vehicleId: number): Promise<{
-		success: boolean;
-		message: string;
-		vehicle_info?: {
-			id: number;
-			rego: string;
-			alias: string;
-		};
-	}> {
-		const response = await this.client.post(
-			`/api/v1/vehicles/${vehicleId}/send-maintenance-email`,
 		);
 		return response.data;
 	}

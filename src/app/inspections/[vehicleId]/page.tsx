@@ -24,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { useToast } from '@/components/ui/use-toast';
 
 const getInspectionStatusBadge = (status: string) => {
 	switch (status) {
@@ -64,6 +64,7 @@ export default function InspectionDetailPage() {
 	const router = useRouter();
 	const params = useParams();
 	const searchParams = useSearchParams();
+	const { toast } = useToast();
 	const vehicleId = parseInt(params.vehicleId as string);
 	const inspectionId = searchParams.get('inspection_id');
 
@@ -165,9 +166,16 @@ export default function InspectionDetailPage() {
 					: condition === 'need-repair'
 						? 'Need Repair'
 						: 'Unavailable';
-			toast.success(`Vehicle marked as ${statusText}`);
+			toast({
+				title: 'Success',
+				description: `Vehicle marked as ${statusText}`,
+			});
 		} catch (err) {
-			toast.error('Failed to review inspection');
+			toast({
+				title: 'Error',
+				description: 'Failed to review inspection',
+				variant: 'destructive',
+			});
 			console.error('Review error:', err);
 		} finally {
 			setIsReviewing(false);

@@ -75,15 +75,13 @@ export function convertVehicle(apiVehicle: VehicleResponse): Vehicle {
 	return {
 		id: apiVehicle.id.toString(),
 		rego: apiVehicle.rego,
-		alias: apiVehicle.alias,
+		alias: apiVehicle.alias || '',
 		nickname: apiVehicle.nickname,
 		brand: apiVehicle.brand,
 		model: apiVehicle.model,
 		condition: apiVehicle.condition, // API strings: 'available', 'need-repair', 'unavailable'
 		status: apiVehicle.status, // API strings: 'in-use', 'not-in-use'
 		maintenanceCycle: apiVehicle.maintenance_cycle_days,
-		maintenanceLocation: apiVehicle.maintenance_location,
-		garageEmail: apiVehicle.workshop_email,
 		mileage: apiVehicle.mileage,
 		notes: apiVehicle.notes,
 		lastMaintenanceDate: apiVehicle.last_maintenance_date

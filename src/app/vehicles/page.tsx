@@ -425,7 +425,7 @@ export default function VehiclesPage() {
 								<TableHead className='w-[60px]'></TableHead>
 								<TableHead>Rego</TableHead>
 								<TableHead>Nickname</TableHead>
-								<TableHead>VIN number</TableHead>
+								<TableHead>VIN Number</TableHead>
 								<TableHead>Condition</TableHead>
 								<TableHead>Status</TableHead>
 								<TableHead>Mileage</TableHead>

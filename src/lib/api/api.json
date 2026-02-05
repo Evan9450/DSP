@@ -1709,7 +1709,7 @@
           "Vehicles"
         ],
         "summary": "Send Maintenance Booking Email",
-        "description": "Manually send maintenance booking email to the vehicle's workshop.\n\nThis endpoint allows admin to manually trigger a maintenance booking email\nto the workshop configured for this vehicle.\n\nRequirements:\n- Vehicle must have a workshop_email configured\n\nThe email will include the scheduled_maintenance_date if set,\notherwise it will use next_maintenance_date, or just send without a specific date.\n\nReturns:\n- success: Whether the email was sent successfully\n- message: Status message\n- vehicle_info: Basic vehicle information",
+        "description": "手动发送维护预约邮件到车辆的维修供应商。\n\n此端点允许管理员手动触发维护预约邮件到配置的维修供应商。\n\n要求:\n- 车辆必须配置了 repair_supplier_id\n- 维修供应商必须有 email 地址\n\n邮件将包含 scheduled_maintenance_date(如果设置),\n否则使用 next_maintenance_date,或不指定具体日期。\n\n返回:\n- success: 邮件是否发送成功\n- message: 状态消息\n- vehicle_info: 基本车辆信息",
         "operationId": "send_maintenance_booking_email_api_v1_vehicles__vehicle_id__send_maintenance_email_post",
         "security": [
           {
@@ -1727,6 +1727,190 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vehicles/{vehicle_id}/maintenance-history": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Get Vehicle Maintenance History",
+        "description": "获取车辆维护历史记录",
+        "operationId": "get_vehicle_maintenance_history_api_v1_vehicles__vehicle_id__maintenance_history_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vehicle Id"
+            }
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleMaintenanceResponse"
+                  },
+                  "title": "Response Get Vehicle Maintenance History Api V1 Vehicles  Vehicle Id  Maintenance History Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Create Vehicle Maintenance Record",
+        "description": "创建车辆维护记录",
+        "operationId": "create_vehicle_maintenance_record_api_v1_vehicles__vehicle_id__maintenance_history_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vehicle Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VehicleMaintenanceCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleMaintenanceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vehicles/{vehicle_id}/complete-maintenance": {
+      "post": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Complete Maintenance",
+        "description": "确认维护完成。\n\n1. 创建维护历史记录 (关联当前供应商)\n2. 更新车辆 last_maintenance_date\n3. 重置 maintenance_cycle_days 为 180 (如果小于 0 或未设置)\n4. 自动计算 next_maintenance_date (基于天数, +180)\n5. 清除 scheduled_maintenance_date 和 email_sent 状态",
+        "operationId": "complete_maintenance_api_v1_vehicles__vehicle_id__complete_maintenance_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vehicle Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VehicleMaintenanceComplete"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -5291,6 +5475,278 @@
         ]
       }
     },
+    "/api/v1/repair-suppliers/": {
+      "post": {
+        "tags": [
+          "Repair Suppliers"
+        ],
+        "summary": "Create Repair Supplier",
+        "description": "创建新的维修供应商",
+        "operationId": "create_repair_supplier_api_v1_repair_suppliers__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepairSupplierCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepairSupplierResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Repair Suppliers"
+        ],
+        "summary": "List Repair Suppliers",
+        "description": "获取所有维修供应商列表",
+        "operationId": "list_repair_suppliers_api_v1_repair_suppliers__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by active status",
+              "title": "Is Active"
+            },
+            "description": "Filter by active status"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RepairSupplierResponse"
+                  },
+                  "title": "Response List Repair Suppliers Api V1 Repair Suppliers  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repair-suppliers/{supplier_id}": {
+      "get": {
+        "tags": [
+          "Repair Suppliers"
+        ],
+        "summary": "Get Repair Supplier",
+        "description": "获取指定维修供应商详情",
+        "operationId": "get_repair_supplier_api_v1_repair_suppliers__supplier_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "supplier_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Supplier Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepairSupplierResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Repair Suppliers"
+        ],
+        "summary": "Update Repair Supplier",
+        "description": "更新维修供应商信息",
+        "operationId": "update_repair_supplier_api_v1_repair_suppliers__supplier_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "supplier_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Supplier Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepairSupplierUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepairSupplierResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Repair Suppliers"
+        ],
+        "summary": "Delete Repair Supplier",
+        "description": "删除维修供应商",
+        "operationId": "delete_repair_supplier_api_v1_repair_suppliers__supplier_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "supplier_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Supplier Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "summary": "Root",
@@ -7260,6 +7716,297 @@
         "title": "ReceivedSMSResponse",
         "description": "Schema for ReceivedSMS response."
       },
+      "RepairSupplierCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "供应商名称"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location",
+            "description": "地址"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email",
+            "description": "邮箱"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone",
+            "description": "电话"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "备注/历史记录"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "是否启用",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "RepairSupplierCreate",
+        "description": "创建 RepairSupplier 请求 schema"
+      },
+      "RepairSupplierResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "供应商名称"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location",
+            "description": "地址"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email",
+            "description": "邮箱"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone",
+            "description": "电话"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "备注/历史记录"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "是否启用",
+            "default": true
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RepairSupplierResponse",
+        "description": "RepairSupplier 响应 schema"
+      },
+      "RepairSupplierSimple": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "is_active"
+        ],
+        "title": "RepairSupplierSimple",
+        "description": "简化的 RepairSupplier schema,用于嵌套在其他响应中"
+      },
+      "RepairSupplierUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "供应商名称"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location",
+            "description": "地址"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email",
+            "description": "邮箱"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone",
+            "description": "电话"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "备注/历史记录"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active",
+            "description": "是否启用"
+          }
+        },
+        "type": "object",
+        "title": "RepairSupplierUpdate",
+        "description": "更新 RepairSupplier 请求 schema"
+      },
       "RosterPreviewItem": {
         "properties": {
           "roster_id": {
@@ -8875,31 +9622,33 @@
               }
             ],
             "title": "Maintenance Cycle Days",
-            "description": "Maintenance cycle in days"
+            "description": "Maintenance cycle in days, default 180",
+            "default": 180
           },
-          "maintenance_location": {
+          "maintenance_cycle_mileage": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Maintenance Location",
-            "description": "Maintenance location/garage"
+            "title": "Maintenance Cycle Mileage",
+            "description": "Maintenance cycle in km, default 10000",
+            "default": 10000
           },
-          "workshop_email": {
+          "repair_supplier_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Workshop Email",
-            "description": "Workshop/garage email"
+            "title": "Repair Supplier Id",
+            "description": "Repair supplier ID"
           },
           "last_maintenance_date": {
             "anyOf": [
@@ -8939,6 +9688,19 @@
             ],
             "title": "Scheduled Maintenance Date",
             "description": "Scheduled date for workshop email notification (manual input)"
+          },
+          "procession_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Procession Date",
+            "description": "Procession Date"
           }
         },
         "type": "object",
@@ -9084,27 +9846,37 @@
             ],
             "title": "Maintenance Cycle Days"
           },
-          "maintenance_location": {
+          "maintenance_cycle_mileage": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Maintenance Location"
+            "title": "Maintenance Cycle Mileage"
           },
-          "workshop_email": {
+          "repair_supplier_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Workshop Email"
+            "title": "Repair Supplier Id"
+          },
+          "repair_supplier": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepairSupplierSimple"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "last_maintenance_date": {
             "anyOf": [
@@ -9141,6 +9913,34 @@
               }
             ],
             "title": "Scheduled Maintenance Date"
+          },
+          "procession_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Procession Date"
+          },
+          "email_sent": {
+            "type": "boolean",
+            "title": "Email Sent"
+          },
+          "email_sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Sent At"
           },
           "created_at": {
             "type": "string",
@@ -9179,11 +9979,14 @@
           "scheduled_mileage",
           "notes",
           "maintenance_cycle_days",
-          "maintenance_location",
-          "workshop_email",
+          "maintenance_cycle_mileage",
+          "repair_supplier_id",
           "last_maintenance_date",
           "next_maintenance_date",
           "scheduled_maintenance_date",
+          "procession_date",
+          "email_sent",
+          "email_sent_at",
           "created_at",
           "updated_at"
         ],
@@ -9634,6 +10437,138 @@
         "title": "VehicleInspectionReview",
         "description": "Schema for admin to review/approve inspection."
       },
+      "VehicleMaintenanceComplete": {
+        "properties": {
+          "maintenance_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Maintenance Date"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "maintenance_cycle_mileage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maintenance Cycle Mileage",
+            "description": "Maintenance cycle in km(default 10,000)",
+            "default": 10000
+          },
+          "mileage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mileage",
+            "description": "Current vehicle mileage at maintenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "maintenance_date"
+        ],
+        "title": "VehicleMaintenanceComplete",
+        "description": "Schema for completing vehicle maintenance."
+      },
+      "VehicleMaintenanceCreate": {
+        "properties": {
+          "maintenance_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Maintenance Date"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "vehicle_id": {
+            "type": "integer",
+            "title": "Vehicle Id"
+          },
+          "supplier_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "maintenance_date",
+          "vehicle_id"
+        ],
+        "title": "VehicleMaintenanceCreate",
+        "description": "Schema for creating vehicle maintenance."
+      },
       "VehicleMaintenanceResponse": {
         "properties": {
           "maintenance_date": {
@@ -9682,6 +10617,27 @@
             "type": "integer",
             "title": "Vehicle Id"
           },
+          "supplier_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Id"
+          },
+          "supplier": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepairSupplierSimple"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "reminder_email_sent": {
             "type": "boolean",
             "title": "Reminder Email Sent"
@@ -9689,6 +10645,18 @@
           "confirmation_received": {
             "type": "boolean",
             "title": "Confirmation Received"
+          },
+          "confirmation_received_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmation Received At"
           },
           "created_at": {
             "type": "string",
@@ -9856,27 +10824,37 @@
             ],
             "title": "Maintenance Cycle Days"
           },
-          "maintenance_location": {
+          "maintenance_cycle_mileage": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Maintenance Location"
+            "title": "Maintenance Cycle Mileage"
           },
-          "workshop_email": {
+          "repair_supplier_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Workshop Email"
+            "title": "Repair Supplier Id"
+          },
+          "repair_supplier": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepairSupplierSimple"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "last_maintenance_date": {
             "anyOf": [
@@ -9914,6 +10892,34 @@
             ],
             "title": "Scheduled Maintenance Date"
           },
+          "procession_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Procession Date"
+          },
+          "email_sent": {
+            "type": "boolean",
+            "title": "Email Sent"
+          },
+          "email_sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Sent At"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -9935,11 +10941,14 @@
           "scheduled_mileage",
           "notes",
           "maintenance_cycle_days",
-          "maintenance_location",
-          "workshop_email",
+          "maintenance_cycle_mileage",
+          "repair_supplier_id",
           "last_maintenance_date",
           "next_maintenance_date",
           "scheduled_maintenance_date",
+          "procession_date",
+          "email_sent",
+          "email_sent_at",
           "created_at",
           "updated_at"
         ],
@@ -10077,39 +11086,27 @@
             ],
             "title": "Maintenance Cycle Days"
           },
-          "maintenance_location": {
+          "maintenance_cycle_mileage": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Maintenance Location"
+            "title": "Maintenance Cycle Mileage"
           },
-          "workshop_email": {
+          "repair_supplier_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Workshop Email"
-          },
-          "last_maintenance_date": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Last Maintenance Date"
+            "title": "Repair Supplier Id"
           },
           "next_maintenance_date": {
             "anyOf": [
@@ -10123,7 +11120,7 @@
             ],
             "title": "Next Maintenance Date"
           },
-          "scheduled_maintenance_date": {
+          "procession_date": {
             "anyOf": [
               {
                 "type": "string",
@@ -10133,7 +11130,7 @@
                 "type": "null"
               }
             ],
-            "title": "Scheduled Maintenance Date"
+            "title": "Procession Date"
           }
         },
         "type": "object",

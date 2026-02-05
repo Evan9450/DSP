@@ -2,6 +2,7 @@
 
 import {
 	BarChart3,
+	Building2,
 	Calendar,
 	Car,
 	ChevronDown,
@@ -56,6 +57,7 @@ const menuItems: MenuItem[] = [
 		],
 	},
 	{ href: '/vehicles', label: 'Vehicles', icon: Car },
+	{ href: '/workshop-suppliers', label: 'Workshop Suppliers', icon: Building2 },
 	{ href: '/drivers', label: 'Drivers', icon: Users },
 	{ href: '/inspections', label: 'Inspections', icon: ClipboardCheck },
 	{

@@ -41,6 +41,8 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { RepairSupplierDialog } from './components/repair-supplier-dialog';
 import { useToast } from '@/components/ui/use-toast';
+import { usePagination } from '@/hooks/use-pagination';
+import { TablePagination } from '@/components/TablePagination';
 
 export default function RepairSuppliersPage() {
 	const { toast } = useToast();
@@ -99,9 +101,19 @@ export default function RepairSuppliersPage() {
 		supplier.name.toLowerCase().includes(searchTerm.toLowerCase()),
 	);
 
+	const {
+		currentItems: currentSuppliers,
+		currentPage,
+		totalPages,
+		goToPage,
+	} = usePagination({
+		data: filteredSuppliers,
+		itemsPerPage: 10,
+	});
+
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>
-			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl'>
+			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl'>
 				{/* Header */}
 				<div className='mb-6'>
 					<h1 className='text-3xl font-bold text-gray-900 mb-2'>
@@ -150,7 +162,7 @@ export default function RepairSuppliersPage() {
 											</div>
 										</TableCell>
 									</TableRow>
-								) : filteredSuppliers.length === 0 ? (
+								) : currentSuppliers.length === 0 ? (
 									<TableRow>
 										<TableCell colSpan={5} className='text-center py-8'>
 											<Building2 className='h-12 w-12 text-gray-400 mx-auto mb-2' />
@@ -162,7 +174,7 @@ export default function RepairSuppliersPage() {
 										</TableCell>
 									</TableRow>
 								) : (
-									filteredSuppliers.map((supplier) => (
+									currentSuppliers.map((supplier) => (
 										<TableRow key={supplier.id}>
 											<TableCell>
 												<div className='font-medium'>{supplier.name}</div>
@@ -231,6 +243,11 @@ export default function RepairSuppliersPage() {
 							</TableBody>
 						</Table>
 					</div>
+					<TablePagination
+						currentPage={currentPage}
+						totalPages={totalPages}
+						onPageChange={goToPage}
+					/>
 				</Card>
 			</div>
 

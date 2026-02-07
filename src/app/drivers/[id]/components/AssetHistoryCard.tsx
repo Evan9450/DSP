@@ -10,6 +10,8 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { usePagination } from '@/hooks/use-pagination';
+import { TablePagination } from '@/components/TablePagination';
 
 interface AssetHistoryItem {
 	product_name: string;
@@ -22,6 +24,16 @@ interface AssetHistoryCardProps {
 }
 
 export function AssetHistoryCard({ assetHistory }: AssetHistoryCardProps) {
+	const {
+		currentItems: currentHistory,
+		currentPage,
+		totalPages,
+		goToPage,
+	} = usePagination({
+		data: assetHistory || [],
+		itemsPerPage: 10,
+	});
+
 	return (
 		<Card>
 			<CardHeader>
@@ -45,7 +57,7 @@ export function AssetHistoryCard({ assetHistory }: AssetHistoryCardProps) {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{assetHistory.map((item, index) => (
+							{currentHistory.map((item, index) => (
 								<TableRow key={index}>
 									<TableCell className='font-medium'>
 										{item.product_name}
@@ -60,6 +72,13 @@ export function AssetHistoryCard({ assetHistory }: AssetHistoryCardProps) {
 							))}
 						</TableBody>
 					</Table>
+				)}
+				{assetHistory && assetHistory.length > 0 && (
+					<TablePagination
+						currentPage={currentPage}
+						totalPages={totalPages}
+						onPageChange={goToPage}
+					/>
 				)}
 			</CardContent>
 		</Card>

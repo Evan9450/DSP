@@ -49,7 +49,7 @@ export default function ScheduleHistoryPage() {
 
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50'>
-			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl'>
+			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl'>
 				<div className='mb-4 sm:mb-6'>
 					<h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>
 						Schedule History

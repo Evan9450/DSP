@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import { AddMaintenanceDialog } from './AddMaintenanceDialog';
 import { CompleteMaintenanceDialog } from './CompleteMaintenanceDialog';
+import { TablePagination } from '@/components/TablePagination';
+import { usePagination } from '@/hooks/use-pagination';
 
 import {
 	Table,
@@ -54,6 +56,16 @@ export function MaintenanceHistory({ vehicleId, defaultSupplier }: MaintenanceHi
 	const [isLoading, setIsLoading] = useState(true);
 	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+
+	const {
+		currentItems,
+		currentPage,
+		totalPages,
+		goToPage,
+	} = usePagination({
+		data: records,
+		itemsPerPage: 10,
+	});
 
 	useEffect(() => {
 		fetchHistory();
@@ -120,7 +132,7 @@ export function MaintenanceHistory({ vehicleId, defaultSupplier }: MaintenanceHi
 								</TableCell>
 							</TableRow>
 						) : (
-							records.map((record) => (
+							currentItems.map((record) => (
 								<TableRow key={record.id}>
 									<TableCell>
 										{format(new Date(record.maintenance_date), 'dd/MM/yyyy')}
@@ -149,6 +161,12 @@ export function MaintenanceHistory({ vehicleId, defaultSupplier }: MaintenanceHi
 					</TableBody>
 				</Table>
 			</div>
+
+			<TablePagination
+				currentPage={currentPage}
+				totalPages={totalPages}
+				onPageChange={goToPage}
+			/>
 
 			<AddMaintenanceDialog
 				vehicleId={vehicleId}

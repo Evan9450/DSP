@@ -60,6 +60,7 @@ const menuItems: MenuItem[] = [
 	{ href: '/workshop-suppliers', label: 'Workshop Suppliers', icon: Building2 },
 	{ href: '/drivers', label: 'Drivers', icon: Users },
 	{ href: '/inspections', label: 'Inspections', icon: ClipboardCheck },
+	{ href: '/kpi', label: 'KPI Reports', icon: BarChart3 },
 	{
 		href: '/assets',
 		label: 'Assets',

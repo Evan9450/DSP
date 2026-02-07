@@ -25,6 +25,7 @@ export interface Vehicle {
 	notes?: string; // Required when status is need-repair/unavailable
 	lastMaintenanceDate?: Date;
 	nextMaintenanceDate?: Date;
+	scheduledMaintenanceDate?: Date;
 }
 
 export interface VehiclePhoto {

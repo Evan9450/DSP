@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RepairSupplierSelect } from './repair-supplier-select';
 import { useToast } from '@/components/ui/use-toast';
@@ -122,7 +123,7 @@ export function AddMaintenanceDialog({
 
 						<div className="space-y-2">
 							<Label htmlFor="add-description">Description</Label>
-							<Input
+							<Textarea
 								id="add-description"
 								placeholder="e.g. Oil Change, Tyre Replacement"
 								value={newRecord.description || ''}

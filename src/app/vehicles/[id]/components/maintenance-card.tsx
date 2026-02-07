@@ -1,7 +1,6 @@
 'use client';
 
 import {
-	Calendar as CalendarIcon,
 	Mail,
 	Wrench,
 } from 'lucide-react';
@@ -16,12 +15,6 @@ import {
 	isMaintenanceOverdue,
 } from '@/lib/helpers';
 import { format } from 'date-fns';
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -77,6 +70,7 @@ export function MaintenanceCard({
 					description: `Maintenance booking email sent to ${vehicle.repair_supplier.name}`,
 				});
 				if (onEmailSent) onEmailSent();
+				window.location.reload();
 			} else {
 				toast({
 					title: 'Error',
@@ -108,134 +102,45 @@ export function MaintenanceCard({
 				<div className='grid grid-cols-2 gap-4'>
 					<div className='space-y-2'>
 						<Label>Last Maintenance Date</Label>
-						<Popover>
-							<PopoverTrigger asChild>
-								<Button
-									variant='outline'
-									className='w-full justify-start text-left font-normal'>
-									<CalendarIcon className='mr-2 h-4 w-4' />
-									{editForm.last_maintenance_date ? (
-										format(
-											new Date(
-												editForm.last_maintenance_date,
-											),
-											'PPP',
-										)
-									) : (
-										<span>Pick a date</span>
-									)}
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent className='w-auto p-0'>
-								<Calendar
-									mode='single'
-									selected={
-										editForm.last_maintenance_date
-											? new Date(
-													editForm.last_maintenance_date,
-												)
-											: undefined
-									}
-									onSelect={(date) =>
-										setEditForm({
-											...editForm,
-											last_maintenance_date: date
-												? format(date, 'yyyy-MM-dd')
-												: undefined,
-										})
-									}
-									initialFocus
-								/>
-							</PopoverContent>
-						</Popover>
+						<Input
+							type='date'
+							disabled
+							value={editForm.last_maintenance_date || ''}
+							onChange={(e) =>
+								setEditForm({
+									...editForm,
+									last_maintenance_date: e.target.value || undefined,
+								})
+							}
+						/>
 					</div>
-					<div className='space-y-2'>
+					{/* <div className='space-y-2'>
 						<Label>Next Maintenance Date</Label>
-						<Popover>
-							<PopoverTrigger asChild>
-								<Button
-									variant='outline'
-									className='w-full justify-start text-left font-normal'>
-									<CalendarIcon className='mr-2 h-4 w-4' />
-									{editForm.next_maintenance_date ? (
-										format(
-											new Date(
-												editForm.next_maintenance_date,
-											),
-											'PPP',
-										)
-									) : (
-										<span>Pick a date</span>
-									)}
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent className='w-auto p-0'>
-								<Calendar
-									mode='single'
-									selected={
-										editForm.next_maintenance_date
-											? new Date(
-													editForm.next_maintenance_date,
-												)
-											: undefined
-									}
-									onSelect={(date) =>
-										setEditForm({
-											...editForm,
-											next_maintenance_date: date
-												? format(date, 'yyyy-MM-dd')
-												: undefined,
-										})
-									}
-									initialFocus
-								/>
-							</PopoverContent>
-						</Popover>
-					</div>
+						<Input
+							type='date'
+							value={editForm.next_maintenance_date || ''}
+							onChange={(e) =>
+								setEditForm({
+									...editForm,
+									next_maintenance_date: e.target.value || undefined,
+								})
+							}
+						/>
+					</div> */}
 					<div className='space-y-2'>
 						<Label>Scheduled Maintenance Date</Label>
-						<Popover>
-							<PopoverTrigger asChild>
-								<Button
-									variant='outline'
-									className='w-full justify-start text-left font-normal'>
-									<CalendarIcon className='mr-2 h-4 w-4' />
-									{editForm.scheduled_maintenance_date ? (
-										format(
-											new Date(
-												editForm.scheduled_maintenance_date,
-											),
-											'PPP',
-										)
-									) : (
-										<span>Pick a date</span>
-									)}
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent className='w-auto p-0'>
-								<Calendar
-									mode='single'
-									selected={
-										editForm.scheduled_maintenance_date
-											? new Date(
-													editForm.scheduled_maintenance_date,
-												)
-											: undefined
-									}
-									onSelect={(date) =>
-										setEditForm({
-											...editForm,
-											scheduled_maintenance_date: date
-												? format(date, 'yyyy-MM-dd')
-												: undefined,
-										})
-									}
-									initialFocus
-								/>
-							</PopoverContent>
-						</Popover>
+						<Input
+							type='date'
+							value={editForm.scheduled_maintenance_date || ''}
+							onChange={(e) =>
+								setEditForm({
+									...editForm,
+									scheduled_maintenance_date: e.target.value || undefined,
+								})
+							}
+						/>
 					</div>
-					<div className='space-y-2'>
+					{/* <div className='space-y-2'>
 						<Label htmlFor='edit-location'>Scheduled Mileage</Label>
 						<Input
 							id='edit-location'
@@ -251,7 +156,7 @@ export function MaintenanceCard({
 							}
 							placeholder='15000'
 						/>
-					</div>
+					</div> */}
 					<div className='space-y-2'>
 						<Label htmlFor='edit-cycle'>
 							Maintenance Cycle (days)
@@ -368,7 +273,7 @@ export function MaintenanceCard({
 							)}
 						</p>
 					</div>
-					<div>
+					{/* <div>
 						<p className='text-sm text-gray-600'>Cycle Mileage</p>
 						<p className='font-semibold'>
 							{vehicle.maintenance_cycle_mileage ? (
@@ -377,7 +282,7 @@ export function MaintenanceCard({
 								<span className='text-gray-400'>-</span>
 							)}
 						</p>
-					</div>
+					</div> */}
 					<div>
 						<p className='text-sm text-gray-600'>Cycle Days</p>
 						<p className='font-semibold'>

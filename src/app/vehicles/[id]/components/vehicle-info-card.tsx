@@ -232,6 +232,20 @@ export function VehicleInfoCard({
 								placeholder='50000'
 							/>
 						</div>
+						<div className='space-y-2'>
+							<Label htmlFor='edit-procession-date'>Procession Date</Label>
+							<Input
+								id='edit-procession-date'
+								type='date'
+								value={editForm.procession_date || ''}
+								onChange={(e) =>
+									setEditForm({
+										...editForm,
+										procession_date: e.target.value,
+									})
+								}
+							/>
+						</div>
 					</div>
 				</div>
 			) : (
@@ -305,6 +319,16 @@ export function VehicleInfoCard({
 								<>
 									{vehicle.mileage.toLocaleString()} km
 								</>
+							) : (
+								<span className='text-gray-400'>-</span>
+							)}
+						</p>
+					</div>
+					<div>
+						<p className='text-sm text-gray-600'>Procession Date</p>
+						<p className='font-semibold'>
+							{vehicle.procession_date ? (
+								vehicle.procession_date
 							) : (
 								<span className='text-gray-400'>-</span>
 							)}

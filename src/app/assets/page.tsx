@@ -69,7 +69,7 @@ export default function AssetsPage() {
 
 			toast({
 				title: 'Stock Check Complete',
-				description: `Alerts sent: ${result.alerts_sent || 0}`,
+				description: `Alerts sent: ${result.stats.alerts_sent || 0}`,
 			});
 		} catch (error) {
 			console.error('Failed to check low stock:', error);
@@ -96,16 +96,12 @@ export default function AssetsPage() {
 
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>
-			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl'>
+			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl'>
 				<div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6'>
 					<div>
 						<h1 className='text-3xl font-bold text-gray-900'>
 							Asset Management
 						</h1>
-						<p className='text-gray-500 mt-1'>
-							Track inventory, manage borrowing, and monitor stock
-							levels
-						</p>
 					</div>
 					<div className='flex gap-2'>
 						<AddAssetDialog onSuccess={refetchAssets} />

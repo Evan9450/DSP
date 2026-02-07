@@ -166,6 +166,7 @@ export default function VehicleDetailPage({
 				last_maintenance_date: editForm.last_maintenance_date,
 				next_maintenance_date: editForm.next_maintenance_date,
 				scheduled_maintenance_date: editForm.scheduled_maintenance_date,
+				procession_date: editForm.procession_date,
 			};
 			console.log('💾 Full update payload:', updateData);
 			const response = await apiClient.updateVehicle(

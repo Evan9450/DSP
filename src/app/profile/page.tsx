@@ -242,7 +242,7 @@ export default function ProfilePage() {
 
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>
-			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl'>
+			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl'>
 				{/* Header */}
 				<div className='mb-6'>
 					<Button

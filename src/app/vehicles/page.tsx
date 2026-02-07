@@ -140,18 +140,40 @@ export default function VehiclesPage() {
 		});
 	}
 
-	const filteredVehicles = vehicles.filter((v) => {
-		const matchesSearch =
-			v.alias?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			v.rego.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			v.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			v.model?.toLowerCase().includes(searchTerm.toLowerCase());
+	/* =========================
+	   Sorting
+	========================= */
 
-		const matchesCondition =
-			conditionFilter === 'all' || v.condition === conditionFilter;
+	// Sort vehicles: vehicles with scheduledMaintenanceDate come first, sorted by date (ASC)
+	// then vehicles without scheduledMaintenanceDate
+	const filteredVehicles = vehicles
+		.filter((v) => {
+			const matchesSearch =
+				v.alias?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				v.rego.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				v.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				v.model?.toLowerCase().includes(searchTerm.toLowerCase());
 
-		return matchesSearch && matchesCondition;
-	});
+			const matchesCondition =
+				conditionFilter === 'all' || v.condition === conditionFilter;
+
+			return matchesSearch && matchesCondition;
+		})
+		.sort((a, b) => {
+			// If both have scheduled date, sort by date (earlier first)
+			if (a.scheduledMaintenanceDate && b.scheduledMaintenanceDate) {
+				return (
+					a.scheduledMaintenanceDate.getTime() -
+					b.scheduledMaintenanceDate.getTime()
+				);
+			}
+			// If only a has date, a comes first
+			if (a.scheduledMaintenanceDate) return -1;
+			// If only b has date, b comes first
+			if (b.scheduledMaintenanceDate) return 1;
+			// If neither has date, keep original order (or sort by rego/id if needed)
+			return 0;
+		});
 
 	/* =========================
 	   Stats (same source!)
@@ -268,7 +290,7 @@ export default function VehiclesPage() {
 
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>
-			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl'>
+			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl'>
 				<div className='mb-4 sm:mb-6'>
 					<h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>
 						Vehicle Management
@@ -426,10 +448,11 @@ export default function VehiclesPage() {
 								<TableHead>Rego</TableHead>
 								<TableHead>Nickname</TableHead>
 								<TableHead>VIN Number</TableHead>
+								<TableHead>Brand</TableHead>
 								<TableHead>Condition</TableHead>
 								<TableHead>Status</TableHead>
 								<TableHead>Mileage</TableHead>
-								<TableHead>Next Maintenance</TableHead>
+								<TableHead>Scheduled Date</TableHead>
 								{/* <TableHead>Notes</TableHead> */}
 								<TableHead className='w-[50px]'></TableHead>
 							</TableRow>
@@ -503,6 +526,19 @@ export default function VehiclesPage() {
 											)}
 										</TableCell>
 										<TableCell>
+											{vehicle.brand ? (
+												<div>
+													<p className='font-medium text-gray-900'>
+														{vehicle.brand}
+													</p>
+												</div>
+											) : (
+												<span className='text-gray-400'>
+													-
+												</span>
+											)}
+										</TableCell>
+										<TableCell>
 											<div className='flex items-center gap-2'>
 												<span
 													className={`w-3 h-3 rounded-full ${CONDITION_UI[vehicle.condition].dot}`}
@@ -539,24 +575,16 @@ export default function VehiclesPage() {
 											)}
 										</TableCell>
 										<TableCell>
-											{vehicle.nextMaintenanceDate ? (
+											{vehicle.scheduledMaintenanceDate ? (
 												<div>
 													<p
 														className={`text-sm ${isOverdue ? 'text-red-600 font-semibold' : isDueSoon ? 'text-orange-600 font-medium' : 'text-gray-600'}`}>
 														{format(
-															vehicle.nextMaintenanceDate,
+															vehicle.scheduledMaintenanceDate,
 															'MMM dd, yyyy',
 														)}
 													</p>
-													{/* {maintenanceDays !==
-														null && (
-														<p
-															className={`text-xs ${isOverdue ? 'text-red-500' : isDueSoon ? 'text-orange-500' : 'text-gray-500'}`}>
-															{isOverdue
-																? `${Math.abs(maintenanceDays)} days overdue`
-																: `${maintenanceDays} days`}
-														</p>
-													)} */}
+
 												</div>
 											) : (
 												<span className='text-gray-400'>
@@ -564,86 +592,14 @@ export default function VehiclesPage() {
 												</span>
 											)}
 										</TableCell>
-										{/* <TableCell>
-											{vehicle.notes ? (
-												<div
-													className='max-w-xs truncate text-sm text-gray-600'
-													title={vehicle.notes}>
-													{vehicle.notes}
-												</div>
-											) : (
-												<span className='text-gray-400'>
-													-
-												</span>
-											)}
-										</TableCell> */}
+
 										<TableCell
 											onClick={(e) =>
 												e.stopPropagation()
 											}>
-											{/* <DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button
-														variant='ghost'
-														size='sm'
-														className='h-8 w-8 p-0'>
-														<MoreVertical className='h-4 w-4' />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align='end'>
-													<DropdownMenuLabel>
-														Actions
-													</DropdownMenuLabel>
-													<DropdownMenuSeparator />
-													<DropdownMenuItem
-														onClick={(e) =>
-															handleScheduleMaintenance(
-																vehicle.id,
-																e
-															)
-														}>
-														<Calendar className='h-4 w-4 mr-2' />
-														Schedule Maintenance
-													</DropdownMenuItem>
-													<DropdownMenuItem
-														onClick={(e) =>
-															handleAssignToSchedule(
-																vehicle.id,
-																e
-															)
-														}>
-														<Package className='h-4 w-4 mr-2' />
-														Assign to Schedule
-													</DropdownMenuItem>
-													<DropdownMenuSeparator />
-													<DropdownMenuItem
-														onClick={(e) =>
-															handleDeleteClick(
-																vehicle.id,
-																vehicle.rego,
-																e
-															)
-														}
-														className='text-red-600 focus:text-red-600'>
-														<Trash2 className='h-4 w-4 mr-2' />
-														Delete Vehicle
-													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu> */}
+
 											<div className='flex items-center justify-end gap-2'>
-												{/* <Button
-													variant='ghost'
-													size='sm'
-													className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 p-0'
-													onClick={(e) =>
-														handleDeleteClick(
-															vehicle.id,
-															vehicle.rego,
-															e
-														)
-													}>
-													<Trash2 className='h-4 w-4  ' />
-												</Button> */}
+
 												<ChevronRight className='h-5 w-5 text-gray-400' />
 											</div>
 										</TableCell>

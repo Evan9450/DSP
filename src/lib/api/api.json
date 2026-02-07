@@ -687,7 +687,7 @@
           "Drivers (Admin)"
         ],
         "summary": "Update Driver",
-        "description": "更新司机信息（支持同时更新基本信息和文件）\n\n- 可以只更新基本信息\n- 可以手动设置 is_active 状态（控制司机是否可以登录）\n- 可以通过license_file_url/visa_file_url直接传URL数组（JSON字符串格式）\n- 可以通过license_files/visa_files上传新文件\n- 也可以同时更新\n\n自动激活/禁用逻辑：\n1. 设置 amazon_id（当 hashed_password 存在且未手动设置过 is_active）→ 自动激活\n2. 删除 amazon_id（清空或设为空字符串）→ 强制禁用\n3. 手动设置 is_active → 标记为手动设置，后续自动逻辑不会覆盖\n\n示例：\n- license_file_url: '[\"http://localhost:8000/api/v1/files/download/1\", \"http://localhost:8000/api/v1/files/download/2\"]'\n- is_active: true/false (手动控制)\n- amazon_id: \"\" (删除 amazon_id，强制禁用)",
+        "description": "Update driver info (supports updating basic info and files simultaneously)\n\n- Can update only basic info\n- Can manually set is_active status (controls if driver can login)\n- Can pass URL array directly via license_file_url/visa_file_url (JSON string format)\n- Can upload new files via license_files/visa_files\n- Can do both simultaneously\n\nAuto activation/deactivation logic:\n1. Set amazon_id (when hashed_password exists and is_active not manually set) -\u003E Auto activate\n2. Remove amazon_id (empty or empty string) -\u003E Force deactivate\n3. Manually set is_active -\u003E Mark as manually set, subsequent auto logic will not override\n\nExamples:\n- license_file_url: '[\"http://localhost:8000/api/v1/files/download/1\", \"http://localhost:8000/api/v1/files/download/2\"]'\n- is_active: true/false (manual control)\n- amazon_id: \"\" (remove amazon_id, force deactivate)",
         "operationId": "update_driver_api_v1_drivers__driver_id__put",
         "security": [
           {
@@ -889,7 +889,7 @@
           "Drivers (Admin)"
         ],
         "summary": "Delete License File",
-        "description": "删除指定的驾照文件\n\n- file_url: 要删除的文件URL",
+        "description": "Delete specified license file\n\n- file_url: URL of the file to delete",
         "operationId": "delete_license_file_api_v1_drivers__driver_id__delete_license_file_delete",
         "security": [
           {
@@ -944,7 +944,7 @@
           "Drivers (Admin)"
         ],
         "summary": "Delete Visa File",
-        "description": "删除指定的签证文件\n\n- file_url: 要删除的文件URL",
+        "description": "Delete specified visa file\n\n- file_url: URL of the file to delete",
         "operationId": "delete_visa_file_api_v1_drivers__driver_id__delete_visa_file_delete",
         "security": [
           {
@@ -999,7 +999,7 @@
           "Drivers (Admin)"
         ],
         "summary": "Get Expiring Documents",
-        "description": "获取即将过期的驾照和签证列表",
+        "description": "Get list of expiring licenses and visas",
         "operationId": "get_expiring_documents_api_v1_drivers_documents_expiring_get",
         "security": [
           {
@@ -1709,7 +1709,7 @@
           "Vehicles"
         ],
         "summary": "Send Maintenance Booking Email",
-        "description": "手动发送维护预约邮件到车辆的维修供应商。\n\n此端点允许管理员手动触发维护预约邮件到配置的维修供应商。\n\n要求:\n- 车辆必须配置了 repair_supplier_id\n- 维修供应商必须有 email 地址\n\n邮件将包含 scheduled_maintenance_date(如果设置),\n否则使用 next_maintenance_date,或不指定具体日期。\n\n返回:\n- success: 邮件是否发送成功\n- message: 状态消息\n- vehicle_info: 基本车辆信息",
+        "description": "Manually send maintenance booking email to vehicle's repair supplier.\n\nThis endpoint allows admins to manually trigger maintenance booking emails to configured repair suppliers.\n\nRequirements:\n- Vehicle must have repair_supplier_id configured\n- Repair supplier must have an email address\n\nEmail will include scheduled_maintenance_date (if set),\notherwise use next_maintenance_date, or unspecified date.\n\nReturns:\n- success: Whether email was sent successfully\n- message: Status message\n- vehicle_info: Basic vehicle info",
         "operationId": "send_maintenance_booking_email_api_v1_vehicles__vehicle_id__send_maintenance_email_post",
         "security": [
           {
@@ -1755,7 +1755,7 @@
           "Vehicles"
         ],
         "summary": "Get Vehicle Maintenance History",
-        "description": "获取车辆维护历史记录",
+        "description": "Get vehicle maintenance history",
         "operationId": "get_vehicle_maintenance_history_api_v1_vehicles__vehicle_id__maintenance_history_get",
         "security": [
           {
@@ -1825,7 +1825,7 @@
           "Vehicles"
         ],
         "summary": "Create Vehicle Maintenance Record",
-        "description": "创建车辆维护记录",
+        "description": "Create vehicle maintenance record",
         "operationId": "create_vehicle_maintenance_record_api_v1_vehicles__vehicle_id__maintenance_history_post",
         "security": [
           {
@@ -1883,7 +1883,7 @@
           "Vehicles"
         ],
         "summary": "Complete Maintenance",
-        "description": "确认维护完成。\n\n1. 创建维护历史记录 (关联当前供应商)\n2. 更新车辆 last_maintenance_date\n3. 重置 maintenance_cycle_days 为 180 (如果小于 0 或未设置)\n4. 自动计算 next_maintenance_date (基于天数, +180)\n5. 清除 scheduled_maintenance_date 和 email_sent 状态",
+        "description": "Confirm maintenance completion.\n\n1. Create maintenance history record (link to current supplier)\n2. Update vehicle last_maintenance_date\n3. Reset maintenance_cycle_days to 180 (if less than 0 or not set)\n4. Automatically calculate next_maintenance_date (based on days, +180)\n5. Clear scheduled_maintenance_date and email_sent status",
         "operationId": "complete_maintenance_api_v1_vehicles__vehicle_id__complete_maintenance_post",
         "security": [
           {
@@ -1939,7 +1939,7 @@
           "Schedules"
         ],
         "summary": "List Schedules",
-        "description": "获取排班列表\n\n- 如果指定了schedule_date且数据库中没有该日期的数据，会自动从Deputy同步（除非auto_sync=False）\n- 支持按deputy_id和checkin_status过滤",
+        "description": "Get schedule list\n\n- If schedule_date is specified and no data in DB, auto sync from Deputy (unless auto_sync=False)\n- Supports filtering by deputy_id and checkin_status",
         "operationId": "list_schedules_api_v1_schedules__get",
         "security": [
           {
@@ -1961,10 +1961,10 @@
                   "type": "null"
                 }
               ],
-              "description": "过滤指定日期",
+              "description": "Filter by date",
               "title": "Schedule Date"
             },
-            "description": "过滤指定日期"
+            "description": "Filter by date"
           },
           {
             "name": "deputy_id",
@@ -1979,10 +1979,10 @@
                   "type": "null"
                 }
               ],
-              "description": "过滤Deputy员工ID",
+              "description": "Filter by Deputy employee ID",
               "title": "Deputy Id"
             },
-            "description": "过滤Deputy员工ID"
+            "description": "Filter by Deputy employee ID"
           },
           {
             "name": "checkin_status",
@@ -1997,10 +1997,10 @@
                   "type": "null"
                 }
               ],
-              "description": "过滤签到状态",
+              "description": "Filter by checkin status",
               "title": "Checkin Status"
             },
-            "description": "过滤签到状态"
+            "description": "Filter by checkin status"
           },
           {
             "name": "auto_sync",
@@ -2008,11 +2008,11 @@
             "required": false,
             "schema": {
               "type": "boolean",
-              "description": "如果数据库没有数据，是否自动同步Deputy",
+              "description": "Auto sync from Deputy if no data in DB",
               "default": true,
               "title": "Auto Sync"
             },
-            "description": "如果数据库没有数据，是否自动同步Deputy"
+            "description": "Auto sync from Deputy if no data in DB"
           }
         ],
         "responses": {
@@ -2049,7 +2049,7 @@
           "Schedules"
         ],
         "summary": "Get Today Schedules",
-        "description": "获取今天的排班\n\n- 如果数据库中没有今天的数据，会自动从Deputy同步（除非auto_sync=False）",
+        "description": "Get today's schedules\n\n- If no data for today in DB, auto sync from Deputy (unless auto_sync=False)",
         "operationId": "get_today_schedules_api_v1_schedules_today_get",
         "security": [
           {
@@ -2063,11 +2063,11 @@
             "required": false,
             "schema": {
               "type": "boolean",
-              "description": "如果数据库没有数据，是否自动同步Deputy",
+              "description": "Auto sync from Deputy if no data in DB",
               "default": true,
               "title": "Auto Sync"
             },
-            "description": "如果数据库没有数据，是否自动同步Deputy"
+            "description": "Auto sync from Deputy if no data in DB"
           }
         ],
         "responses": {
@@ -2104,7 +2104,7 @@
           "Schedules"
         ],
         "summary": "Get Schedule",
-        "description": "获取指定排班详情",
+        "description": "Get schedule details",
         "operationId": "get_schedule_api_v1_schedules__schedule_id__get",
         "security": [
           {
@@ -2150,7 +2150,7 @@
           "Schedules"
         ],
         "summary": "Update Schedule",
-        "description": "更新排班信息\n\n可更新字段：driver_id, route, vehicle_rego, checkin_status\n\n**注意**:\n- 如果提供了 driver_id，会自动从 Driver 表中查找并更新 deputy_id, driver_name, amazon_id\n- confirm_status 不能通过此端点修改，必须使用 POST /schedules/{id}/confirm 端点",
+        "description": "Update schedule information\n\nUpdatable fields: driver_id, route, vehicle_rego, checkin_status\n\n**Note**:\n- If driver_id provided, automatically look up and update deputy_id, driver_name, amazon_id from Driver table\n- confirm_status cannot be modified via this endpoint, must use POST /schedules/{id}/confirm endpoint",
         "operationId": "update_schedule_api_v1_schedules__schedule_id__put",
         "security": [
           {
@@ -2206,7 +2206,7 @@
           "Schedules"
         ],
         "summary": "Delete Schedule",
-        "description": "删除排班",
+        "description": "Delete schedule",
         "operationId": "delete_schedule_api_v1_schedules__schedule_id__delete",
         "security": [
           {
@@ -2247,7 +2247,7 @@
           "Schedules"
         ],
         "summary": "Sync Specific Date",
-        "description": "手动同步指定日期的Deputy排班数据",
+        "description": "Manually sync Deputy schedule data for specific date",
         "operationId": "sync_specific_date_api_v1_schedules_sync_date_post",
         "security": [
           {
@@ -2262,10 +2262,10 @@
             "schema": {
               "type": "string",
               "format": "date",
-              "description": "要同步的日期",
+              "description": "Date to sync",
               "title": "Sync Date"
             },
-            "description": "要同步的日期"
+            "description": "Date to sync"
           }
         ],
         "responses": {
@@ -2296,7 +2296,7 @@
           "Schedules"
         ],
         "summary": "Sync Today",
-        "description": "手动同步今天的Deputy排班数据",
+        "description": "Manually sync today's Deputy schedule data",
         "operationId": "sync_today_api_v1_schedules_sync_today_post",
         "responses": {
           "200": {
@@ -2321,7 +2321,7 @@
           "Schedules"
         ],
         "summary": "Import Routes",
-        "description": "上传 Amazon route 文件并自动匹配更新排班的 route 字段\n如果不匹配，则创建新的 Schedule (Driver=Unassigned)\n\n- **file**: Amazon route Excel 文件 (.xlsx)\n- **import_date**: 要更新/创建的排班日期（默认今天）\n\n**工作流程**:\n1. 解析 Excel 文件获取 Route code 和可选 Transporter ID\n2. 查询指定日期的所有排班\n3. 尝试通过 Transporter ID 匹配现有排班\n4. 如果匹配成功 -\u003E 更新现有排班的 route\n5. 如果匹配失败（无 Transporter ID 或 ID 不匹配）-\u003E 创建新排班 (Driver=Unassigned)\n\n**必需字段**: Route code\n**可选字段**: Transporter ID",
+        "description": "Upload Amazon route file and auto-match/update schedule route field\nIf no match, create new Schedule (Driver=Unassigned)\n\n- **file**: Amazon route Excel file (.xlsx)\n- **import_date**: Schedule date to update/create (default today)\n\n**Workflow**:\n1. Parse Excel file for Route code and optional Transporter ID\n2. Query all schedules for specific date\n3. Try matching existing schedule by Transporter ID\n4. If match found -\u003E update route of existing schedule\n5. If match failed (no Transporter ID or mismatch) -\u003E create new schedule (Driver=Unassigned)\n\n**Required fields**: Route code\n**Optional fields**: Transporter ID",
         "operationId": "import_routes_api_v1_schedules_import_routes_post",
         "security": [
           {
@@ -2343,10 +2343,10 @@
                   "type": "null"
                 }
               ],
-              "description": "导入到哪一天的排班（默认今天）",
+              "description": "Import schedule date (default today)",
               "title": "Import Date"
             },
-            "description": "导入到哪一天的排班（默认今天）"
+            "description": "Import schedule date (default today)"
           }
         ],
         "requestBody": {
@@ -2389,7 +2389,7 @@
           "Schedules"
         ],
         "summary": "Confirm Schedule",
-        "description": "确认排班并发送SMS通知给司机\n\n**必填项检查**:\n- ✅ driver (amazon_id) - 司机的Amazon ID必须已分配\n- ✅ route - 路线必须已分配\n- ✅ vehicle_rego - 车辆必须已分配\n\n**功能**:\n1. 验证所有必填项都已分配（司机Amazon ID、路线、车辆）\n2. 更新 confirm_status 为 CONFIRMED\n3. 查找对应的Driver（通过deputy_id）\n4. 发送SMS通知给司机，包含：\n   - 司机姓名\n   - 路线 (route)\n   - 车辆 (vehicle_rego)\n   - 时间 (start_time ~ end_time)\n\n**SMS通知示例**:\n```\nHi John, your schedule confirmed!\nDate: 2025-12-30\nRoute: DBS7-01A\nVehicle: Van 10\nTime: 08:00 - 18:00\n```",
+        "description": "Confirm schedule and send SMS to driver\n\n**Required fields check**:\n- ✅ driver (amazon_id) - Driver's Amazon ID must be assigned\n- ✅ route - Route must be assigned\n- ✅ vehicle_rego - Vehicle must be assigned\n\n**Functionality**:\n1. Verify required fields assigned (Driver Amazon ID, Route, Vehicle)\n2. Update confirm_status to CONFIRMED\n3. Find corresponding Driver (by deputy_id)\n4. Send SMS to driver containing:\n   - Driver name\n   - Route\n   - Vehicle (vehicle_rego)\n   - Time (start_time ~ end_time)\n\n**SMS Example**:\n```\nHi John, your schedule confirmed!\nDate: 2025-12-30\nRoute: DBS7-01A\nVehicle: Van 10\nTime: 08:00 - 18:00\n```",
         "operationId": "confirm_schedule_api_v1_schedules__schedule_id__confirm_post",
         "security": [
           {
@@ -2437,7 +2437,7 @@
           "Schedules"
         ],
         "summary": "Batch Confirm Schedules",
-        "description": "批量确认排班并发送SMS通知给司机\n\n**请求体**:\n- schedule_ids: 要确认的排班ID列表\n\n**验证规则** (每个排班):\n- ✅ driver (amazon_id) - 司机的Amazon ID必须已分配\n- ✅ route - 路线必须已分配\n- ✅ vehicle_rego - 车辆必须已分配\n- ✅ confirm_status != CONFIRMED - 不能重复确认\n\n**返回**:\n- success: 成功确认的排班列表（含SMS发送状态）\n- failed: 失败的排班列表（含错误原因）\n\n**注意**: 此接口采用部分成功模式，不会因为单个失败而回滚其他成功的确认",
+        "description": "Batch confirm schedules and send SMS notifications to drivers\n\n**Request Body**:\n- schedule_ids: List of schedule IDs to confirm\n\n**Validation Rules** (per schedule):\n- ✅ driver (amazon_id) - Driver's Amazon ID must be assigned\n- ✅ route - Route must be assigned\n- ✅ vehicle_rego - Vehicle must be assigned\n- ✅ confirm_status != CONFIRMED - Cannot re-confirm\n\n**Returns**:\n- success: List of successfully confirmed schedules (with SMS status)\n- failed: List of failed schedules (with error reason)\n\n**Note**: Partial success mode, failure of one does not rollback others",
         "operationId": "batch_confirm_schedules_api_v1_schedules_batch_confirm_post",
         "requestBody": {
           "content": {
@@ -3253,7 +3253,7 @@
           "System Settings"
         ],
         "summary": "Get System Config",
-        "description": "获取系统配置（所有用户可见）\n\n返回所有系统配置项的当前值：\n- admin_phone: 管理员提醒电话\n- driver_file_reminder_days: 司机文件临期提醒周期（10/15/30天）\n- daily_sms_time: 司机每日确认短信时间（HH:MM格式）\n- maintenance_booking_reminder_days: 保养预约提醒周期（10/15/30天）\n- next_maintenance_reminder_days: 下次保养临近提醒周期（10/15/30天）",
+        "description": "Get system config (visible to all users)\n\nReturns current values of all system config items:\n- admin_phone: [Deprecated] Admin reminder phone\n- contacts: System notification contact list\n- driver_file_reminder_days: Driver file expiry reminder period (10/15/30 days)\n- daily_sms_time: Driver daily confirmation SMS time (HH:MM format)\n- maintenance_booking_reminder_days: Maintenance booking reminder period (10/15/30 days)\n- next_maintenance_reminder_days: Next maintenance approaching reminder period (10/15/30 days)",
         "operationId": "get_system_config_api_v1_settings_config_get",
         "responses": {
           "200": {
@@ -3278,7 +3278,7 @@
           "System Settings"
         ],
         "summary": "Update System Config",
-        "description": "更新系统配置（批量更新）\n\n可以一次更新多个配置项，只需要提供需要更新的字段。\n\n配置说明：\n- admin_phone: 管理员提醒电话（用于接收系统通知）\n- driver_file_reminder_days: 司机文件临期提醒周期，建议值: 10, 15, 30天\n- daily_sms_time: 每日发送司机确认短信的时间（24小时制，如 \"08:00\"）\n- maintenance_booking_reminder_days: 保养预约提醒周期，建议值: 10, 15, 30天\n- next_maintenance_reminder_days: 下次保养临近提醒周期，建议值: 10, 15, 30天",
+        "description": "Update system config (batch update)\n\nCan update multiple config items at once, providing only fields to update.\n\nConfig description:\n- admin_phone: Admin reminder phone (for receiving system notifications)\n- driver_file_reminder_days: Driver file expiry reminder period, suggested: 10, 15, 30 days\n- daily_sms_time: Daily driver confirmation SMS time (24-hour, e.g. \"08:00\")\n- maintenance_booking_reminder_days: Maintenance booking reminder period, suggested: 10, 15, 30 days\n- next_maintenance_reminder_days: Next maintenance approaching reminder period, suggested: 10, 15, 30 days",
         "operationId": "update_system_config_api_v1_settings_config_put",
         "requestBody": {
           "content": {
@@ -3323,7 +3323,7 @@
           "System Settings"
         ],
         "summary": "Create System Config",
-        "description": "创建/初始化系统配置\n\n首次设置系统配置，可以提供所有或部分配置项。\n未提供的配置项将使用默认值。\n\n配置说明：\n- admin_phone: 管理员提醒电话（用于接收系统通知）\n- driver_file_reminder_days: 司机文件临期提醒周期，建议值: 10, 15, 30天\n- daily_sms_time: 每日发送司机确认短信的时间（24小时制，如 \"08:00\"）\n- maintenance_booking_reminder_days: 保养预约提醒周期，建议值: 10, 15, 30天\n- next_maintenance_reminder_days: 下次保养临近提醒周期，建议值: 10, 15, 30天",
+        "description": "Create/Initialize system config\n\nInitial set up of system config, can provide all or partial config items.\nUnprovided items will use default values.\n\nConfig description:\n- admin_phone: Admin reminder phone (for receiving system notifications)\n- driver_file_reminder_days: Driver file expiry reminder period, suggested: 10, 15, 30 days\n- daily_sms_time: Daily driver confirmation SMS time (24-hour, e.g. \"08:00\")\n- maintenance_booking_reminder_days: Maintenance booking reminder period, suggested: 10, 15, 30 days\n- next_maintenance_reminder_days: Next maintenance approaching reminder period, suggested: 10, 15, 30 days",
         "operationId": "create_system_config_api_v1_settings_config_post",
         "requestBody": {
           "content": {
@@ -3420,7 +3420,7 @@
           "Deputy Integration"
         ],
         "summary": "Get Deputy Employees",
-        "description": "获取 Deputy 员工列表（包含头像等详细信息）\n\n返回员工列表，包含以下字段：\n- Id: Deputy 员工 ID\n- DisplayName: 姓名\n- Email: 邮箱\n- Mobile: 手机号",
+        "description": "Get list of Deputy employees (including avatar etc.)\n\nReturns list of employees with following fields:\n- Id: Deputy Employee ID\n- DisplayName: Name\n- Email: Email\n- Mobile: Mobile Phone",
         "operationId": "get_deputy_employees_api_v1_supervise_employee_get",
         "responses": {
           "200": {
@@ -3451,7 +3451,7 @@
           "Deputy Integration"
         ],
         "summary": "Get Deputy Employee",
-        "description": "获取单个 Deputy 员工详情\n\n- **employee_id**: Deputy 员工 ID",
+        "description": "Get single Deputy employee details\n\n- **employee_id**: Deputy Employee ID",
         "operationId": "get_deputy_employee_api_v1_supervise_employee__employee_id__get",
         "security": [
           {
@@ -3500,7 +3500,7 @@
           "Deputy Integration"
         ],
         "summary": "Sync Deputy Employees",
-        "description": "同步 Deputy 员工到系统驱动程序表\n\n将 Deputy 中的员工数据同步到本地 drivers 表",
+        "description": "Sync Deputy employees to system drivers table\n\nSyncs employee data from Deputy to local drivers table",
         "operationId": "sync_deputy_employees_api_v1_supervise_sync_employees_post",
         "responses": {
           "200": {
@@ -3528,7 +3528,7 @@
           "Deputy Integration"
         ],
         "summary": "Get Rosters",
-        "description": "获取指定日期范围的 Deputy roster 数据",
+        "description": "Get Deputy roster data for specified date range",
         "operationId": "get_rosters_api_v1_supervise_rosters_get",
         "security": [
           {
@@ -3616,7 +3616,7 @@
           "Deputy Integration"
         ],
         "summary": "Preview Rosters",
-        "description": "预览 Deputy rosters 数据（不写入数据库）\n\n**功能**:\n- 从 Deputy API 获取指定日期的 rosters\n- 匹配数据库中的 Driver（通过 deputy_id）\n- 显示每个 roster 的状态 (ready/exists/no_driver)\n- **不写入数据库**，**不显示 amazon_id**\n\n**返回**:\n- 简化的 roster 列表（司机名称、时间、状态）\n- 可同步数量统计",
+        "description": "Preview Deputy rosters data (do not write to database)\n\n**Functionality**:\n- Fetch rosters from Deputy API for specified date\n- Match with local Driver in database (via deputy_id)\n- Show status for each roster (ready/exists/no_driver)\n- **Does NOT write to database**, **Does NOT show amazon_id**\n\n**Returns**:\n- Simplified roster list (driver name, time, status)\n- Count of syncable items",
         "operationId": "preview_rosters_api_v1_supervise_rosters_preview_get",
         "security": [
           {
@@ -3638,10 +3638,10 @@
                   "type": "null"
                 }
               ],
-              "description": "查询日期 (默认今天)",
+              "description": "Query date (default today)",
               "title": "Query Date"
             },
-            "description": "查询日期 (默认今天)"
+            "description": "Query date (default today)"
           }
         ],
         "responses": {
@@ -3674,7 +3674,7 @@
           "Deputy Integration"
         ],
         "summary": "Sync Rosters",
-        "description": "同步 Deputy rosters 到数据库\n\n**功能**:\n- 从 Deputy API 获取指定日期的 rosters\n- 匹配数据库中的 Driver（通过 deputy_id）\n- **从 Driver 表获取最新的 amazon_id 并同步到 Schedule**\n- 创建或更新 Schedule 记录\n- 返回同步统计和 amazon_id 信息\n\n**重要**:\n- 会自动从 Driver 表同步 amazon_id 到 Schedule\n- 如果 Driver 有 amazon_id，Schedule 也会被更新",
+        "description": "Sync Deputy rosters to database\n\n**Functionality**:\n- Fetch rosters from Deputy API for specified date\n- Match with local Driver in database (via deputy_id)\n- **Fetch latest amazon_id from Driver table and sync to Schedule**\n- Create or update Schedule records\n- Return sync statistics and amazon_id info\n\n**Important**:\n- Automatically syncs amazon_id from Driver to Schedule\n- If Driver has amazon_id, Schedule will also be updated",
         "operationId": "sync_rosters_api_v1_supervise_rosters_sync_post",
         "security": [
           {
@@ -3696,10 +3696,10 @@
                   "type": "null"
                 }
               ],
-              "description": "同步日期 (默认今天)",
+              "description": "Sync date (default today)",
               "title": "Sync Date"
             },
-            "description": "同步日期 (默认今天)"
+            "description": "Sync date (default today)"
           }
         ],
         "responses": {
@@ -3763,7 +3763,7 @@
           "File Management"
         ],
         "summary": "Upload File",
-        "description": "上传文件到 MinIO/Wasabi 存储并保存到数据库\n\n- **file**: 要上传的文件\n- **folder**: 存储文件夹路径（可选，默认 \"uploads\"）\n\n返回数据库记录（包含ID）",
+        "description": "Upload file to MinIO/Wasabi storage and save to database\n\n- **file**: File to upload\n- **folder**: Storage folder path (optional, default \"uploads\")\n\nReturns database record (including ID)",
         "operationId": "upload_file_api_v1_files_upload_post",
         "requestBody": {
           "content": {
@@ -3810,7 +3810,7 @@
           "File Management"
         ],
         "summary": "Delete File",
-        "description": "从 MinIO/Wasabi 和数据库中删除文件\n\n- **file_id**: 数据库中的文件记录ID",
+        "description": "Delete file from MinIO/Wasabi and database\n\n- **file_id**: File record ID in database",
         "operationId": "delete_file_api_v1_files_delete__file_id__delete",
         "security": [
           {
@@ -3856,7 +3856,7 @@
           "File Management"
         ],
         "summary": "List Files",
-        "description": "列出数据库中的所有文件记录\n\n- **folder**: 文件夹过滤（可选，例如 \"uploads\", \"drivers\"）\n\n返回文件记录列表（包含ID）",
+        "description": "List all file records in the database\n\n- **folder**: Folder filter (optional, e.g., \"uploads\", \"drivers\")\n\nReturns list of file records (including ID)",
         "operationId": "list_files_api_v1_files_list_get",
         "security": [
           {
@@ -3915,7 +3915,7 @@
           "File Management"
         ],
         "summary": "Batch Upload Files",
-        "description": "批量上传多个文件到 MinIO/Wasabi 存储并保存到数据库\n\n- **files**: 要上传的文件列表\n- **folder**: 存储文件夹路径（可选，默认 \"uploads\"）\n\n返回所有上传文件的数据库记录（包含ID）",
+        "description": "Batch upload multiple files to MinIO/Wasabi storage and save to database\n\n- **files**: List of files to upload\n- **folder**: Storage folder path (optional, default \"uploads\")\n\nReturns database records for all uploaded files (including ID)",
         "operationId": "batch_upload_files_api_v1_files_batch_upload_post",
         "requestBody": {
           "content": {
@@ -3960,7 +3960,7 @@
           "File Management"
         ],
         "summary": "Batch Delete Files",
-        "description": "批量删除多个文件\n\n- **file_ids**: 要删除的文件记录ID列表",
+        "description": "Batch delete multiple files\n\n- **file_ids**: List of file record IDs to delete",
         "operationId": "batch_delete_files_api_v1_files_batch_delete_post",
         "requestBody": {
           "content": {
@@ -4005,7 +4005,7 @@
           "File Management"
         ],
         "summary": "View File",
-        "description": "通过后端代理访问文件（带权限控制，在浏览器中显示）\n\n- **file_id**: 文件记录ID",
+        "description": "Access file via backend proxy (with permission control, display in browser)\n\n- **file_id**: File record ID",
         "operationId": "view_file_api_v1_files_download__file_id__get",
         "security": [
           {
@@ -4554,7 +4554,7 @@
           "Inspection Management"
         ],
         "summary": "List Inspections",
-        "description": "获取 inspection 列表（支持多种过滤条件）\n\n**核心功能**：\n- 按日期查看某天所有 inspection\n- 按车辆查看 inspection 历史\n- 按司机查看 inspection 历史\n- 按状态过滤（待审核、通过、失败）\n- 日期范围查询\n\n**示例**：\n- 查看某天所有 inspection: `?inspection_date=2026-01-04`\n- 查看某车所有 inspection: `?vehicle_id=1`\n- 查看待维修的 inspection: `?condition=need-repair&reviewed=false`\n- 日期范围: `?start_date=2026-01-01&end_date=2026-01-31`",
+        "description": "Get inspection list (supports multiple filters)\n\n**Core Functionality**:\n- View all inspections for a specific day by date\n- View inspection history by vehicle\n- View inspection history by driver\n- Filter by status (pending review, passed, failed)\n- Date range query\n\n**Examples**:\n- View all inspections for a specific day: `?inspection_date=2026-01-04`\n- View all inspections for a vehicle: `?vehicle_id=1`\n- View inspections needing repair: `?condition=need-repair&reviewed=false`\n- Date range: `?start_date=2026-01-01&end_date=2026-01-31`",
         "operationId": "list_inspections_api_v1_inspections__get",
         "security": [
           {
@@ -4576,10 +4576,10 @@
                   "type": "null"
                 }
               ],
-              "description": "按日期过滤（查看某天所有inspection）",
+              "description": "Filter by date (view all inspections for a specific day)",
               "title": "Inspection Date"
             },
-            "description": "按日期过滤（查看某天所有inspection）"
+            "description": "Filter by date (view all inspections for a specific day)"
           },
           {
             "name": "vehicle_id",
@@ -4594,10 +4594,10 @@
                   "type": "null"
                 }
               ],
-              "description": "按车辆过滤",
+              "description": "Filter by vehicle",
               "title": "Vehicle Id"
             },
-            "description": "按车辆过滤"
+            "description": "Filter by vehicle"
           },
           {
             "name": "driver_id",
@@ -4612,10 +4612,10 @@
                   "type": "null"
                 }
               ],
-              "description": "按司机过滤",
+              "description": "Filter by driver",
               "title": "Driver Id"
             },
-            "description": "按司机过滤"
+            "description": "Filter by driver"
           },
           {
             "name": "condition",
@@ -4631,10 +4631,10 @@
                   "type": "null"
                 }
               ],
-              "description": "按车况过滤（available/need-repair/unavailable）",
+              "description": "Filter by condition (available/need-repair/unavailable)",
               "title": "Condition"
             },
-            "description": "按车况过滤（available/need-repair/unavailable）"
+            "description": "Filter by condition (available/need-repair/unavailable)"
           },
           {
             "name": "reviewed",
@@ -4649,10 +4649,10 @@
                   "type": "null"
                 }
               ],
-              "description": "按审核状态过滤",
+              "description": "Filter by review status",
               "title": "Reviewed"
             },
-            "description": "按审核状态过滤"
+            "description": "Filter by review status"
           },
           {
             "name": "start_date",
@@ -4668,10 +4668,10 @@
                   "type": "null"
                 }
               ],
-              "description": "开始日期（日期范围查询）",
+              "description": "Start date (date range query)",
               "title": "Start Date"
             },
-            "description": "开始日期（日期范围查询）"
+            "description": "Start date (date range query)"
           },
           {
             "name": "end_date",
@@ -4687,10 +4687,10 @@
                   "type": "null"
                 }
               ],
-              "description": "结束日期（日期范围查询）",
+              "description": "End date (date range query)",
               "title": "End Date"
             },
-            "description": "结束日期（日期范围查询）"
+            "description": "End date (date range query)"
           },
           {
             "name": "skip",
@@ -4750,7 +4750,7 @@
           "Inspection Management"
         ],
         "summary": "Get Inspection Stats",
-        "description": "获取 inspection 统计数据\n\n**返回**：\n- total: 总数\n- available: 可用数量\n- need-repair: 需维修数量\n- unavailable: 不可用数量\n- reviewed_count: 已审核总数\n- reviewed_count: 已审核总数\n\n**示例**：\n- 查看某天统计: `?inspection_date=2026-01-04`\n- 查看某车统计: `?vehicle_id=1`\n- 日期范围统计: `?start_date=2026-01-01&end_date=2026-01-31`",
+        "description": "Get inspection statistics\n\n**Returns**:\n- total: Total count\n- available: Available count\n- need-repair: Need repair count\n- unavailable: Unavailable count\n- reviewed_count: Reviewed total count\n\n**Examples**:\n- View stats for a specific day: `?inspection_date=2026-01-04`\n- View stats for a specific vehicle: `?vehicle_id=1`\n- Date range stats: `?start_date=2026-01-01&end_date=2026-01-31`",
         "operationId": "get_inspection_stats_api_v1_inspections_stats_get",
         "security": [
           {
@@ -4772,10 +4772,10 @@
                   "type": "null"
                 }
               ],
-              "description": "查看某天的统计",
+              "description": "View stats for a specific day",
               "title": "Inspection Date"
             },
-            "description": "查看某天的统计"
+            "description": "View stats for a specific day"
           },
           {
             "name": "vehicle_id",
@@ -4790,10 +4790,10 @@
                   "type": "null"
                 }
               ],
-              "description": "查看某车的统计",
+              "description": "View stats for a specific vehicle",
               "title": "Vehicle Id"
             },
-            "description": "查看某车的统计"
+            "description": "View stats for a specific vehicle"
           },
           {
             "name": "driver_id",
@@ -4808,10 +4808,10 @@
                   "type": "null"
                 }
               ],
-              "description": "查看某司机的统计",
+              "description": "View stats for a specific driver",
               "title": "Driver Id"
             },
-            "description": "查看某司机的统计"
+            "description": "View stats for a specific driver"
           },
           {
             "name": "start_date",
@@ -4827,10 +4827,10 @@
                   "type": "null"
                 }
               ],
-              "description": "统计范围开始日期",
+              "description": "Stats range start date",
               "title": "Start Date"
             },
-            "description": "统计范围开始日期"
+            "description": "Stats range start date"
           },
           {
             "name": "end_date",
@@ -4846,10 +4846,10 @@
                   "type": "null"
                 }
               ],
-              "description": "统计范围结束日期",
+              "description": "Stats range end date",
               "title": "End Date"
             },
-            "description": "统计范围结束日期"
+            "description": "Stats range end date"
           }
         ],
         "responses": {
@@ -4880,7 +4880,7 @@
           "Inspection Management"
         ],
         "summary": "Get Inspection Detail",
-        "description": "获取单个 inspection 详情（扁平化结构 + 简化的上一次inspection）\n\n**返回完整信息**：\n- 当前inspection的所有字段（包含driver_name）\n- previous: 上一次inspection的简化信息（只包含日期、里程、照片、司机名）",
+        "description": "Get single inspection details (flattened structure + simplified previous inspection)\n\n**Returns complete information**:\n- All fields of current inspection (including driver_name)\n- previous: Simplified information of previous inspection (only date, mileage, photos, driver name)",
         "operationId": "get_inspection_detail_api_v1_inspections__inspection_id__get",
         "security": [
           {
@@ -4928,7 +4928,7 @@
           "Inspection Management"
         ],
         "summary": "Review Inspection",
-        "description": "审核 inspection（管理员）\n\n**功能**：\n- 设置车辆状态（available/need-repair/unavailable）\n- 添加管理员备注\n- 更新里程数（可选，不受审核状态影响）\n- 标记为已审核\n- 自动将车辆状态设置为 not-in-use（结束当天使用）\n\n**重要**：\n- 里程数可以在任何审核状态下更新\n- 里程数更新独立于审核结果\n- 审核后车辆自动变为 not-in-use 状态",
+        "description": "Review inspection (Admin)\n\n**Functionality**:\n- Set vehicle status (available/need-repair/unavailable)\n- Add admin notes\n- Update mileage (optional, independent of review status)\n- Mark as reviewed\n- Automatically set vehicle status to not-in-use (end of day use)\n\n**Important**:\n- Mileage can be updated under any review status\n- Mileage update is independent of review result\n- Vehicle automatically becomes not-in-use after review",
         "operationId": "review_inspection_api_v1_inspections__inspection_id__review_post",
         "security": [
           {
@@ -4986,7 +4986,7 @@
           "Inspection Management"
         ],
         "summary": "Batch Review Inspections",
-        "description": "批量审核 inspection\n\n**功能**：\n- 批量设置多个 inspection 的状态\n- 批量添加管理员备注\n- 自动将所有车辆状态设置为 not-in-use（结束当天使用）\n\n**示例**：\n```\nPOST /api/v1/inspections/batch-review?inspection_ids=1&inspection_ids=2&inspection_ids=3&condition=available&admin_notes=All good\n```",
+        "description": "Batch review inspections\n\n**Functionality**:\n- Batch set status for multiple inspections\n- Batch add admin notes\n- Automatically set all vehicle statuses to not-in-use (end of day use)\n\n**Example**:\n```\nPOST /api/v1/inspections/batch-review?inspection_ids=1&inspection_ids=2&inspection_ids=3&condition=available&admin_notes=All good\n```",
         "operationId": "batch_review_inspections_api_v1_inspections_batch_review_post",
         "security": [
           {
@@ -5003,10 +5003,10 @@
               "items": {
                 "type": "integer"
               },
-              "description": "Inspection ID 列表",
+              "description": "List of Inspection IDs",
               "title": "Inspection Ids"
             },
-            "description": "Inspection ID 列表"
+            "description": "List of Inspection IDs"
           },
           {
             "name": "condition",
@@ -5015,10 +5015,10 @@
             "schema": {
               "type": "string",
               "pattern": "^(available|need-repair|unavailable)$",
-              "description": "批量设置的状态（available/need-repair/unavailable）",
+              "description": "Batch set status (available/need-repair/unavailable)",
               "title": "Condition"
             },
-            "description": "批量设置的状态（available/need-repair/unavailable）"
+            "description": "Batch set status (available/need-repair/unavailable)"
           },
           {
             "name": "admin_notes",
@@ -5033,10 +5033,10 @@
                   "type": "null"
                 }
               ],
-              "description": "批量添加的管理员备注",
+              "description": "Batch add admin notes",
               "title": "Admin Notes"
             },
-            "description": "批量添加的管理员备注"
+            "description": "Batch add admin notes"
           }
         ],
         "responses": {
@@ -5067,7 +5067,7 @@
           "Inspection Management"
         ],
         "summary": "Get Inspections By Date",
-        "description": "获取某天的所有 inspection（带完整照片 URL）\n\n**专门优化的端点**：\n- 快速查看某天所有 inspection\n- 包含完整照片 URL\n- 包含里程数数据",
+        "description": "Get all inspections for a specific day (with full photo URLs)\n\n**Optimized endpoint**:\n- Quickly view all inspections for a specific day\n- Includes full photo URLs\n- Includes mileage data",
         "operationId": "get_inspections_by_date_api_v1_inspections_by_date__inspection_date__get",
         "security": [
           {
@@ -5120,7 +5120,7 @@
           "Inspection Management"
         ],
         "summary": "Get Inspections By Vehicle",
-        "description": "获取某车辆的所有 inspection 历史（带完整照片 URL）\n\n**专门优化的端点**：\n- 查看车辆 inspection 历史\n- 支持日期范围过滤\n- 包含里程数趋势数据",
+        "description": "Get all inspection history for a vehicle (with full photo URLs)\n\n**Optimized endpoint**:\n- View vehicle inspection history\n- Supports date range filtering\n- Includes mileage trend data",
         "operationId": "get_inspections_by_vehicle_api_v1_inspections_by_vehicle__vehicle_id__get",
         "security": [
           {
@@ -5151,10 +5151,10 @@
                   "type": "null"
                 }
               ],
-              "description": "开始日期",
+              "description": "Start Date",
               "title": "Start Date"
             },
-            "description": "开始日期"
+            "description": "Start Date"
           },
           {
             "name": "end_date",
@@ -5170,10 +5170,10 @@
                   "type": "null"
                 }
               ],
-              "description": "结束日期",
+              "description": "End Date",
               "title": "End Date"
             },
-            "description": "结束日期"
+            "description": "End Date"
           },
           {
             "name": "skip",
@@ -5233,7 +5233,7 @@
           "Manual Tasks"
         ],
         "summary": "Manual Send Schedule Reminders",
-        "description": "手动触发：发送排班提醒短信（第1次短信）\n\n**自动执行时间**: 每天 04:00 AM\n\n**功能**:\n- 查找指定日期的所有排班（未发送提醒的）\n- 发送简单提醒短信：\"你有排班 for [日期]\"\n- 不包含路线和车辆信息\n- 设置 reminder_sms_sent = True\n\n**短信内容**: \"Hi {name}, you have a shift scheduled for {date}, Please reply Y to confirm.\"\n\n**返回**: 发送统计（sent, failed, skipped）",
+        "description": "Manual Trigger: Send Schedule Reminder SMS (1st SMS)\n\n**Auto Execution Time**: Daily 04:00 AM\n\n**Functionality**:\n- Find all schedules for the specified date (that haven't sent reminders yet)\n- Send simple reminder SMS: \"You have a shift for [date]\"\n- Does NOT include route and vehicle info\n- Sets reminder_sms_sent = True\n\n**SMS Content**: \"Hi {name}, you have a shift scheduled for {date}, Please reply Y to confirm.\"\n\n**Returns**: Sending statistics (sent, failed, skipped)",
         "operationId": "manual_send_schedule_reminders_api_v1_tasks_send_schedule_reminders_post",
         "security": [
           {
@@ -5255,10 +5255,10 @@
                   "type": "null"
                 }
               ],
-              "description": "目标日期（默认今天）",
+              "description": "Target date (default today)",
               "title": "Target Date"
             },
-            "description": "目标日期（默认今天）"
+            "description": "Target date (default today)"
           }
         ],
         "responses": {
@@ -5292,7 +5292,7 @@
           "Manual Tasks"
         ],
         "summary": "Manual Check Document Expiry",
-        "description": "手动触发：检查司机证件到期\n\n**自动执行时间**: 每天 09:00 AM\n\n**功能**:\n- 检查所有司机的驾照和签证到期日期\n- 如果在提醒天数范围内（默认15天）且未提醒过，发送SMS给管理员\n- 设置 license_reminder_sent / visa_reminder_sent = True\n\n**提醒范围**: today ≤ expiry_date ≤ today + 15天\n\n**返回**: 提醒统计（license_alerts, visa_alerts）",
+        "description": "Manual Trigger: Check Driver Document Expiry\n\n**Auto Execution Time**: Daily 09:00 AM\n\n**Functionality**:\n- Check license and visa expiry dates for all drivers\n- If within reminder period (default 15 days) and not reminded, send SMS to admin\n- Sets license_reminder_sent / visa_reminder_sent = True\n\n**Reminder Scope**: today ≤ expiry_date ≤ today + 15 days\n\n**Returns**: Reminder statistics (license_alerts, visa_alerts)",
         "operationId": "manual_check_document_expiry_api_v1_tasks_check_document_expiry_post",
         "responses": {
           "200": {
@@ -5320,7 +5320,7 @@
           "Manual Tasks"
         ],
         "summary": "Manual Check Vehicle Maintenance",
-        "description": "手动触发：检查车辆维护到期\n\n**自动执行时间**: 每天 10:00 AM\n\n**功能**:\n- 查找今天需要维护的车辆（next_maintenance_date == today）\n- 发送邮件给Workshop\n- 发送SMS给管理员\n\n**重要**: 只检查今天到期的车辆，不提前发送\n\n**返回**: 维护提醒统计（emails_sent, sms_sent）",
+        "description": "Manual Trigger: Check Vehicle Maintenance Due\n\n**Auto Execution Time**: Daily 10:00 AM\n\n**Functionality**:\n- Find vehicles needing maintenance today (next_maintenance_date == today)\n- Send email to Workshop\n- Send SMS to admin\n\n**Important**: Checks ONLY vehicles due today, does not send in advance\n\n**Returns**: Maintenance reminder statistics (emails_sent, sms_sent)",
         "operationId": "manual_check_vehicle_maintenance_api_v1_tasks_check_vehicle_maintenance_post",
         "responses": {
           "200": {
@@ -5348,7 +5348,7 @@
           "Manual Tasks"
         ],
         "summary": "Manual Check Low Stock",
-        "description": "手动触发：检查低库存产品\n\n**自动执行时间**: 每天 11:00 AM\n\n**功能**:\n- 查找库存低于阈值的产品（available_stock \u003C= min_stock_threshold）\n- 发送SMS给管理员（手动触发不检查是否已发送过警报）\n- 注意：手动调用不会设置 low_stock_alert_sent 标志\n\n**返回**: 低库存警报统计（alerts_sent）",
+        "description": "Manual Trigger: Check Low Stock Products\n\n**Auto Execution Time**: Daily 11:00 AM\n\n**Functionality**:\n- Find products with stock below threshold (available_stock \u003C= min_stock_threshold)\n- Send SMS to admin (Manual trigger does NOT check if alert already sent)\n- Note: Manual trigger does NOT set low_stock_alert_sent flag\n\n**Returns**: Low stock alert statistics (alerts_sent)",
         "operationId": "manual_check_low_stock_api_v1_tasks_check_low_stock_post",
         "responses": {
           "200": {
@@ -5376,7 +5376,7 @@
           "Manual Tasks"
         ],
         "summary": "Manual Reset Vehicle Status",
-        "description": "手动触发：重置所有车辆状态为 not-in-use\n\n**自动执行时间**: 每天 00:00 AM (午夜)\n\n**功能**:\n- 将所有车辆的 status 重置为 \"not-in-use\"\n- 通常在每日开始时执行\n\n**返回**: 重置统计（vehicles_reset）",
+        "description": "Manual Trigger: Reset all vehicle status to not-in-use\n\n**Auto Execution Time**: Daily 00:00 AM (Midnight)\n\n**Functionality**:\n- Reset status of all vehicles to \"not-in-use\"\n- Usually executed at start of day\n\n**Returns**: Reset statistics (vehicles_reset)",
         "operationId": "manual_reset_vehicle_status_api_v1_tasks_reset_vehicle_status_post",
         "responses": {
           "200": {
@@ -5404,7 +5404,7 @@
           "Manual Tasks"
         ],
         "summary": "Resend Confirmation Sms",
-        "description": "重新发送排班确认短信给司机\n\n**适用场景**:\n- SMS 发送失败后重试\n- 司机反馈未收到短信\n- 排班信息更新后需要再次通知\n\n**前提条件**:\n- Schedule 必须已经 CONFIRMED\n- Schedule 必须已分配：amazon_id, route, vehicle_rego\n- 对应 Driver 必须有电话号码\n\n**SMS内容**:\n```\nHi {name}, your schedule confirmed!\nDate: {date}\nRoute: {route}\nVehicle: {vehicle_rego}\nTime: {start_time} - {end_time}\n```",
+        "description": "Resend Confirmation SMS to Driver\n\n**Use Cases**:\n- Retry after SMS failure\n- Driver claims not received\n- Schedule updated and needs re-notification\n\n**Prerequisites**:\n- Schedule must be CONFIRMED\n- Schedule must be assigned: amazon_id, route, vehicle_rego\n- Driver must have phone number\n\n**SMS Content**:\n```\nHi {name}, your schedule confirmed!\nDate: {date}\nRoute: {route}\nVehicle: {vehicle_rego}\nTime: {start_time} - {end_time}\n```",
         "operationId": "resend_confirmation_sms_api_v1_tasks_resend_confirmation_sms__schedule_id__post",
         "security": [
           {
@@ -5453,7 +5453,7 @@
           "Manual Tasks"
         ],
         "summary": "Manual Run All Tasks",
-        "description": "手动触发：运行所有自动化任务（按顺序）\n\n**执行顺序**:\n1. 发送排班提醒（04:00）\n2. 检查证件到期（09:00）\n3. 检查车辆维护（10:00）\n4. 检查低库存（11:00）\n\n**注意**:\n- 不包括同步排班（请使用 POST /api/v1/schedules/sync-today）\n- 不包括重置车辆状态（通常在午夜执行）\n\n**返回**: 所有任务的执行结果",
+        "description": "Manual Trigger: Run all automated tasks (Sequentially)\n\n**Execution Order**:\n1. Send Schedule Reminders (04:00)\n2. Check Document Expiry (09:00)\n3. Check Vehicle Maintenance (10:00)\n4. Check Low Stock (11:00)\n\n**Note**:\n- Does NOT include schedule sync (Use POST /api/v1/schedules/sync-today)\n- Does NOT include vehicle status reset (Usually executed at midnight)\n\n**Returns**: Results of all tasks",
         "operationId": "manual_run_all_tasks_api_v1_tasks_run_all_tasks_post",
         "responses": {
           "200": {
@@ -5481,7 +5481,7 @@
           "Repair Suppliers"
         ],
         "summary": "Create Repair Supplier",
-        "description": "创建新的维修供应商",
+        "description": "Create new repair supplier",
         "operationId": "create_repair_supplier_api_v1_repair_suppliers__post",
         "security": [
           {
@@ -5526,7 +5526,7 @@
           "Repair Suppliers"
         ],
         "summary": "List Repair Suppliers",
-        "description": "获取所有维修供应商列表",
+        "description": "Get list of all repair suppliers",
         "operationId": "list_repair_suppliers_api_v1_repair_suppliers__get",
         "security": [
           {
@@ -5610,7 +5610,7 @@
           "Repair Suppliers"
         ],
         "summary": "Get Repair Supplier",
-        "description": "获取指定维修供应商详情",
+        "description": "Get details of a specific repair supplier",
         "operationId": "get_repair_supplier_api_v1_repair_suppliers__supplier_id__get",
         "security": [
           {
@@ -5656,7 +5656,7 @@
           "Repair Suppliers"
         ],
         "summary": "Update Repair Supplier",
-        "description": "更新维修供应商信息",
+        "description": "Update repair supplier information",
         "operationId": "update_repair_supplier_api_v1_repair_suppliers__supplier_id__put",
         "security": [
           {
@@ -5712,7 +5712,7 @@
           "Repair Suppliers"
         ],
         "summary": "Delete Repair Supplier",
-        "description": "删除维修供应商",
+        "description": "Delete repair supplier",
         "operationId": "delete_repair_supplier_api_v1_repair_suppliers__supplier_id__delete",
         "security": [
           {
@@ -5733,6 +5733,403 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/message-templates/": {
+      "get": {
+        "tags": [
+          "Message Templates"
+        ],
+        "summary": "Read Message Templates",
+        "description": "Retrieve message templates with default values.",
+        "operationId": "read_message_templates_api_v1_message_templates__get",
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MessageTemplateResponse"
+                  },
+                  "title": "Response Read Message Templates Api V1 Message Templates  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/message-templates/{template_key}": {
+      "get": {
+        "tags": [
+          "Message Templates"
+        ],
+        "summary": "Read Message Template",
+        "description": "Get a specific message template by key with default values.",
+        "operationId": "read_message_template_api_v1_message_templates__template_key__get",
+        "parameters": [
+          {
+            "name": "template_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Template Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageTemplateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Message Templates"
+        ],
+        "summary": "Update Message Template",
+        "description": "Update a message template.",
+        "operationId": "update_message_template_api_v1_message_templates__template_key__put",
+        "parameters": [
+          {
+            "name": "template_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Template Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageTemplateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageTemplateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/message-templates/reset/{template_key}": {
+      "post": {
+        "tags": [
+          "Message Templates"
+        ],
+        "summary": "Reset Message Template",
+        "description": "Reset a message template to its default value.",
+        "operationId": "reset_message_template_api_v1_message_templates_reset__template_key__post",
+        "parameters": [
+          {
+            "name": "template_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Template Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageTemplateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kpi/generate": {
+      "post": {
+        "tags": [
+          "KPI"
+        ],
+        "summary": "生成KPI报告",
+        "description": "上传PDF和CSV文件,生成KPI报告\n\n- **pdf_file**: PDF文件(DSP WEEKLY SUMMARY)\n- **csv_file**: CSV文件(Driver Report)\n- **week**: 周数\n- **year**: 年份\n- **min_delivered**: 最小配送量,低于此数量不参与排名\n- **dnr_threshold**: DNR阈值(DPMO)\n- **weight_***: 各项权重,总和必须为1.0",
+        "operationId": "generate_kpi_report_api_v1_kpi_generate_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_generate_kpi_report_api_v1_kpi_generate_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KPIReportDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/kpi/reports": {
+      "get": {
+        "tags": [
+          "KPI"
+        ],
+        "summary": "获取KPI报告列表",
+        "description": "获取所有KPI报告列表",
+        "operationId": "get_kpi_reports_api_v1_kpi_reports_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KPIReportResponse"
+                  },
+                  "title": "Response Get Kpi Reports Api V1 Kpi Reports Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kpi/reports/{report_id}": {
+      "get": {
+        "tags": [
+          "KPI"
+        ],
+        "summary": "获取KPI报告详情",
+        "description": "获取指定KPI报告的详细信息,包含所有司机KPI数据",
+        "operationId": "get_kpi_report_api_v1_kpi_reports__report_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KPIReportDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "KPI"
+        ],
+        "summary": "删除KPI报告",
+        "description": "删除指定的KPI报告及其所有司机KPI数据",
+        "operationId": "delete_kpi_report_api_v1_kpi_reports__report_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -5940,6 +6337,82 @@
           "files"
         ],
         "title": "Body_batch_upload_files_api_v1_files_batch_upload_post"
+      },
+      "Body_generate_kpi_report_api_v1_kpi_generate_post": {
+        "properties": {
+          "pdf_file": {
+            "type": "string",
+            "format": "binary",
+            "title": "Pdf File",
+            "description": "PDF文件"
+          },
+          "csv_file": {
+            "type": "string",
+            "format": "binary",
+            "title": "Csv File",
+            "description": "CSV文件"
+          },
+          "week": {
+            "type": "string",
+            "title": "Week",
+            "description": "周数,如'Week 3'"
+          },
+          "year": {
+            "type": "integer",
+            "title": "Year",
+            "description": "年份",
+            "default": 2026
+          },
+          "min_delivered": {
+            "type": "integer",
+            "title": "Min Delivered",
+            "description": "最小配送量",
+            "default": 430
+          },
+          "dnr_threshold": {
+            "type": "integer",
+            "title": "Dnr Threshold",
+            "description": "DNR阈值",
+            "default": 8000
+          },
+          "weight_dnr": {
+            "type": "number",
+            "title": "Weight Dnr",
+            "description": "DNR权重",
+            "default": 0.4
+          },
+          "weight_dcr": {
+            "type": "number",
+            "title": "Weight Dcr",
+            "description": "DCR权重",
+            "default": 0.2
+          },
+          "weight_pod": {
+            "type": "number",
+            "title": "Weight Pod",
+            "description": "POD权重",
+            "default": 0.05
+          },
+          "weight_cc": {
+            "type": "number",
+            "title": "Weight Cc",
+            "description": "CC权重",
+            "default": 0.05
+          },
+          "weight_netradyne": {
+            "type": "number",
+            "title": "Weight Netradyne",
+            "description": "Netradyne权重",
+            "default": 0.3
+          }
+        },
+        "type": "object",
+        "required": [
+          "pdf_file",
+          "csv_file",
+          "week"
+        ],
+        "title": "Body_generate_kpi_report_api_v1_kpi_generate_post"
       },
       "Body_import_amazon_ids_api_v1_drivers_import_amazon_ids_post": {
         "properties": {
@@ -6545,6 +7018,184 @@
         "type": "object",
         "title": "DriverInspectionUpdate",
         "description": "Schema for driver app to update inspection."
+      },
+      "DriverKPIResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "driver_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Driver Id"
+          },
+          "driver_name": {
+            "type": "string",
+            "title": "Driver Name"
+          },
+          "amazon_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amazon Id"
+          },
+          "netradyne_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Netradyne Score"
+          },
+          "delivered": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivered"
+          },
+          "dcr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dcr"
+          },
+          "dnr_dpmo": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dnr Dpmo"
+          },
+          "pod": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pod"
+          },
+          "cc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cc"
+          },
+          "dnr_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dnr Score"
+          },
+          "overall_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall Score"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "is_matched": {
+            "type": "boolean",
+            "title": "Is Matched"
+          },
+          "csv_matched": {
+            "type": "boolean",
+            "title": "Csv Matched"
+          },
+          "pdf_matched": {
+            "type": "boolean",
+            "title": "Pdf Matched"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "driver_id",
+          "driver_name",
+          "amazon_id",
+          "netradyne_score",
+          "delivered",
+          "dcr",
+          "dnr_dpmo",
+          "pod",
+          "cc",
+          "dnr_score",
+          "overall_score",
+          "rank",
+          "is_matched",
+          "csv_matched",
+          "pdf_matched",
+          "notes"
+        ],
+        "title": "DriverKPIResponse",
+        "description": "司机KPI响应"
       },
       "DriverLogin": {
         "properties": {
@@ -7158,6 +7809,390 @@
         "title": "InventoryChangeResponse",
         "description": "Unified inventory change record (both IN and OUT)."
       },
+      "KPIReportDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "week": {
+            "type": "string",
+            "title": "Week"
+          },
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "min_delivered": {
+            "type": "integer",
+            "title": "Min Delivered"
+          },
+          "dnr_threshold": {
+            "type": "integer",
+            "title": "Dnr Threshold"
+          },
+          "weight_dnr": {
+            "type": "number",
+            "title": "Weight Dnr"
+          },
+          "weight_dcr": {
+            "type": "number",
+            "title": "Weight Dcr"
+          },
+          "weight_pod": {
+            "type": "number",
+            "title": "Weight Pod"
+          },
+          "weight_cc": {
+            "type": "number",
+            "title": "Weight Cc"
+          },
+          "weight_netradyne": {
+            "type": "number",
+            "title": "Weight Netradyne"
+          },
+          "pdf_filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdf Filename"
+          },
+          "csv_filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Csv Filename"
+          },
+          "total_drivers": {
+            "type": "integer",
+            "title": "Total Drivers"
+          },
+          "matched_drivers": {
+            "type": "integer",
+            "title": "Matched Drivers"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "driver_kpis": {
+            "items": {
+              "$ref": "#/components/schemas/DriverKPIResponse"
+            },
+            "type": "array",
+            "title": "Driver Kpis"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "week",
+          "year",
+          "min_delivered",
+          "dnr_threshold",
+          "weight_dnr",
+          "weight_dcr",
+          "weight_pod",
+          "weight_cc",
+          "weight_netradyne",
+          "pdf_filename",
+          "csv_filename",
+          "total_drivers",
+          "matched_drivers",
+          "created_at",
+          "updated_at",
+          "driver_kpis"
+        ],
+        "title": "KPIReportDetailResponse",
+        "description": "KPI报告详情响应(包含司机KPI数据)"
+      },
+      "KPIReportResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "week": {
+            "type": "string",
+            "title": "Week"
+          },
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "min_delivered": {
+            "type": "integer",
+            "title": "Min Delivered"
+          },
+          "dnr_threshold": {
+            "type": "integer",
+            "title": "Dnr Threshold"
+          },
+          "weight_dnr": {
+            "type": "number",
+            "title": "Weight Dnr"
+          },
+          "weight_dcr": {
+            "type": "number",
+            "title": "Weight Dcr"
+          },
+          "weight_pod": {
+            "type": "number",
+            "title": "Weight Pod"
+          },
+          "weight_cc": {
+            "type": "number",
+            "title": "Weight Cc"
+          },
+          "weight_netradyne": {
+            "type": "number",
+            "title": "Weight Netradyne"
+          },
+          "pdf_filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdf Filename"
+          },
+          "csv_filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Csv Filename"
+          },
+          "total_drivers": {
+            "type": "integer",
+            "title": "Total Drivers"
+          },
+          "matched_drivers": {
+            "type": "integer",
+            "title": "Matched Drivers"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "week",
+          "year",
+          "min_delivered",
+          "dnr_threshold",
+          "weight_dnr",
+          "weight_dcr",
+          "weight_pod",
+          "weight_cc",
+          "weight_netradyne",
+          "pdf_filename",
+          "csv_filename",
+          "total_drivers",
+          "matched_drivers",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "KPIReportResponse",
+        "description": "KPI报告响应"
+      },
+      "MessageTemplateResponse": {
+        "properties": {
+          "template_key": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Template Key"
+          },
+          "template_type": {
+            "type": "string",
+            "pattern": "^(sms|email)$",
+            "title": "Template Type"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Name"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "variables": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Variables",
+            "default": []
+          },
+          "is_html": {
+            "type": "boolean",
+            "title": "Is Html",
+            "default": false
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "is_system": {
+            "type": "boolean",
+            "title": "Is System"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "default_content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Content"
+          },
+          "default_subject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Subject"
+          }
+        },
+        "type": "object",
+        "required": [
+          "template_key",
+          "template_type",
+          "name",
+          "content",
+          "id",
+          "is_system",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "MessageTemplateResponse"
+      },
+      "MessageTemplateUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "variables": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variables"
+          },
+          "is_html": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Html"
+          }
+        },
+        "type": "object",
+        "title": "MessageTemplateUpdate"
+      },
       "PreviousInspectionSummary": {
         "properties": {
           "inspection_date": {
@@ -7721,7 +8756,7 @@
           "name": {
             "type": "string",
             "title": "Name",
-            "description": "供应商名称"
+            "description": "Supplier name"
           },
           "location": {
             "anyOf": [
@@ -7733,7 +8768,7 @@
               }
             ],
             "title": "Location",
-            "description": "地址"
+            "description": "Address"
           },
           "email": {
             "anyOf": [
@@ -7745,7 +8780,7 @@
               }
             ],
             "title": "Email",
-            "description": "邮箱"
+            "description": "Email"
           },
           "phone": {
             "anyOf": [
@@ -7757,7 +8792,7 @@
               }
             ],
             "title": "Phone",
-            "description": "电话"
+            "description": "Phone"
           },
           "notes": {
             "anyOf": [
@@ -7769,12 +8804,12 @@
               }
             ],
             "title": "Notes",
-            "description": "备注/历史记录"
+            "description": "Notes/History"
           },
           "is_active": {
             "type": "boolean",
             "title": "Is Active",
-            "description": "是否启用",
+            "description": "Is active",
             "default": true
           }
         },
@@ -7783,14 +8818,14 @@
           "name"
         ],
         "title": "RepairSupplierCreate",
-        "description": "创建 RepairSupplier 请求 schema"
+        "description": "Create RepairSupplier request schema"
       },
       "RepairSupplierResponse": {
         "properties": {
           "name": {
             "type": "string",
             "title": "Name",
-            "description": "供应商名称"
+            "description": "Supplier name"
           },
           "location": {
             "anyOf": [
@@ -7802,7 +8837,7 @@
               }
             ],
             "title": "Location",
-            "description": "地址"
+            "description": "Address"
           },
           "email": {
             "anyOf": [
@@ -7814,7 +8849,7 @@
               }
             ],
             "title": "Email",
-            "description": "邮箱"
+            "description": "Email"
           },
           "phone": {
             "anyOf": [
@@ -7826,7 +8861,7 @@
               }
             ],
             "title": "Phone",
-            "description": "电话"
+            "description": "Phone"
           },
           "notes": {
             "anyOf": [
@@ -7838,12 +8873,12 @@
               }
             ],
             "title": "Notes",
-            "description": "备注/历史记录"
+            "description": "Notes/History"
           },
           "is_active": {
             "type": "boolean",
             "title": "Is Active",
-            "description": "是否启用",
+            "description": "Is active",
             "default": true
           },
           "id": {
@@ -7869,7 +8904,7 @@
           "updated_at"
         ],
         "title": "RepairSupplierResponse",
-        "description": "RepairSupplier 响应 schema"
+        "description": "RepairSupplier response schema"
       },
       "RepairSupplierSimple": {
         "properties": {
@@ -7926,7 +8961,7 @@
           "is_active"
         ],
         "title": "RepairSupplierSimple",
-        "description": "简化的 RepairSupplier schema,用于嵌套在其他响应中"
+        "description": "Simplified RepairSupplier schema, used for nesting in other responses"
       },
       "RepairSupplierUpdate": {
         "properties": {
@@ -7940,7 +8975,7 @@
               }
             ],
             "title": "Name",
-            "description": "供应商名称"
+            "description": "Supplier name"
           },
           "location": {
             "anyOf": [
@@ -7952,7 +8987,7 @@
               }
             ],
             "title": "Location",
-            "description": "地址"
+            "description": "Address"
           },
           "email": {
             "anyOf": [
@@ -7964,7 +8999,7 @@
               }
             ],
             "title": "Email",
-            "description": "邮箱"
+            "description": "Email"
           },
           "phone": {
             "anyOf": [
@@ -7976,7 +9011,7 @@
               }
             ],
             "title": "Phone",
-            "description": "电话"
+            "description": "Phone"
           },
           "notes": {
             "anyOf": [
@@ -7988,7 +9023,7 @@
               }
             ],
             "title": "Notes",
-            "description": "备注/历史记录"
+            "description": "Notes/History"
           },
           "is_active": {
             "anyOf": [
@@ -8000,12 +9035,12 @@
               }
             ],
             "title": "Is Active",
-            "description": "是否启用"
+            "description": "Is active"
           }
         },
         "type": "object",
         "title": "RepairSupplierUpdate",
-        "description": "更新 RepairSupplier 请求 schema"
+        "description": "Update RepairSupplier request schema"
       },
       "RosterPreviewItem": {
         "properties": {
@@ -8047,7 +9082,7 @@
               "no_driver"
             ],
             "title": "Status",
-            "description": "Sync status: ready (可同步), exists (已存在,会更新), no_driver (找不到driver)",
+            "description": "Sync status: ready (can sync), exists (already exists, will update), no_driver (driver not found)",
             "example": "ready"
           }
         },
@@ -8830,7 +9865,7 @@
               "missing_fields"
             ],
             "title": "Reason",
-            "description": "Reason: no_driver (找不到driver), missing_fields (缺少必需字段)",
+            "description": "Reason: no_driver (driver not found), missing_fields (missing required fields)",
             "example": "no_driver"
           }
         },
@@ -8917,27 +9952,37 @@
           "admin_phone": {
             "type": "string",
             "title": "Admin Phone",
-            "description": "管理员提醒电话"
+            "description": "[Deprecated] Admin reminder phone, please use contacts",
+            "deprecated": true
+          },
+          "contacts": {
+            "items": {
+              "$ref": "#/components/schemas/UserResponse"
+            },
+            "type": "array",
+            "title": "Contacts",
+            "description": "System notification contact list",
+            "default": []
           },
           "driver_file_reminder_days": {
             "type": "integer",
             "title": "Driver File Reminder Days",
-            "description": "司机文件临期提醒周期（天）"
+            "description": "Driver file expiry reminder period (days)"
           },
           "daily_sms_time": {
             "type": "string",
             "title": "Daily Sms Time",
-            "description": "司机每日确认短信时间 (HH:MM)"
+            "description": "Driver daily confirmation SMS time (HH:MM)"
           },
           "maintenance_booking_reminder_days": {
             "type": "integer",
             "title": "Maintenance Booking Reminder Days",
-            "description": "保养预约提醒周期（天）"
+            "description": "Maintenance booking reminder period (days)"
           },
           "next_maintenance_reminder_days": {
             "type": "integer",
             "title": "Next Maintenance Reminder Days",
-            "description": "下次保养临近提醒周期（天）"
+            "description": "Next maintenance approaching reminder period (days)"
           }
         },
         "type": "object",
@@ -8949,7 +9994,7 @@
           "next_maintenance_reminder_days"
         ],
         "title": "SystemConfigResponse",
-        "description": "系统配置响应 Schema"
+        "description": "System configuration response schema"
       },
       "SystemConfigUpdate": {
         "properties": {
@@ -8963,8 +10008,29 @@
               }
             ],
             "title": "Admin Phone",
-            "description": "管理员提醒电话",
+            "description": "[Deprecated] Admin reminder phone, please use contact_ids",
+            "deprecated": true,
             "example": "+61412345678"
+          },
+          "contact_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Ids",
+            "description": "List of system notification contact user IDs (selected from users table)",
+            "example": [
+              1,
+              2,
+              3
+            ]
           },
           "driver_file_reminder_days": {
             "anyOf": [
@@ -8978,7 +10044,7 @@
               }
             ],
             "title": "Driver File Reminder Days",
-            "description": "司机文件临期提醒周期（天）- 可选: 10, 15, 30",
+            "description": "Driver file expiry reminder period (days) - Options: 10, 15, 30",
             "example": 15
           },
           "daily_sms_time": {
@@ -8992,7 +10058,7 @@
               }
             ],
             "title": "Daily Sms Time",
-            "description": "司机每日确认短信时间 (HH:MM 24小时制)",
+            "description": "Driver daily confirmation SMS time (HH:MM 24-hour format)",
             "example": "08:00"
           },
           "maintenance_booking_reminder_days": {
@@ -9007,7 +10073,7 @@
               }
             ],
             "title": "Maintenance Booking Reminder Days",
-            "description": "保养预约提醒周期（天）- 可选: 10, 15, 30",
+            "description": "Maintenance booking reminder period (days) - Options: 10, 15, 30",
             "example": 15
           },
           "next_maintenance_reminder_days": {
@@ -9022,13 +10088,13 @@
               }
             ],
             "title": "Next Maintenance Reminder Days",
-            "description": "下次保养临近提醒周期（天）- 可选: 10, 15, 30",
+            "description": "Next maintenance approaching reminder period (days) - Options: 10, 15, 30",
             "example": 10
           }
         },
         "type": "object",
         "title": "SystemConfigUpdate",
-        "description": "系统配置更新 Schema\n\n所有字段都是可选的，只更新提供的字段"
+        "description": "System configuration update schema\n\nAll fields are optional, only provided fields are updated"
       },
       "Token": {
         "properties": {
@@ -9342,7 +10408,7 @@
               }
             ],
             "title": "Old Password",
-            "description": "旧密码（修改密码时必须提供）"
+            "description": "Old password (required when changing password)"
           },
           "password": {
             "anyOf": [
@@ -9355,7 +10421,7 @@
               }
             ],
             "title": "Password",
-            "description": "新密码（需要同时提供 old_password）"
+            "description": "New password (requires old_password)"
           },
           "is_active": {
             "anyOf": [
@@ -10469,35 +11535,16 @@
             ],
             "title": "Cost"
           },
-          "maintenance_cycle_mileage": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Maintenance Cycle Mileage",
-            "description": "Maintenance cycle in km(default 10,000)",
-            "default": 10000
-          },
-          "mileage": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Mileage",
-            "description": "Current vehicle mileage at maintenance"
+          "scheduled_mileage": {
+            "type": "integer",
+            "title": "Scheduled Mileage",
+            "description": "Next scheduled maintenance mileage"
           }
         },
         "type": "object",
         "required": [
-          "maintenance_date"
+          "maintenance_date",
+          "scheduled_mileage"
         ],
         "title": "VehicleMaintenanceComplete",
         "description": "Schema for completing vehicle maintenance."

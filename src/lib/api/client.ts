@@ -220,6 +220,7 @@ export interface VehicleResponse {
 	last_maintenance_date?: string;
 	next_maintenance_date?: string;
 	scheduled_maintenance_date?: string;
+	procession_date?: string;
 	email_sent: boolean;
 	email_sent_at?: string;
 	created_at: string;
@@ -254,6 +255,7 @@ export interface VehicleCreate {
 	last_maintenance_date?: string;
 	next_maintenance_date?: string;
 	scheduled_maintenance_date?: string;
+	procession_date?: string;
 }
 
 export interface VehicleUpdate {
@@ -272,6 +274,7 @@ export interface VehicleUpdate {
 	last_maintenance_date?: string;
 	next_maintenance_date?: string;
 	scheduled_maintenance_date?: string;
+	procession_date?: string;
 }
 
 // Vehicle Inspection Types
@@ -544,9 +547,9 @@ export interface VehicleMaintenanceCreate {
 export interface VehicleMaintenanceComplete {
 	maintenance_date: string;
 	description?: string;
-	cost?: number;
 	location?: string;
 	supplier_id?: number;
+	scheduled_mileage?: number;
 }
 
 export interface SendMaintenanceEmailResponse {
@@ -572,7 +575,8 @@ export interface SendMaintenanceEmailResponse {
 
 // Settings Types - System Configuration
 export interface SystemConfigResponse {
-	admin_phone?: string; // Admin reminder phone number
+	admin_phone?: string; // [已弃用] Admin reminder phone number
+	contacts?: UserResponse[]; // 系统通知联系人列表
 	driver_file_reminder_days?: number; // Driver file expiry reminder cycle (10/15/30 days)
 	daily_sms_time?: string; // Daily driver confirmation SMS time (HH:MM format)
 	maintenance_booking_reminder_days?: number; // Maintenance booking reminder cycle (10/15/30 days)
@@ -580,7 +584,8 @@ export interface SystemConfigResponse {
 }
 
 export interface SystemConfigUpdate {
-	admin_phone?: string;
+	admin_phone?: string; // [已弃用]
+	contact_ids?: number[]; // 系统通知联系人用户ID列表
 	driver_file_reminder_days?: number;
 	daily_sms_time?: string;
 	maintenance_booking_reminder_days?: number;
@@ -636,6 +641,28 @@ export interface DashboardAlertsResponse {
 	low_stock_products: any[];
 }
 
+// Message Template Types
+export interface MessageTemplateResponse {
+	id: number;
+	template_key: string;
+	template_type: 'sms' | 'email';
+	name: string;
+	subject?: string | null;
+	content: string;
+	variables: string[];
+	is_html: boolean;
+	is_system: boolean;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface MessageTemplateUpdate {
+	name?: string | null;
+	subject?: string | null;
+	content?: string | null;
+	is_html?: boolean | null;
+}
+
 // File Management Types
 export interface FileRecordResponse {
 	id: number;
@@ -650,6 +677,64 @@ export interface FileRecordResponse {
 
 export interface BatchDeleteFilesRequest {
 	file_ids: number[];
+}
+
+// KPI Reports Types
+export interface DriverKPIResponse {
+	id: number;
+	driver_id: number | null;
+	driver_name: string;
+	amazon_id: string | null;
+	netradyne_score: number | null;
+	delivered: number | null;
+	dcr: number | null;
+	dnr_dpmo: number | null;
+	pod: number | null;
+	cc: number | null;
+	dnr_score: number | null;
+	overall_score: number | null;
+	rank: number | null;
+	is_matched: boolean;
+	csv_matched: boolean;
+	pdf_matched: boolean;
+	notes: string | null;
+}
+
+export interface KPIReportResponse {
+	id: number;
+	week: string;
+	year: number;
+	min_delivered: number;
+	dnr_threshold: number;
+	weight_dnr: number;
+	weight_dcr: number;
+	weight_pod: number;
+	weight_cc: number;
+	weight_netradyne: number;
+	pdf_filename: string | null;
+	csv_filename: string | null;
+	total_drivers: number;
+	matched_drivers: number;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface KPIReportDetailResponse extends KPIReportResponse {
+	driver_kpis: DriverKPIResponse[];
+}
+
+export interface GenerateKPIReportRequest {
+	pdf_file: File;
+	csv_file: File;
+	week: string;
+	year: number;
+	min_delivered?: number;
+	dnr_threshold?: number;
+	weight_dnr?: number;
+	weight_dcr?: number;
+	weight_pod?: number;
+	weight_cc?: number;
+	weight_netradyne?: number;
 }
 
 // ============================================================================
@@ -1969,6 +2054,46 @@ class APIClient {
 	}
 
 	// ============================================================================
+	// Message Templates API
+	// ============================================================================
+
+	async getMessageTemplates(): Promise<MessageTemplateResponse[]> {
+		const response = await this.client.get<MessageTemplateResponse[]>(
+			'/api/v1/message-templates/',
+		);
+		return response.data;
+	}
+
+	async getMessageTemplate(
+		templateKey: string,
+	): Promise<MessageTemplateResponse> {
+		const response = await this.client.get<MessageTemplateResponse>(
+			`/api/v1/message-templates/${templateKey}`,
+		);
+		return response.data;
+	}
+
+	async updateMessageTemplate(
+		templateKey: string,
+		data: MessageTemplateUpdate,
+	): Promise<MessageTemplateResponse> {
+		const response = await this.client.put<MessageTemplateResponse>(
+			`/api/v1/message-templates/${templateKey}`,
+			data,
+		);
+		return response.data;
+	}
+
+	async resetMessageTemplate(
+		templateKey: string,
+	): Promise<MessageTemplateResponse> {
+		const response = await this.client.post<MessageTemplateResponse>(
+			`/api/v1/message-templates/reset/${templateKey}`,
+		);
+		return response.data;
+	}
+
+	// ============================================================================
 	// File Management API
 	// ============================================================================
 
@@ -2048,6 +2173,59 @@ class APIClient {
 			},
 		);
 		return response.data;
+	}
+
+	// ============================================================================
+	// KPI Reports API
+	// ============================================================================
+
+	async generateKpiReport(data: GenerateKPIReportRequest): Promise<KPIReportDetailResponse> {
+		const formData = new FormData();
+		formData.append('pdf_file', data.pdf_file);
+		formData.append('csv_file', data.csv_file);
+		formData.append('week', data.week);
+		formData.append('year', data.year.toString());
+
+		if (data.min_delivered !== undefined) formData.append('min_delivered', data.min_delivered.toString());
+		if (data.dnr_threshold !== undefined) formData.append('dnr_threshold', data.dnr_threshold.toString());
+		if (data.weight_dnr !== undefined) formData.append('weight_dnr', data.weight_dnr.toString());
+		if (data.weight_dcr !== undefined) formData.append('weight_dcr', data.weight_dcr.toString());
+		if (data.weight_pod !== undefined) formData.append('weight_pod', data.weight_pod.toString());
+		if (data.weight_cc !== undefined) formData.append('weight_cc', data.weight_cc.toString());
+		if (data.weight_netradyne !== undefined) formData.append('weight_netradyne', data.weight_netradyne.toString());
+
+		const response = await this.client.post<KPIReportDetailResponse>(
+			'/api/v1/kpi/generate',
+			formData,
+			{
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			}
+		);
+		return response.data;
+	}
+
+	async getKpiReports(params?: {
+		skip?: number;
+		limit?: number;
+	}): Promise<KPIReportResponse[]> {
+		const response = await this.client.get<KPIReportResponse[]>(
+			'/api/v1/kpi/reports',
+			{ params }
+		);
+		return response.data;
+	}
+
+	async getKpiReport(reportId: number): Promise<KPIReportDetailResponse> {
+		const response = await this.client.get<KPIReportDetailResponse>(
+			`/api/v1/kpi/reports/${reportId}`
+		);
+		return response.data;
+	}
+
+	async deleteKpiReport(reportId: number): Promise<void> {
+		await this.client.delete(`/api/v1/kpi/reports/${reportId}`);
 	}
 
 	// ============================================================================

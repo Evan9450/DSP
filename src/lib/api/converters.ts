@@ -90,6 +90,9 @@ export function convertVehicle(apiVehicle: VehicleResponse): Vehicle {
 		nextMaintenanceDate: apiVehicle.next_maintenance_date
 			? new Date(apiVehicle.next_maintenance_date)
 			: undefined,
+		scheduledMaintenanceDate: apiVehicle.scheduled_maintenance_date
+			? new Date(apiVehicle.scheduled_maintenance_date)
+			: undefined,
 	};
 }
 

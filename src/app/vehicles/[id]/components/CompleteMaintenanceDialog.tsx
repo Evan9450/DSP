@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -54,6 +55,15 @@ export function CompleteMaintenanceDialog({
 			toast({
 				title: 'Error',
 				description: 'Maintenance date is required.',
+				variant: 'destructive',
+			});
+			return;
+		}
+
+		if (!formData.scheduled_mileage) {
+			toast({
+				title: 'Error',
+				description: 'Scheduled mileage is required.',
 				variant: 'destructive',
 			});
 			return;
@@ -113,9 +123,28 @@ export function CompleteMaintenanceDialog({
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="complete-description">Description</Label>
+							<Label htmlFor="complete-mileage">Scheduled Mileage</Label>
 							<Input
-								id="complete-description"
+								id="complete-mileage"
+								type="number"
+								placeholder="Enter mileage"
+								value={formData.scheduled_mileage || ''}
+								onChange={(e) =>
+									setFormData({
+										...formData,
+										scheduled_mileage: e.target.value
+											? parseInt(e.target.value)
+											: undefined,
+									})
+								}
+								required
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="complete-description">Description</Label>
+							<Textarea
+                                id="complete-description"
 								placeholder="e.g. Regular Service, Brake Pad Replacement"
 								value={formData.description || ''}
 								onChange={(e) =>

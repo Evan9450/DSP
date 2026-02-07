@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select';
 import { SystemConfigUpdate, apiClient } from '@/lib/api/client';
 import { useEffect, useState } from 'react';
+import { ContactSelector } from './components/contact-selector';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -24,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSettings } from '@/hooks/use-settings';
 import { useToast } from '@/hooks/use-toast';
+import { MessageTemplateList } from './components/message-template-list';
 
 export default function SettingsPage() {
 	const { toast } = useToast();
@@ -33,6 +35,7 @@ export default function SettingsPage() {
 	// Form state
 	const [formData, setFormData] = useState<SystemConfigUpdate>({
 		admin_phone: '',
+		contact_ids: [],
 		driver_file_reminder_days: 15,
 		daily_sms_time: '08:00',
 		maintenance_booking_reminder_days: 15,
@@ -44,6 +47,7 @@ export default function SettingsPage() {
 		if (settings) {
 			setFormData({
 				admin_phone: settings.admin_phone || '',
+				contact_ids: settings.contacts?.map((c) => c.id) || [],
 				driver_file_reminder_days:
 					settings.driver_file_reminder_days || 15,
 				daily_sms_time: settings.daily_sms_time || '08:00',
@@ -183,26 +187,21 @@ export default function SettingsPage() {
 
 						<div className='space-y-4'>
 							<div>
-								<Label htmlFor='adminPhone'>
-									Admin Notification Phone{' '}
+								<Label htmlFor='contacts'>
+									System Contacts
 								</Label>
-								<Input
-									id='adminPhone'
-									type='tel'
-									value={formData.admin_phone}
-									onChange={(e) =>
-										setFormData({
-											...formData,
-											admin_phone: e.target.value,
-										})
-									}
-									placeholder='+61400000000'
-									className='mt-2'
-								/>
-								<p className='text-xs text-gray-500 mt-1'>
-									Phone number to receive system notifications
-									and alerts
-								</p>
+								<div className='mt-2'>
+									<ContactSelector
+										value={formData.contact_ids || []}
+										onChange={(ids) =>
+											setFormData({
+												...formData,
+												contact_ids: ids,
+											})
+										}
+									/>
+								</div>
+
 							</div>
 						</div>
 					</Card>
@@ -377,35 +376,8 @@ export default function SettingsPage() {
 						</div>
 					</Card>
 
-					{/* Configuration Summary */}
-					<Card className='p-6 bg-blue-50 border-blue-200'>
-						<div className='flex items-start gap-3'>
-							<SettingsIcon className='h-5 w-5 text-blue-700 mt-0.5' />
-							<div className='flex-1'>
-								<h3 className='font-semibold text-blue-900 mb-2'>
-									Configuration Notes
-								</h3>
-								<ul className='text-sm text-blue-800 space-y-1'>
-									<li>
-										• All reminder days settings accept
-										values: 10, 15, or 30 days
-									</li>
-									<li>
-										• Daily SMS time is in 24-hour format
-										(e.g., 08:00 for 8 AM)
-									</li>
-									<li>
-										• Admin phone should include country
-										code (e.g., +61 for Australia)
-									</li>
-									<li>
-										• Changes take effect immediately after
-										saving
-									</li>
-								</ul>
-							</div>
-						</div>
-					</Card>
+					{/* Message Templates */}
+					<MessageTemplateList />
 				</div>
 			</div>
 		</div>

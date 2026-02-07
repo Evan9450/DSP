@@ -13,7 +13,6 @@ import InventoryTable from './components/InventoryTable';
 import { apiClient } from '@/lib/api/client';
 import { convertAsset } from '@/lib/api/converters';
 import { useAssets } from '@/hooks/use-assets';
-import { useDrivers } from '@/hooks/use-drivers';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -25,17 +24,9 @@ export default function AssetsPage() {
 		refetch: refetchAssets,
 	} = useAssets();
 
-	const { drivers: apiDrivers, isLoading: driversLoading } = useDrivers();
-	const drivers =
-		apiDrivers?.map((d) => ({
-			id: d.id.toString(),
-			name: d.name,
-			amazonId: d.amazon_id,
-		})) || [];
 	const [searchTerm, setSearchTerm] = useState('');
 	const [isBorrowDialogOpen, setIsBorrowDialogOpen] = useState(false);
 	const [selectedAsset, setSelectedAsset] = useState<Asset>();
-	console.log('🚀 => AssetsPage => selectedAsset:', selectedAsset);
 	const [isAddInventoryDialogOpen, setIsAddInventoryDialogOpen] =
 		useState(false);
 	const [selectedInventoryAsset, setSelectedInventoryAsset] =
@@ -44,15 +35,54 @@ export default function AssetsPage() {
 	const [transactionType, setTransactionType] = useState<'lend' | 'deduct'>(
 		'lend'
 	);
+	const [showArchived, setShowArchived] = useState(false);
 
 	// Convert API data to frontend types
 	const assets = apiAssets?.map(convertAsset) || [];
 
-	const isLoading = assetsLoading || driversLoading;
+	const isLoading = assetsLoading;
 
-	const filteredAssets = assets.filter((asset) =>
-		asset.name.toLowerCase().includes(searchTerm.toLowerCase())
-	);
+	const filteredAssets = assets.filter((asset) => {
+		const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase());
+		const matchesArchiveFilter = showArchived ? true : !asset.archive;
+		return matchesSearch && matchesArchiveFilter;
+	});
+
+	const handleArchive = async (asset: Asset) => {
+		try {
+			await apiClient.archiveProduct(parseInt(asset.id));
+			toast({
+				title: 'Success',
+				description: `${asset.name} has been archived`,
+			});
+			refetchAssets();
+		} catch (error) {
+			console.error('Failed to archive asset:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to archive asset',
+				variant: 'destructive',
+			});
+		}
+	};
+
+	const handleUnarchive = async (asset: Asset) => {
+		try {
+			await apiClient.unarchiveProduct(parseInt(asset.id));
+			toast({
+				title: 'Success',
+				description: `${asset.name} has been unarchived`,
+			});
+			refetchAssets();
+		} catch (error) {
+			console.error('Failed to unarchive asset:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to unarchive asset',
+				variant: 'destructive',
+			});
+		}
+	};
 
 	const lowStockAssets = assets.filter((a) => {
 		const threshold = a.lowStockThreshold || a.minThreshold || 5;
@@ -127,6 +157,11 @@ export default function AssetsPage() {
 						<PackageCheck className='h-4 w-4 mr-2' />
 						{isCheckingStock ? 'Checking...' : 'Check Low Stock'}
 					</Button>
+					<Button
+						variant='outline'
+						onClick={() => setShowArchived(!showArchived)}>
+						{showArchived ? 'Hide Archived' : 'Show Archived'}
+					</Button>
 				</div>
 
 				{/* Assets Inventory */}
@@ -137,13 +172,14 @@ export default function AssetsPage() {
 					setIsAddInventoryDialogOpen={setIsAddInventoryDialogOpen}
 					setSelectedInventoryAsset={setSelectedInventoryAsset}
 					setTransactionType={setTransactionType}
+					onArchive={handleArchive}
+					onUnarchive={handleUnarchive}
 				/>
 
 				<BorrowDialog
 					open={isBorrowDialogOpen}
 					onOpenChange={setIsBorrowDialogOpen}
 					assets={assets}
-					drivers={drivers}
 					clickedAsset={selectedAsset}
 					transactionType={transactionType}
 					onSuccess={() => {

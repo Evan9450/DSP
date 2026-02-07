@@ -432,6 +432,7 @@ export interface ProductResponse {
 	available_stock: number;
 	low_stock_alert_sent: boolean;
 	needs_purchase: boolean;
+	archive: boolean;
 	created_at: string;
 	updated_at: string;
 }
@@ -447,6 +448,7 @@ export interface ProductUpdate {
 	name?: string;
 	description?: string | null;
 	min_stock_threshold?: number;
+	archive?: boolean;
 }
 
 // Product Inventory Types
@@ -1819,6 +1821,14 @@ class APIClient {
 
 	async deleteProduct(productId: number): Promise<void> {
 		await this.client.delete(`/api/v1/assets/products/${productId}`);
+	}
+
+	async archiveProduct(productId: number): Promise<ProductResponse> {
+		return this.updateProduct(productId, { archive: true });
+	}
+
+	async unarchiveProduct(productId: number): Promise<ProductResponse> {
+		return this.updateProduct(productId, { archive: false });
 	}
 
 	// Product Inventory

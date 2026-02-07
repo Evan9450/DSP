@@ -172,6 +172,7 @@ export interface Asset {
 	minThreshold?: number; // Alias for compatibility
 	lowStockAlertSent?: boolean;
 	needsPurchase?: boolean;
+	archive: boolean;
 	status?: 'available' | 'low-stock' | 'out-of-stock';
 	createdAt?: Date;
 	updatedAt?: Date;

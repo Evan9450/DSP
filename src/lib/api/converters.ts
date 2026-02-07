@@ -188,6 +188,7 @@ export function convertAsset(apiAsset: AssetResponse): Asset {
 		minThreshold: apiAsset.min_stock_threshold, // Alias for compatibility
 		lowStockAlertSent: apiAsset.low_stock_alert_sent,
 		needsPurchase: apiAsset.needs_purchase,
+		archive: apiAsset.archive,
 		createdAt: new Date(apiAsset.created_at),
 		updatedAt: new Date(apiAsset.updated_at),
 	};

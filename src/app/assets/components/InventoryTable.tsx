@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, Package, TrendingDown } from 'lucide-react';
+import { AlertCircle, Archive, ArchiveRestore, Package, TrendingDown } from 'lucide-react';
 import {
 	Table,
 	TableBody,
@@ -23,6 +23,8 @@ interface InventoryTableProps {
 	setIsAddInventoryDialogOpen: (open: boolean) => void;
 	setSelectedInventoryAsset: (asset: Asset) => void;
 	setTransactionType: (type: 'lend' | 'deduct') => void;
+	onArchive: (asset: Asset) => void;
+	onUnarchive: (asset: Asset) => void;
 }
 const InventoryTable = ({
 	filteredAssets,
@@ -31,6 +33,8 @@ const InventoryTable = ({
 	setIsAddInventoryDialogOpen,
 	setSelectedInventoryAsset,
 	setTransactionType,
+	onArchive,
+	onUnarchive,
 }: InventoryTableProps) => {
 	const getStatusBadge = (asset: Asset) => {
 		const available = asset.availableQuantity;
@@ -158,6 +162,23 @@ const InventoryTable = ({
 													className='bg-blue-700 hover:bg-blue-800 w-28 h-8'>
 													Deduct
 												</Button>
+												{asset.archive ? (
+													<Button
+														onClick={() => onUnarchive(asset)}
+														variant='outline'
+														className='border-green-600 text-green-700 hover:bg-green-50 w-28 h-8'>
+														<ArchiveRestore className='h-3 w-3 mr-1' />
+														Unarchive
+													</Button>
+												) : (
+													<Button
+														onClick={() => onArchive(asset)}
+														variant='outline'
+														className='border-gray-400 text-gray-600 hover:bg-gray-50 w-28 h-8'>
+														<Archive className='h-3 w-3 mr-1' />
+														Archive
+													</Button>
+												)}
 											</div>
 										</TableCell>
 									</TableRow>

@@ -7851,28 +7851,6 @@
             "type": "number",
             "title": "Weight Netradyne"
           },
-          "pdf_filename": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Pdf Filename"
-          },
-          "csv_filename": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Csv Filename"
-          },
           "total_drivers": {
             "type": "integer",
             "title": "Total Drivers"
@@ -7911,8 +7889,6 @@
           "weight_pod",
           "weight_cc",
           "weight_netradyne",
-          "pdf_filename",
-          "csv_filename",
           "total_drivers",
           "matched_drivers",
           "created_at",
@@ -7964,28 +7940,6 @@
             "type": "number",
             "title": "Weight Netradyne"
           },
-          "pdf_filename": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Pdf Filename"
-          },
-          "csv_filename": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Csv Filename"
-          },
           "total_drivers": {
             "type": "integer",
             "title": "Total Drivers"
@@ -8017,8 +7971,6 @@
           "weight_pod",
           "weight_cc",
           "weight_netradyne",
-          "pdf_filename",
-          "csv_filename",
           "total_drivers",
           "matched_drivers",
           "created_at",
@@ -8402,6 +8354,11 @@
             "title": "Min Stock Threshold",
             "default": 0
           },
+          "archive": {
+            "type": "boolean",
+            "title": "Archive",
+            "default": false
+          },
           "available_stock": {
             "type": "integer",
             "minimum": 0,
@@ -8555,6 +8512,10 @@
             "title": "Min Stock Threshold",
             "default": 0
           },
+          "archive": {
+            "type": "boolean",
+            "title": "Archive"
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -8586,6 +8547,7 @@
         "type": "object",
         "required": [
           "name",
+          "archive",
           "id",
           "available_stock",
           "low_stock_alert_sent",
@@ -8632,6 +8594,17 @@
               }
             ],
             "title": "Min Stock Threshold"
+          },
+          "archive": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archive"
           }
         },
         "type": "object",

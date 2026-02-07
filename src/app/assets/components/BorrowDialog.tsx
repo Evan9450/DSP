@@ -25,18 +25,12 @@ import { format } from 'date-fns';
 import { useEffect } from 'react';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-
-interface Driver {
-	id: string;
-	name: string;
-	amazonId?: string;
-}
+import { useDrivers } from '@/hooks/use-drivers';
 
 interface BorrowDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	assets: Asset[];
-	drivers: Driver[];
 	onSuccess: () => void;
 	clickedAsset: Asset | undefined;
 	transactionType: 'lend' | 'deduct';
@@ -46,12 +40,20 @@ export function BorrowDialog({
 	open,
 	onOpenChange,
 	assets,
-	drivers,
 	onSuccess,
 	clickedAsset,
 	transactionType,
 }: BorrowDialogProps) {
 	const { toast } = useToast();
+	const { drivers: apiDrivers } = useDrivers();
+
+	// Convert API drivers to local format
+	const drivers =
+		apiDrivers?.map((d) => ({
+			id: d.id.toString(),
+			name: d.name,
+			amazonId: d.amazon_id,
+		})) || [];
 
 	const [selectedAsset, setSelectedAsset] = useState<Asset>();
 	const [borrowDriverId, setBorrowDriverId] = useState<string | null>(null);

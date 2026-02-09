@@ -64,6 +64,8 @@ export default function KpiDetailPage() {
 		{ name: 'POD', value: report.weight_pod },
 		{ name: 'CC', value: report.weight_cc },
 	];
+	console.log('report',report)
+
 
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>
@@ -118,14 +120,11 @@ export default function KpiDetailPage() {
 						<Card>
 							<CardHeader className='pb-2'>
 								<CardTitle className='text-sm font-medium text-muted-foreground'>
-									Driver Coverage
+									Overall Standing
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<div className='text-2xl font-bold'>{report.matched_drivers} / {report.total_drivers}</div>
-								<p className='text-xs text-muted-foreground'>
-									Matched Drivers ({report.total_drivers > 0 ? Math.round((report.matched_drivers / report.total_drivers) * 100) : 0}%)
-								</p>
+								<div className='text-2xl font-bold'>{report.overall_standing}</div>
 							</CardContent>
 						</Card>
 

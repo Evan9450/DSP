@@ -717,6 +717,7 @@ export interface KPIReportResponse {
 	csv_filename: string | null;
 	total_drivers: number;
 	matched_drivers: number;
+	overall_standing: string;
 	created_at: string;
 	updated_at: string;
 }

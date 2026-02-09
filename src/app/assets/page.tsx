@@ -42,11 +42,19 @@ export default function AssetsPage() {
 
 	const isLoading = assetsLoading;
 
-	const filteredAssets = assets.filter((asset) => {
-		const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase());
-		const matchesArchiveFilter = showArchived ? true : !asset.archive;
-		return matchesSearch && matchesArchiveFilter;
-	});
+	const filteredAssets = assets
+		.filter((asset) => {
+			const matchesSearch = asset.name
+				.toLowerCase()
+				.includes(searchTerm.toLowerCase());
+			const matchesArchiveFilter = showArchived ? true : !asset.archive;
+			return matchesSearch && matchesArchiveFilter;
+		})
+		.sort((a, b) => {
+			// Put archived items at the bottom
+			if (a.archive === b.archive) return 0;
+			return a.archive ? 1 : -1;
+		});
 
 	const handleArchive = async (asset: Asset) => {
 		try {

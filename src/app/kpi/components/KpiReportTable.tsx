@@ -30,8 +30,8 @@ export function KpiReportTable({
 					<TableRow>
 						<TableHead>Period</TableHead>
 						<TableHead>Created At</TableHead>
-						<TableHead>Drivers (Total / Matched)</TableHead>
-						<TableHead>Files</TableHead>
+						<TableHead>Overall Standing  </TableHead>
+						{/* <TableHead>Files</TableHead> */}
 						<TableHead className='text-right'>Actions</TableHead>
 					</TableRow>
 				</TableHeader>
@@ -56,21 +56,11 @@ export function KpiReportTable({
 									).toLocaleDateString()}
 								</TableCell>
 								<TableCell>
-									{report.total_drivers} /{' '}
-									{report.matched_drivers}
-									<span className='ml-2 text-xs text-muted-foreground'>
-										(
-										{report.total_drivers > 0
-											? Math.round(
-													(report.matched_drivers /
-														report.total_drivers) *
-														100
-											  )
-											: 0}
-										%)
-									</span>
+									{report.overall_standing}
+
+
 								</TableCell>
-								<TableCell>
+								{/* <TableCell>
 									<div className='flex flex-col gap-1 text-xs text-muted-foreground'>
 										{report.pdf_filename && (
 											<span title={report.pdf_filename} className="truncate max-w-[150px]">
@@ -83,7 +73,7 @@ export function KpiReportTable({
 											</span>
 										)}
 									</div>
-								</TableCell>
+								</TableCell> */}
 								<TableCell className='text-right'>
 									<div className='flex justify-end gap-2'>
 										<Button

@@ -166,7 +166,7 @@ export function CompleteMaintenanceDialog({
 						)}
 
 						{/* Only show location if no supplier is set (fallback) */}
-						{!defaultSupplier && (
+						{/* {!defaultSupplier && (
 							<div className="space-y-2">
 								<Label htmlFor="complete-location">Location</Label>
 								<Input
@@ -181,7 +181,7 @@ export function CompleteMaintenanceDialog({
 									}
 								/>
 							</div>
-						)}
+						)} */}
 					</div>
 					<DialogFooter>
 						<Button

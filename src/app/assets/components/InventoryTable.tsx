@@ -166,7 +166,7 @@ const InventoryTable = ({
 													<Button
 														onClick={() => onUnarchive(asset)}
 														variant='outline'
-														className='border-green-600 text-green-700 hover:bg-green-50 w-28 h-8'>
+														className='border-green-600 text-green-700 hover:bg-green-50 w-28 h-8 hover:text-green-700'>
 														<ArchiveRestore className='h-3 w-3 mr-1' />
 														Unarchive
 													</Button>
@@ -174,7 +174,7 @@ const InventoryTable = ({
 													<Button
 														onClick={() => onArchive(asset)}
 														variant='outline'
-														className='border-gray-400 text-gray-600 hover:bg-gray-50 w-28 h-8'>
+														className='border-gray-400 text-gray-600 hover:bg-gray-50 w-28 h-8 hover:text-gray-700'>
 														<Archive className='h-3 w-3 mr-1' />
 														Archive
 													</Button>

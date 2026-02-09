@@ -23,6 +23,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MaintenanceHistory } from './maintenance-history';
+import { RepairSupplierSelect } from './repair-supplier-select';
 import { useToast } from '@/components/ui/use-toast';
 
 interface MaintenanceCardProps {
@@ -158,6 +159,18 @@ export function MaintenanceCard({
 						/>
 					</div> */}
 					<div className='space-y-2'>
+						<Label>Maintenance Supplier</Label>
+						<RepairSupplierSelect
+							value={editForm.repair_supplier_id}
+							onValueChange={(value) =>
+								setEditForm({
+									...editForm,
+									repair_supplier_id: value,
+								})
+							}
+						/>
+					</div>
+					<div className='space-y-2'>
 						<Label htmlFor='edit-cycle'>
 							Maintenance Cycle (days)
 						</Label>
@@ -283,6 +296,14 @@ export function MaintenanceCard({
 							)}
 						</p>
 					</div> */}
+					<div>
+						<p className='text-sm text-gray-600'>Maintenance Supplier</p>
+						<p className='font-semibold'>
+							{vehicle.repair_supplier?.name || (
+								<span className='text-gray-400'>-</span>
+							)}
+						</p>
+					</div>
 					<div>
 						<p className='text-sm text-gray-600'>Cycle Days</p>
 						<p className='font-semibold'>

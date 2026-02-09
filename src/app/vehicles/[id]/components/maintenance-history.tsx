@@ -97,11 +97,18 @@ export function MaintenanceHistory({ vehicleId, defaultSupplier }: MaintenanceHi
 					<Wrench className='h-5 w-5' />
 					Maintenance History
 				</h2>
-				<Button size='sm' onClick={() => setShowAddDialog(true)}>
+				{/* <Button size='sm' onClick={() => setShowAddDialog(true)}>
 					<Plus className='h-4 w-4 mr-2' />
 					Add Repair Record
-				</Button>
-				<Button size='sm' variant="outline" className="ml-2" onClick={() => setShowCompleteDialog(true)}>
+				</Button> */}
+				<Button
+					size='sm'
+					variant="outline"
+					className="ml-2"
+					onClick={() => setShowCompleteDialog(true)}
+					disabled={!defaultSupplier}
+					title={!defaultSupplier ? 'Please set Maintenance Supplier first' : 'Complete maintenance'}
+				>
 					<CheckCircle className='h-4 w-4 mr-2' />
 					Complete Maint.
 				</Button>

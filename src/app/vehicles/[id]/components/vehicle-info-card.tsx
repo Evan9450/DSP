@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RepairSupplierSelect } from './repair-supplier-select';
+
 import { VehicleDetailResponse } from '@/lib/api/client';
 import { apiConditionToString } from '@/lib/helpers';
 
@@ -111,18 +111,7 @@ export function VehicleInfoCard({
 								placeholder='Red Van'
 							/>
 						</div>
-						<div className='space-y-2'>
-							<Label>Repair Supplier</Label>
-							<RepairSupplierSelect
-								value={editForm.repair_supplier_id}
-								onValueChange={(value) =>
-									setEditForm({
-										...editForm,
-										repair_supplier_id: value,
-									})
-								}
-							/>
-						</div>
+
 						<div className='space-y-2'>
 							<Label htmlFor='edit-brand'>Brand</Label>
 							<Input
@@ -257,27 +246,20 @@ export function VehicleInfoCard({
 						</p>
 					</div>
 					<div>
-						<p className='text-sm text-gray-600'>VIN Number</p>
+						<p className='text-sm text-gray-600'>Nickname</p>
 						<p className='font-semibold text-lg'>
 							{vehicle.alias}
 						</p>
 					</div>
 					<div>
-						<p className='text-sm text-gray-600'>Nickname</p>
+						<p className='text-sm text-gray-600'>VIN Number</p>
 						<p className='font-semibold text-lg'>
 							{vehicle.nickname || (
 								<span className='text-gray-400'>-</span>
 							)}
 						</p>
 					</div>
-					<div>
-						<p className='text-sm text-gray-600'>Repair Supplier</p>
-						<p className='font-semibold'>
-							{vehicle.repair_supplier?.name || (
-								<span className='text-gray-400'>-</span>
-							)}
-						</p>
-					</div>
+
 					<div>
 						<p className='text-sm text-gray-600'>Brand</p>
 						<p className='font-semibold'>

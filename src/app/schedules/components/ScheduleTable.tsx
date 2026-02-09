@@ -66,7 +66,7 @@ interface ScheduleTableProps {
 
 export function ScheduleTable({
 	mode,
-	schedules,
+	schedules: propSchedules,
 	isLoading = false,
 	onDriverChange,
 	onVehicleAssign,
@@ -96,6 +96,11 @@ export function ScheduleTable({
 	};
 
 	const isEditable = mode === 'editable';
+
+	const schedules = propSchedules.filter(
+		(s) => !!s.driver?.amazon_id || !!s.route,
+	);
+
 	const columnCount = 9;
 
 	// Create a Set for O(1) lookup
@@ -135,7 +140,7 @@ export function ScheduleTable({
 						<TableHead>Amazon ID</TableHead>
 						<TableHead>Check-in</TableHead>
 						<TableHead>Route</TableHead>
-						<TableHead>Shift Time</TableHead>
+						{/* <TableHead>Shift Time</TableHead> */}
 						<TableHead>Vehicle</TableHead>
 						<TableHead>Confirm Status</TableHead>
 						{isEditable ? (
@@ -356,7 +361,7 @@ export function ScheduleTable({
 									</TableCell>
 
 									{/* Shift Time Column */}
-									<TableCell>
+									{/* <TableCell>
 										{schedule.start_time &&
 										schedule.end_time ? (
 											<div className='flex items-center gap-1 text-sm text-gray-700'>
@@ -379,7 +384,7 @@ export function ScheduleTable({
 												-
 											</span>
 										)}
-									</TableCell>
+									</TableCell> */}
 
 									{/* Vehicle Column */}
 									<TableCell>

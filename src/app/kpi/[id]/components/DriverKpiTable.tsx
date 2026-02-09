@@ -127,9 +127,9 @@ export function DriverKpiTable({ kpis }: DriverKpiTableProps) {
 										{/* <span className='text-xs text-muted-foreground'>({formatScore(kpi.dnr_score)})</span> */}
 									</div>
 								</TableCell>
-								<TableCell className='text-right'>{formatScore(kpi.dcr)}</TableCell>
-								<TableCell className='text-right'>{formatScore(kpi.pod)}</TableCell>
-								<TableCell className='text-right'>{formatScore(kpi.cc)}</TableCell>
+								<TableCell className='text-right'>{formatScore(kpi.dcr)}%</TableCell>
+								<TableCell className='text-right'>{formatScore(kpi.pod)}%</TableCell>
+								<TableCell className='text-right'>{formatScore(kpi.cc)}%</TableCell>
 							</TableRow>
 						))
 					)}

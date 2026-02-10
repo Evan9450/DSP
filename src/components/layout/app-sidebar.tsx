@@ -102,7 +102,7 @@ export function AppSidebar() {
 								const Icon = item.icon;
 								const isActive =
 									pathname === item.href ||
-									(item.href !== '/' &&
+									(item.href !== '/schedules' &&
 										pathname.startsWith(item.href));
 
 								// If item has submenu, render as collapsible

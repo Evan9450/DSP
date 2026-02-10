@@ -230,9 +230,9 @@ export default function ProfilePage() {
 					<div className='text-center py-12'>
 						<p className='text-red-600'>Failed to load profile</p>
 						<Button
-							onClick={() => router.push('/')}
+							onClick={() => router.push('/schedules')}
 							className='mt-4'>
-							Go to Dashboard
+							Go to Schedule
 						</Button>
 					</div>
 				</div>

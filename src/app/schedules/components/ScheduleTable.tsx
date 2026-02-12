@@ -49,8 +49,10 @@ interface ScheduleTableProps {
 	// Editable mode props
 	allDrivers?: Driver[];
 	allVehicles?: Vehicle[];
+	allRoutes?: string[]; // [NEW] List of all available routes
 	onDriverChange?: (scheduleId: number, driverId: number) => void;
 	onVehicleAssign?: (scheduleId: number, vehicleAlias: string) => void;
+	onRouteChange?: (scheduleId: number, routeCode: string) => void; // [NEW]
 	onConfirmAll?: () => void;
 	getAvailableDriversForSchedule?: (schedule: ScheduleResponse) => Driver[];
 	getAvailableVehiclesForSchedule?: (schedule: ScheduleResponse) => Vehicle[];
@@ -68,8 +70,10 @@ export function ScheduleTable({
 	mode,
 	schedules: propSchedules,
 	isLoading = false,
+	allRoutes = [], // [NEW] Default empty
 	onDriverChange,
 	onVehicleAssign,
+	onRouteChange, // [NEW]
 	onConfirmAll,
 	getAvailableDriversForSchedule,
 	getAvailableVehiclesForSchedule,
@@ -197,7 +201,8 @@ export function ScheduleTable({
 									}`}>
 									{/* Driver Name Column */}
 									{/* ===== Driver Column (FIXED) ===== */}
-									<TableCell>
+									<TableCell>{ schedule.driver!.name}</TableCell>
+									{/* <TableCell>
 										{isEditable ? (
 											<Select
 												disabled={
@@ -288,7 +293,7 @@ export function ScheduleTable({
 												</span>
 											</div>
 										)}
-									</TableCell>
+									</TableCell> */}
 
 									{/* Driver Status Column */}
 									<TableCell>
@@ -346,7 +351,104 @@ export function ScheduleTable({
 
 									{/* Route Column */}
 									<TableCell>
-										{schedule.route ? (
+										{isEditable ? (
+											<Select
+												disabled={
+													schedule.confirm_status ===
+													'confirmed'
+												}
+												value={
+													schedule.route ||
+													'unassigned'
+												}
+												onValueChange={(value) => {
+													if (onRouteChange) {
+														onRouteChange(
+															schedule.id,
+															value ===
+																'unassigned'
+																? ''
+																: value,
+														);
+													}
+												}}>
+												<SelectTrigger className='w-full border-0 shadow-none hover:bg-gray-100 min-w-[120px]'>
+													<SelectValue placeholder='Select route'>
+														<div className='flex items-center gap-2'>
+															<MapPin className='h-4 w-4 text-blue-600' />
+															<span
+																className={`font-mono font-semibold ${
+																	schedule.route
+																		? 'text-gray-900'
+																		: 'text-gray-400'
+																}`}>
+																{schedule.route ||
+																	'Unassigned'}
+															</span>
+														</div>
+													</SelectValue>
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value='unassigned'>
+										<div className='flex items-center gap-2 text-orange-600'>
+											<MapPin className='h-4 w-4' />
+											Unassign Route
+										</div>
+									</SelectItem>
+									{(() => {
+										// DEBUG: Log allRoutes prop
+										console.log('🔍 allRoutes prop:', allRoutes);
+										console.log('🔍 allRoutes length:', allRoutes.length);
+
+										// 1. Get routes assigned to OTHER schedules (excluding current)
+										const assignedRoutes = new Set(
+											schedules
+												.filter(
+													(s) =>
+														s.id !== schedule.id &&
+														s.route,
+												)
+												.map((s) => s.route!),
+										);
+
+										console.log('🔍 assignedRoutes:', Array.from(assignedRoutes));
+
+										// 2. Get available routes (not assigned to other schedules)
+										const availableRoutes = allRoutes.filter(
+											(r) => !assignedRoutes.has(r),
+										);
+
+										console.log('🔍 availableRoutes:', availableRoutes);
+
+										// 3. If current schedule has a route, ensure it's in the list
+										// (even if it's not in the master list, e.g., legacy/custom routes)
+										const routesToShow = schedule.route
+											? Array.from(
+													new Set([
+														...availableRoutes,
+														schedule.route,
+													]),
+												).sort()
+											: availableRoutes.sort();
+
+										console.log('🔍 routesToShow:', routesToShow);
+
+										return routesToShow.map((routeCode) => (
+											<SelectItem
+												key={routeCode}
+												value={routeCode}>
+												<div className='flex items-center gap-2'>
+													<MapPin className='h-4 w-4 text-gray-500' />
+													<span className='font-mono'>
+														{routeCode}
+													</span>
+												</div>
+											</SelectItem>
+										));
+									})()}
+												</SelectContent>
+											</Select>
+										) : schedule.route ? (
 											<div className='flex items-center gap-2'>
 												<MapPin className='h-4 w-4 text-blue-600' />
 												<span className='font-mono font-semibold text-gray-900'>

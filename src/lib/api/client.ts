@@ -142,6 +142,12 @@ export interface DriverFileResponse {
 	created_at: string;
 }
 
+export interface RouteResponse {
+	id: number;
+	route_codes: string[];
+	updated_at: string;
+}
+
 export interface SyncedDriver {
 	driver_id: any;
 	id: number;
@@ -995,8 +1001,13 @@ class APIClient {
 		await this.client.delete(`/api/v1/users/${userId}`);
 	}
 
+	async getRoutes(): Promise<RouteResponse> {
+		const response = await this.client.get<RouteResponse>('/api/v1/schedules/routes');
+		return response.data;
+	}
+
 	// ============================================================================
-	// Driver API
+	// Driver Methods
 	// ============================================================================
 
 	async getDrivers(): Promise<DriverResponse[]> {

@@ -129,35 +129,45 @@ export function MaintenanceCard({
 						/>
 					</div> */}
 					<div className='space-y-2'>
-						<Label>Scheduled Maintenance Date</Label>
+						<Label>Confirmed Maintenance</Label>
 						<Input
-							type='date'
-							value={editForm.scheduled_maintenance_date || ''}
-							onChange={(e) =>
+							type='datetime-local'
+							value={
+								editForm.scheduled_maintenance_date
+									? editForm.scheduled_maintenance_date.includes('T')
+										? editForm.scheduled_maintenance_date.slice(0, 16)
+										: `${editForm.scheduled_maintenance_date}T00:00`
+									: ''
+							}
+							onChange={(e) => {
+								const value = e.target.value;
 								setEditForm({
 									...editForm,
-									scheduled_maintenance_date: e.target.value || undefined,
-								})
-							}
+									scheduled_maintenance_date: value
+										? `${value}:00`
+										: undefined,
+								});
+							}}
 						/>
 					</div>
-					{/* <div className='space-y-2'>
+					<div className='space-y-2'>
 						<Label htmlFor='edit-location'>Scheduled Mileage</Label>
 						<Input
 							id='edit-location'
 							type='number'
-							value={editForm.maintenance_cycle_mileage || ''}
-							onChange={(e) =>
+							value={editForm.scheduled_mileage ?? ''}
+							onChange={(e) => {
+								const value = e.target.value.trim();
+								const parsedValue = value ? parseInt(value, 10) : undefined;
 								setEditForm({
 									...editForm,
-									maintenance_cycle_mileage: e.target.value
-										? parseInt(e.target.value)
+									scheduled_mileage: parsedValue !== undefined && !isNaN(parsedValue)
+										? parsedValue
 										: undefined,
-								})
-							}
-							placeholder='15000'
+								});
+							}}
 						/>
-					</div> */}
+					</div>
 					<div className='space-y-2'>
 						<Label>Maintenance Supplier</Label>
 						<RepairSupplierSelect
@@ -263,12 +273,12 @@ export function MaintenanceCard({
 						</p>
 					</div>
 					<div>
-						<p className='text-sm text-gray-600'>Scheduled Maintenance</p>
+						<p className='text-sm text-gray-600'>Confirmed Maintenance</p>
 						<p className='font-semibold'>
 							{vehicle.scheduled_maintenance_date ? (
 								format(
 									new Date(vehicle.scheduled_maintenance_date),
-									'MMM dd, yyyy',
+									'MMM dd, yyyy HH:mm',
 								)
 							) : (
 								<span className='text-gray-400'>Not scheduled</span>

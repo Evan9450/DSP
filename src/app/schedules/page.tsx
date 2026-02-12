@@ -121,7 +121,26 @@ export default function ScheduleTablePage() {
 	useEffect(() => {
 		fetchVehicles();
 		fetchDrivers();
+		fetchRoutes(); // [NEW]
 	}, []);
+
+	// [NEW] Fetch all routes
+	const [allRoutes, setAllRoutes] = useState<string[]>([]);
+	const fetchRoutes = async () => {
+		try {
+			const data = await apiClient.getRoutes();
+			console.log(
+				'✅ All routes loaded from API (count: ' +
+					data.route_codes.length +
+					'):',
+				data.route_codes,
+			);
+			setAllRoutes(data.route_codes);
+		} catch (error) {
+			console.error('❌ Failed to fetch routes from API:', error);
+			setAllRoutes([]);
+		}
+	};
 
 	// Fetch schedules for selected date
 	const fetchSchedules = async () => {
@@ -569,6 +588,142 @@ export default function ScheduleTablePage() {
 		}
 	};
 
+	const handleRouteChange = async (scheduleId: number, routeCode: string) => {
+		// Check if schedule is confirmed
+		const targetSchedule = scheduleData.find((s) => s.id === scheduleId);
+		if (targetSchedule?.confirm_status === 'confirmed') {
+			notify.warning('Cannot change route for a confirmed schedule');
+			return;
+		}
+
+		console.log(
+			'🔄 Changing route for schedule',
+			scheduleId,
+			'to route',
+			routeCode,
+		);
+
+		// Handle unassign case
+		if (!routeCode) {
+			const previousSchedule = scheduleData.find(
+				(s) => s.id === scheduleId,
+			);
+			if (!previousSchedule) return;
+
+			// Optimistic update
+			setScheduleData((prevData) =>
+				prevData.map((schedule) =>
+					schedule.id === scheduleId
+						? {
+								...schedule,
+								route: null,
+								confirm_status: 'pending' as const,
+							}
+						: schedule,
+				),
+			);
+
+			try {
+				const updatedSchedule = await apiClient.updateSchedule(
+					scheduleId,
+					{
+						route: null as any,
+						confirm_status: 'pending',
+					},
+				);
+				// Single-row replacement
+				setScheduleData((prevData) =>
+					prevData.map((schedule) =>
+						schedule.id === scheduleId
+							? {
+									...updatedSchedule,
+									// @ts-ignore
+									_driver_id: (schedule as any)._driver_id,
+								}
+							: schedule,
+					),
+				);
+				toast({
+					title: 'Route Unassigned',
+					description: 'Route has been removed from this schedule',
+				});
+			} catch (error: any) {
+				console.error('❌ Failed to unassign route:', error);
+				// Revert
+				setScheduleData((prevData) =>
+					prevData.map((schedule) =>
+						schedule.id === scheduleId
+							? previousSchedule
+							: schedule,
+					),
+				);
+				toast({
+					title: 'Error',
+					description: 'Failed to unassign route',
+					variant: 'destructive',
+				});
+			}
+			return;
+		}
+
+		// 2. Handle Assign Case
+		const previousSchedule = scheduleData.find((s) => s.id === scheduleId);
+		if (!previousSchedule) return;
+
+		// Optimistic update
+		setScheduleData((prevData) =>
+			prevData.map((schedule) =>
+				schedule.id === scheduleId
+					? {
+							...schedule,
+							route: routeCode,
+							confirm_status: 'pending' as const,
+						}
+					: schedule,
+			),
+		);
+
+		try {
+			const updatedSchedule = await apiClient.updateSchedule(scheduleId, {
+				route: routeCode,
+				confirm_status: 'pending',
+			});
+			// Single-row replacement
+			setScheduleData((prevData) =>
+				prevData.map((schedule) =>
+					schedule.id === scheduleId
+						? {
+								...updatedSchedule,
+								// @ts-ignore
+								_driver_id: (schedule as any)._driver_id,
+							}
+						: schedule,
+				),
+			);
+			toast({
+				title: 'Route Assigned',
+				description: `Route ${routeCode} assigned successfully`,
+			});
+		} catch (error: any) {
+			console.error('❌ Failed to assign route:', error);
+			// Revert
+			setScheduleData((prevData) =>
+				prevData.map((schedule) =>
+					schedule.id === scheduleId ? previousSchedule : schedule,
+				),
+			);
+			const errorMessage =
+				error.response?.data?.detail ||
+				error.message ||
+				'Failed to assign route';
+			toast({
+				title: 'Route Assignment Failed',
+				description: errorMessage,
+				variant: 'destructive',
+			});
+		}
+	};
+
 	const handleConfirm = async () => {
 		try {
 			// 清除之前的失败标记
@@ -833,11 +988,6 @@ export default function ScheduleTablePage() {
 				title: 'Routes Imported',
 				description: `Successfully imported routes. Matched: ${result.matched_count}, Updated: ${result.updated_count}`,
 			});
-
-			// Clear file input
-			if (fileInputRef.current) {
-				fileInputRef.current.value = '';
-			}
 		} catch (error) {
 			console.error('Failed to import routes:', error);
 			toast({
@@ -847,6 +997,10 @@ export default function ScheduleTablePage() {
 			});
 		} finally {
 			setIsImporting(false);
+			// Clear file input to ensure the same file can be selected again
+			if (fileInputRef.current) {
+				fileInputRef.current.value = '';
+			}
 		}
 	};
 
@@ -970,8 +1124,12 @@ export default function ScheduleTablePage() {
 						mode='editable'
 						schedules={scheduleData}
 						isLoading={isLoadingSchedules}
+						allDrivers={allDrivers}
+						allVehicles={allVehicles}
+						allRoutes={allRoutes}
 						onDriverChange={handleDriverChange}
 						onVehicleAssign={handleVehicleAssignment}
+						onRouteChange={handleRouteChange}
 						onConfirmAll={handleConfirm}
 						getAvailableDriversForSchedule={
 							getAvailableDriversForSchedule

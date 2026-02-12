@@ -2098,6 +2098,33 @@
         }
       }
     },
+    "/api/v1/schedules/routes": {
+      "get": {
+        "tags": [
+          "Schedules"
+        ],
+        "summary": "List Routes",
+        "description": "Get the list of currently stored routes (Singleton)\n\nReturns the latest uploaded route codes.",
+        "operationId": "list_routes_api_v1_schedules_routes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/schedules/{schedule_id}": {
       "get": {
         "tags": [
@@ -2321,7 +2348,7 @@
           "Schedules"
         ],
         "summary": "Import Routes",
-        "description": "Upload Amazon route file and auto-match/update schedule route field\nIf no match, create new Schedule (Driver=Unassigned)\n\n- **file**: Amazon route Excel file (.xlsx)\n- **import_date**: Schedule date to update/create (default today)\n\n**Workflow**:\n1. Parse Excel file for Route code and optional Transporter ID\n2. Query all schedules for specific date\n3. Try matching existing schedule by Transporter ID\n4. If match found -\u003E update route of existing schedule\n5. If match failed (no Transporter ID or mismatch) -\u003E create new schedule (Driver=Unassigned)\n\n**Required fields**: Route code\n**Optional fields**: Transporter ID",
+        "description": "Upload Amazon route file and auto-match/update schedule route field\nIf no match, record as unmatched route (no longer creates new schedules)\n\n- **file**: Amazon route Excel file (.xlsx)\n- **import_date**: Schedule date to update (default today)\n\n**Workflow**:\n1. Parse Excel file for Route code and optional Transporter ID\n2. Query all schedules for specific date\n3. Try matching existing schedule by Transporter ID (highest priority)\n4. If no ID match, try matching by Route Code (fallback)\n5. If match found -\u003E update route of existing schedule\n6. If match failed -\u003E record as unmatched route (no new schedule created)\n\n**Required fields**: Route code\n**Optional fields**: Transporter ID",
         "operationId": "import_routes_api_v1_schedules_import_routes_post",
         "security": [
           {
@@ -7859,6 +7886,17 @@
             "type": "integer",
             "title": "Matched Drivers"
           },
+          "overall_standing": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall Standing"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -7891,6 +7929,7 @@
           "weight_netradyne",
           "total_drivers",
           "matched_drivers",
+          "overall_standing",
           "created_at",
           "updated_at",
           "driver_kpis"
@@ -7948,6 +7987,17 @@
             "type": "integer",
             "title": "Matched Drivers"
           },
+          "overall_standing": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall Standing"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -7973,6 +8023,7 @@
           "weight_netradyne",
           "total_drivers",
           "matched_drivers",
+          "overall_standing",
           "created_at",
           "updated_at"
         ],
@@ -9251,6 +9302,42 @@
         ],
         "title": "RouteImportResponse",
         "description": "Response from importing routes and updating schedules."
+      },
+      "RouteResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Route Singleton ID",
+            "example": 1
+          },
+          "route_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Route Codes",
+            "description": "List of all route codes",
+            "example": [
+              "CX203",
+              "CX211"
+            ]
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At",
+            "description": "Last updated timestamp",
+            "example": "2026-02-13T10:30:00"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "route_codes",
+          "updated_at"
+        ],
+        "title": "RouteResponse",
+        "description": "Response model for the route singleton."
       },
       "SMSResponse": {
         "properties": {
@@ -10719,14 +10806,14 @@
             "anyOf": [
               {
                 "type": "string",
-                "format": "date"
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
             ],
             "title": "Scheduled Maintenance Date",
-            "description": "Scheduled date for workshop email notification (manual input)"
+            "description": "Scheduled datetime for workshop email notification (manual input)"
           },
           "procession_date": {
             "anyOf": [
@@ -10945,7 +11032,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "format": "date"
+                "format": "date-time"
               },
               {
                 "type": "null"
@@ -11904,7 +11991,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "format": "date"
+                "format": "date-time"
               },
               {
                 "type": "null"
@@ -12139,6 +12226,18 @@
               }
             ],
             "title": "Next Maintenance Date"
+          },
+          "scheduled_maintenance_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Maintenance Date"
           },
           "procession_date": {
             "anyOf": [

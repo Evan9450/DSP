@@ -428,8 +428,26 @@ export function ScheduleTable({
 														...availableRoutes,
 														schedule.route,
 													]),
-												).sort()
-											: availableRoutes.sort();
+												).sort((a, b) =>
+													a.localeCompare(
+														b,
+														undefined,
+														{
+															numeric: true,
+															sensitivity: 'base',
+														},
+													),
+												)
+											: availableRoutes.sort((a, b) =>
+													a.localeCompare(
+														b,
+														undefined,
+														{
+															numeric: true,
+															sensitivity: 'base',
+														},
+													),
+												);
 
 										console.log('🔍 routesToShow:', routesToShow);
 

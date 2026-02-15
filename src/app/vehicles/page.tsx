@@ -452,7 +452,7 @@ export default function VehiclesPage() {
 								<TableHead>Condition</TableHead>
 								<TableHead>Status</TableHead>
 								<TableHead>Mileage</TableHead>
-								<TableHead>Scheduled Date</TableHead>
+								<TableHead>Scheduled Maint.</TableHead>
 								{/* <TableHead>Notes</TableHead> */}
 								<TableHead className='w-[50px]'></TableHead>
 							</TableRow>
@@ -584,7 +584,13 @@ export default function VehiclesPage() {
 															'MMM dd, yyyy',
 														)}
 													</p>
-
+													<p
+														className={`text-xs ${isOverdue ? 'text-red-500' : isDueSoon ? 'text-orange-500' : 'text-gray-500'}`}>
+														{format(
+															vehicle.scheduledMaintenanceDate,
+															'HH:mm',
+														)}
+													</p>
 												</div>
 											) : (
 												<span className='text-gray-400'>

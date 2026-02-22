@@ -141,7 +141,7 @@ export function ScheduleTable({
 					<TableRow>
 						<TableHead>Driver Name</TableHead>
 						<TableHead>Status</TableHead>
-						<TableHead>Amazon ID</TableHead>
+						{/* <TableHead>Amazon ID</TableHead> */}
 						<TableHead>Check-in</TableHead>
 						<TableHead>Route</TableHead>
 						{/* <TableHead>Shift Time</TableHead> */}
@@ -315,11 +315,11 @@ export function ScheduleTable({
 									</TableCell>
 
 									{/* Amazon ID Column */}
-									<TableCell>
+									{/* <TableCell>
 										<span className='font-medium text-gray-900'>
 											{schedule.driver?.amazon_id || '-'}
 										</span>
-									</TableCell>
+									</TableCell> */}
 
 									{/* Check-in Status Column */}
 									<TableCell>

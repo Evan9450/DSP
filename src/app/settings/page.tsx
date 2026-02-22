@@ -263,7 +263,7 @@ export default function SettingsPage() {
 								{/* Daily SMS Time */}
 								<div>
 									<Label htmlFor='dailySmsTime'>
-										Daily SMS Time{' '}
+										Check-in SMS Time{' '}
 									</Label>
 									<Input
 										id='dailySmsTime'

@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
+import { RepairSupplierSelect } from './repair-supplier-select';
 
 interface CompleteMaintenanceDialogProps {
 	vehicleId: number;
@@ -156,14 +157,18 @@ export function CompleteMaintenanceDialog({
 							/>
 						</div>
 
-						{defaultSupplier && (
-							<div className="space-y-2">
-								<Label>Service Provider</Label>
-								<div className="p-2 border rounded-md bg-muted text-sm font-medium">
-									{defaultSupplier.name}
-								</div>
-							</div>
-						)}
+						<div className="space-y-2">
+							<Label>Service Provider</Label>
+							<RepairSupplierSelect
+								value={formData.supplier_id}
+								onValueChange={(val) =>
+									setFormData({
+										...formData,
+										supplier_id: val,
+									})
+								}
+							/>
+						</div>
 
 						{/* Only show location if no supplier is set (fallback) */}
 						{/* {!defaultSupplier && (

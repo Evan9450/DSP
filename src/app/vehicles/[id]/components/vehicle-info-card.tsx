@@ -84,7 +84,7 @@ export function VehicleInfoCard({
 							/>
 						</div>
 						<div className='space-y-2'>
-							<Label htmlFor='edit-alias'>VIN Number</Label>
+							<Label htmlFor='edit-alias'>Nickname</Label>
 							<Input
 								id='edit-alias'
 								value={editForm.alias || ''}
@@ -98,7 +98,7 @@ export function VehicleInfoCard({
 							/>
 						</div>
 						<div className='space-y-2'>
-							<Label htmlFor='edit-nickname'>Nickname</Label>
+							<Label htmlFor='edit-nickname'>VIN Number</Label>
 							<Input
 								id='edit-nickname'
 								value={editForm.nickname || ''}

@@ -446,8 +446,8 @@ export default function VehiclesPage() {
 							<TableRow>
 								<TableHead className='w-[60px]'></TableHead>
 								<TableHead>Rego</TableHead>
+								{/* <TableHead>VIN Number</TableHead> */}
 								<TableHead>Nickname</TableHead>
-								<TableHead>VIN Number</TableHead>
 								<TableHead>Brand</TableHead>
 								<TableHead>Condition</TableHead>
 								<TableHead>Status</TableHead>
@@ -499,7 +499,7 @@ export default function VehiclesPage() {
 												{vehicle.rego}
 											</div>
 										</TableCell>
-										<TableCell>
+										{/* <TableCell>
 											{vehicle.nickname ? (
 												<div>
 													<p className='font-medium text-gray-900'>
@@ -511,7 +511,7 @@ export default function VehiclesPage() {
 													-
 												</span>
 											)}
-										</TableCell>
+										</TableCell> */}
 										<TableCell>
 											{vehicle.alias ? (
 												<div>

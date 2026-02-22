@@ -111,13 +111,10 @@ export function MessageTemplateList() {
 							<CardTitle className='text-xl font-bold text-gray-900'>
 								Message Templates
 							</CardTitle>
-							<CardDescription>
-								Manage email and SMS templates used by the
-								system
-							</CardDescription>
+
 						</div>
 					</div>
-					<Button
+					{/* <Button
 						variant='outline'
 						size='sm'
 						onClick={fetchTemplates}
@@ -126,7 +123,7 @@ export function MessageTemplateList() {
 							className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`}
 						/>
 						Refresh
-					</Button>
+					</Button> */}
 				</div>
 			</CardHeader>
 			<CardContent className='px-0 pb-0'>

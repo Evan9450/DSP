@@ -145,9 +145,7 @@ export default function SettingsPage() {
 						<h1 className='text-3xl font-bold text-gray-900'>
 							System Settings
 						</h1>
-						<p className='text-gray-600 mt-1'>
-							Configure global system parameters and preferences
-						</p>
+
 					</div>
 					<Button
 						onClick={handleSave}
@@ -178,10 +176,7 @@ export default function SettingsPage() {
 								<h2 className='text-xl font-bold text-gray-900'>
 									Admin Contact
 								</h2>
-								<p className='text-sm text-gray-500'>
-									Administrator contact information and
-									reminder settings
-								</p>
+
 							</div>
 						</div>
 
@@ -216,10 +211,7 @@ export default function SettingsPage() {
 								<h2 className='text-xl font-bold text-gray-900'>
 									Driver & Document Reminders
 								</h2>
-								<p className='text-sm text-gray-500'>
-									Driver files and daily confirmation reminder
-									settings
-								</p>
+
 							</div>
 						</div>
 
@@ -230,16 +222,17 @@ export default function SettingsPage() {
 									<Label htmlFor='driverFileReminderDays'>
 										Driver File Reminder{' '}
 									</Label>
-									<Select
+									<Input
 										value={formData.driver_file_reminder_days?.toString()}
-										onValueChange={(value) =>
+										type='number'
+										onChange={(e) =>
 											setFormData({
 												...formData,
 												driver_file_reminder_days:
-													parseInt(value),
+													parseInt(e.target.value),
 											})
-										}>
-										<SelectTrigger className='mt-2'>
+										} />
+										{/* <SelectTrigger className='mt-2'>
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
@@ -252,12 +245,12 @@ export default function SettingsPage() {
 											<SelectItem value='30'>
 												30 days before expiry
 											</SelectItem>
-										</SelectContent>
-									</Select>
-									<p className='text-xs text-gray-500 mt-1'>
+										</SelectContent> */}
+									{/* </Select> */}
+									{/* <p className='text-xs text-gray-500 mt-1'>
 										Remind drivers before license/document
 										expiry
-									</p>
+									</p> */}
 								</div>
 
 								{/* Daily SMS Time */}
@@ -277,10 +270,10 @@ export default function SettingsPage() {
 										}
 										className='mt-2'
 									/>
-									<p className='text-xs text-gray-500 mt-1'>
+									{/* <p className='text-xs text-gray-500 mt-1'>
 										Time to send daily schedule confirmation
 										SMS (24-hour format)
-									</p>
+									</p> */}
 								</div>
 							</div>
 						</div>
@@ -296,9 +289,7 @@ export default function SettingsPage() {
 								<h2 className='text-xl font-bold text-gray-900'>
 									Vehicle Maintenance Reminders
 								</h2>
-								<p className='text-sm text-gray-500'>
-									Vehicle maintenance reminder settings
-								</p>
+
 							</div>
 						</div>
 
@@ -309,33 +300,18 @@ export default function SettingsPage() {
 									<Label htmlFor='maintenanceBookingReminderDays'>
 										Maintenance Booking Reminder{' '}
 									</Label>
-									<Select
+									<Input
 										value={formData.maintenance_booking_reminder_days?.toString()}
-										onValueChange={(value) =>
+										onChange={(e) =>
 											setFormData({
 												...formData,
 												maintenance_booking_reminder_days:
-													parseInt(value),
+													parseInt(e.target.value),
 											})
-										}>
-										<SelectTrigger className='mt-2'>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value='10'>
-												10 days before
-											</SelectItem>
-											<SelectItem value='15'>
-												15 days before
-											</SelectItem>
-											<SelectItem value='30'>
-												30 days before
-											</SelectItem>
-										</SelectContent>
-									</Select>
-									<p className='text-xs text-gray-500 mt-1'>
-										Remind to book maintenance appointment
-									</p>
+										} />
+
+
+
 								</div>
 
 								{/* Next Maintenance Reminder */}
@@ -343,34 +319,17 @@ export default function SettingsPage() {
 									<Label htmlFor='nextMaintenanceReminderDays'>
 										Next Maintenance Reminder{' '}
 									</Label>
-									<Select
+									<Input
 										value={formData.next_maintenance_reminder_days?.toString()}
-										onValueChange={(value) =>
+										onChange={(e) =>
 											setFormData({
 												...formData,
 												next_maintenance_reminder_days:
-													parseInt(value),
+													parseInt(e.target.value),
 											})
-										}>
-										<SelectTrigger className='mt-2'>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value='10'>
-												10 days before
-											</SelectItem>
-											<SelectItem value='15'>
-												15 days before
-											</SelectItem>
-											<SelectItem value='30'>
-												30 days before
-											</SelectItem>
-										</SelectContent>
-									</Select>
-									<p className='text-xs text-gray-500 mt-1'>
-										Remind when next maintenance is
-										approaching
-									</p>
+										} />
+
+
 								</div>
 							</div>
 						</div>

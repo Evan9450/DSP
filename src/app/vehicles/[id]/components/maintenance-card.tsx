@@ -32,6 +32,7 @@ interface MaintenanceCardProps {
 	editForm?: Partial<VehicleDetailResponse>;
 	setEditForm?: (form: Partial<VehicleDetailResponse>) => void;
 	onEmailSent?: () => void;
+	onUpdate?: () => void;
 }
 
 export function MaintenanceCard({
@@ -40,6 +41,7 @@ export function MaintenanceCard({
 	editForm,
 	setEditForm,
 	onEmailSent,
+	onUpdate,
 }: MaintenanceCardProps) {
 	const { toast } = useToast();
 	const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -353,6 +355,7 @@ export function MaintenanceCard({
 					id: vehicle.repair_supplier.id,
 					name: vehicle.repair_supplier.name
 				} : undefined}
+				onUpdate={onUpdate}
 			/>
 		</div>
 	);

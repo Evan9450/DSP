@@ -287,7 +287,7 @@ export default function SettingsPage() {
 								{/* Next Day SMS Time */}
 								<div>
 									<Label htmlFor='nextDaySmsTime'>
-										Next Day SMS Time
+										Reminder SMS Time
 									</Label>
 									<Input
 										id='nextDaySmsTime'

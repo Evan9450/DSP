@@ -35,6 +35,7 @@ interface MaintenanceHistoryProps {
 		id: number;
 		name: string;
 	};
+	onUpdate?: () => void;
 }
 
 interface MaintenanceRecord {
@@ -50,7 +51,7 @@ interface MaintenanceRecord {
 	};
 }
 
-export function MaintenanceHistory({ vehicleId, defaultSupplier }: MaintenanceHistoryProps) {
+export function MaintenanceHistory({ vehicleId, defaultSupplier, onUpdate }: MaintenanceHistoryProps) {
 	const { toast } = useToast();
 	const [records, setRecords] = useState<MaintenanceRecord[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -179,13 +180,19 @@ export function MaintenanceHistory({ vehicleId, defaultSupplier }: MaintenanceHi
 				vehicleId={vehicleId}
 				open={showAddDialog}
 				onOpenChange={setShowAddDialog}
-				onSuccess={fetchHistory}
+				onSuccess={() => {
+					fetchHistory();
+					if (onUpdate) onUpdate();
+				}}
 			/>
 			<CompleteMaintenanceDialog
 				vehicleId={vehicleId}
 				open={showCompleteDialog}
 				onOpenChange={setShowCompleteDialog}
-				onSuccess={fetchHistory}
+				onSuccess={() => {
+					fetchHistory();
+					if (onUpdate) onUpdate();
+				}}
 				defaultSupplier={defaultSupplier}
 			/>
 		</Card>

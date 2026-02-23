@@ -509,6 +509,7 @@ export default function VehicleDetailPage({
 							isEditing={isEditing}
 							editForm={editForm}
 							setEditForm={setEditForm}
+							onUpdate={fetchVehicleDetail}
 						/>
 						{/* Inspection History */}
 						<InspectionHistory vehicle={vehicle} />

@@ -65,6 +65,86 @@
         }
       }
     },
+    "/api/v1/auth/forgot-password/send-code": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Admin Forgot Password Send Code",
+        "description": "Send a 6-digit verification code via SMS to the admin's phone.",
+        "operationId": "admin_forgot_password_send_code_api_v1_auth_forgot_password_send_code_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/forgot-password/reset": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Admin Forgot Password Reset",
+        "description": "Reset admin password using the SMS verification code.",
+        "operationId": "admin_forgot_password_reset_api_v1_auth_forgot_password_reset_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserForgotPasswordReset"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/driver/login": {
       "post": {
         "tags": [
@@ -222,6 +302,86 @@
             "HTTPBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/driver/forgot-password/send-code": {
+      "post": {
+        "tags": [
+          "Driver App"
+        ],
+        "summary": "Driver Forgot Password Send Code",
+        "description": "Send a 6-digit verification code via SMS to the driver's phone.\nSupports both local (0451xxxxxx) and international (+61451xxxxxx) formats.",
+        "operationId": "driver_forgot_password_send_code_api_v1_driver_forgot_password_send_code_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DriverForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/driver/forgot-password/reset": {
+      "post": {
+        "tags": [
+          "Driver App"
+        ],
+        "summary": "Driver Forgot Password Reset",
+        "description": "Reset driver password using the SMS verification code.\nSupports both local (0451xxxxxx) and international (+61451xxxxxx) phone formats.",
+        "operationId": "driver_forgot_password_reset_api_v1_driver_forgot_password_reset_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DriverForgotPasswordReset"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/users/me": {
@@ -3305,7 +3465,7 @@
           "System Settings"
         ],
         "summary": "Update System Config",
-        "description": "Update system config (batch update)\n\nCan update multiple config items at once, providing only fields to update.\n\nConfig description:\n- admin_phone: Admin reminder phone (for receiving system notifications)\n- driver_file_reminder_days: Driver file expiry reminder period, suggested: 10, 15, 30 days\n- daily_sms_time: Daily driver confirmation SMS time (24-hour, e.g. \"08:00\")\n- maintenance_booking_reminder_days: Maintenance booking reminder period, suggested: 10, 15, 30 days\n- next_maintenance_reminder_days: Next maintenance approaching reminder period, suggested: 10, 15, 30 days",
+        "description": "Update system config (batch update)\n\nCan update multiple config items at once, providing only fields to update.\n\n- admin_phone: Admin reminder phone (for receiving system notifications)\n- driver_file_reminder_days: Driver file expiry reminder period, suggested: 10, 15, 30 days\n- daily_sms_time: Daily driver confirmation SMS time (24-hour, e.g. \"08:00\")\n- next_day_sms_time: Next day schedule notification SMS time (24-hour, e.g. \"18:00\")\n- next_maintenance_reminder_days: Next maintenance approaching reminder period, suggested: 10, 15, 30 days",
         "operationId": "update_system_config_api_v1_settings_config_put",
         "requestBody": {
           "content": {
@@ -3350,7 +3510,7 @@
           "System Settings"
         ],
         "summary": "Create System Config",
-        "description": "Create/Initialize system config\n\nInitial set up of system config, can provide all or partial config items.\nUnprovided items will use default values.\n\nConfig description:\n- admin_phone: Admin reminder phone (for receiving system notifications)\n- driver_file_reminder_days: Driver file expiry reminder period, suggested: 10, 15, 30 days\n- daily_sms_time: Daily driver confirmation SMS time (24-hour, e.g. \"08:00\")\n- maintenance_booking_reminder_days: Maintenance booking reminder period, suggested: 10, 15, 30 days\n- next_maintenance_reminder_days: Next maintenance approaching reminder period, suggested: 10, 15, 30 days",
+        "description": "Create/Initialize system config\n\nInitial set up of system config, can provide all or partial config items.\nUnprovided items will use default values.\n\n- admin_phone: Admin reminder phone (for receiving system notifications)\n- driver_file_reminder_days: Driver file expiry reminder period, suggested: 10, 15, 30 days\n- daily_sms_time: Daily driver confirmation SMS time (24-hour, e.g. \"08:00\")\n- next_day_sms_time: Next day schedule notification SMS time (24-hour, e.g. \"18:00\")\n- next_maintenance_reminder_days: Next maintenance approaching reminder period, suggested: 10, 15, 30 days",
         "operationId": "create_system_config_api_v1_settings_config_post",
         "requestBody": {
           "content": {
@@ -4172,7 +4332,7 @@
           "Notifications (SMS & Email)"
         ],
         "summary": "Get Received Sms",
-        "description": "Get received SMS messages from ClapSMS.\n\n**Permissions**: Requires authenticated user\n\n**Parameters**:\n- limit: Number of messages to retrieve per page (default: 10)\n- page: Page number (default: 1)\n\n**Returns**: List of received SMS messages with sender info and content\n\n**Note**: Only works with ClapSMS provider. Twilio does not support this feature.",
+        "description": "Get received SMS messages from ClapSMS.\n\n**Permissions**: Requires authenticated user\n\n**Parameters**:\n- limit: Number of messages to retrieve per page (default: 10)\n- page: Page number (default: 1)\n\n**Returns**: List of received SMS messages with sender info and content\n\n**Note**: Only works with ClapSMS provider.",
         "operationId": "get_received_sms_api_v1_notifications_sms_received_get",
         "security": [
           {
@@ -6886,6 +7046,51 @@
         ],
         "title": "DriverCreate",
         "description": "Schema for creating a driver - only name is required, credentials are optional."
+      },
+      "DriverForgotPasswordRequest": {
+        "properties": {
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "description": "Driver phone number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone"
+        ],
+        "title": "DriverForgotPasswordRequest",
+        "description": "Schema for driver forgot password code request."
+      },
+      "DriverForgotPasswordReset": {
+        "properties": {
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "description": "Driver phone number"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 6,
+            "minLength": 6,
+            "title": "Code",
+            "description": "6-digit verification code"
+          },
+          "new_password": {
+            "type": "string",
+            "minLength": 6,
+            "title": "New Password",
+            "description": "New password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone",
+          "code",
+          "new_password"
+        ],
+        "title": "DriverForgotPasswordReset",
+        "description": "Schema for driver forgot password reset."
       },
       "DriverInSchedule": {
         "properties": {
@@ -10034,15 +10239,15 @@
             "title": "Daily Sms Time",
             "description": "Driver daily confirmation SMS time (HH:MM)"
           },
-          "maintenance_booking_reminder_days": {
-            "type": "integer",
-            "title": "Maintenance Booking Reminder Days",
-            "description": "Maintenance booking reminder period (days)"
-          },
           "next_maintenance_reminder_days": {
             "type": "integer",
             "title": "Next Maintenance Reminder Days",
             "description": "Next maintenance approaching reminder period (days)"
+          },
+          "next_day_sms_time": {
+            "type": "string",
+            "title": "Next Day Sms Time",
+            "description": "Next day schedule notification SMS time (HH:MM)"
           }
         },
         "type": "object",
@@ -10050,8 +10255,8 @@
           "admin_phone",
           "driver_file_reminder_days",
           "daily_sms_time",
-          "maintenance_booking_reminder_days",
-          "next_maintenance_reminder_days"
+          "next_maintenance_reminder_days",
+          "next_day_sms_time"
         ],
         "title": "SystemConfigResponse",
         "description": "System configuration response schema"
@@ -10121,21 +10326,6 @@
             "description": "Driver daily confirmation SMS time (HH:MM 24-hour format)",
             "example": "08:00"
           },
-          "maintenance_booking_reminder_days": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "maximum": 90,
-                "minimum": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Maintenance Booking Reminder Days",
-            "description": "Maintenance booking reminder period (days) - Options: 10, 15, 30",
-            "example": 15
-          },
           "next_maintenance_reminder_days": {
             "anyOf": [
               {
@@ -10150,6 +10340,20 @@
             "title": "Next Maintenance Reminder Days",
             "description": "Next maintenance approaching reminder period (days) - Options: 10, 15, 30",
             "example": 10
+          },
+          "next_day_sms_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Day Sms Time",
+            "description": "Next day schedule notification SMS time (HH:MM format)",
+            "example": "18:00"
           }
         },
         "type": "object",
@@ -10306,6 +10510,51 @@
         ],
         "title": "UserCreate",
         "description": "Schema for creating a new user.\n\nRoles:\n- 0 (Admin): Superuser - only one allowed in the system\n- 1 (Manager): Manager - can have multiple"
+      },
+      "UserForgotPasswordRequest": {
+        "properties": {
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "description": "Admin phone number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone"
+        ],
+        "title": "UserForgotPasswordRequest",
+        "description": "Schema for admin forgot password code request."
+      },
+      "UserForgotPasswordReset": {
+        "properties": {
+          "phone": {
+            "type": "string",
+            "title": "Phone",
+            "description": "Admin phone number"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 6,
+            "minLength": 6,
+            "title": "Code",
+            "description": "6-digit verification code"
+          },
+          "new_password": {
+            "type": "string",
+            "minLength": 6,
+            "title": "New Password",
+            "description": "New password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone",
+          "code",
+          "new_password"
+        ],
+        "title": "UserForgotPasswordReset",
+        "description": "Schema for admin forgot password reset."
       },
       "UserLogin": {
         "properties": {
@@ -11594,6 +11843,17 @@
               }
             ],
             "title": "Cost"
+          },
+          "supplier_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Id"
           },
           "scheduled_mileage": {
             "type": "integer",

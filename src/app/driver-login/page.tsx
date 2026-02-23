@@ -116,6 +116,13 @@ export default function DriverLoginPage() {
 						</div>
 					)}
 
+					<div className='flex items-center justify-end mt-2 mb-2'>
+						<a
+							href='/driver-forgot-password'
+							className='text-sm text-blue-600 hover:text-blue-800 hover:underline'>
+							Forgot Password?
+						</a>
+					</div>
 					<Button
 						type='submit'
 						className='w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg'

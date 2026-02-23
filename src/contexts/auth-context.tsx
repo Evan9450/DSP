@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	useEffect(() => {
 		// Public routes that don't require admin authentication
-		const publicRoutes = ['/login', '/driver-login', '/driver-inspection'];
+		const publicRoutes = ['/login', '/driver-login', '/driver-inspection', '/forgot-password', '/driver-forgot-password'];
 		const isPublicRoute = publicRoutes.includes(pathname);
 
 		// Redirect to login if not authenticated and not on a public route

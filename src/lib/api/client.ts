@@ -27,6 +27,26 @@ export interface LoginRequest {
 	password: string;
 }
 
+export interface UserForgotPasswordRequest {
+	phone: string;
+}
+
+export interface UserForgotPasswordReset {
+	phone: string;
+	code: string;
+	new_password: string;
+}
+
+export interface DriverForgotPasswordRequest {
+	phone: string;
+}
+
+export interface DriverForgotPasswordReset {
+	phone: string;
+	code: string;
+	new_password: string;
+}
+
 export interface TokenResponse {
 	access_token: string;
 	token_type: string;
@@ -587,7 +607,7 @@ export interface SystemConfigResponse {
 	contacts?: UserResponse[]; // 系统通知联系人列表
 	driver_file_reminder_days?: number; // Driver file expiry reminder cycle (10/15/30 days)
 	daily_sms_time?: string; // Daily driver confirmation SMS time (HH:MM format)
-	maintenance_booking_reminder_days?: number; // Maintenance booking reminder cycle (10/15/30 days)
+	next_day_sms_time?: string; // Next day schedule notification SMS time (HH:MM format)
 	next_maintenance_reminder_days?: number; // Next maintenance approaching reminder cycle (10/15/30 days)
 }
 
@@ -596,7 +616,7 @@ export interface SystemConfigUpdate {
 	contact_ids?: number[]; // 系统通知联系人用户ID列表
 	driver_file_reminder_days?: number;
 	daily_sms_time?: string;
-	maintenance_booking_reminder_days?: number;
+	next_day_sms_time?: string;
 	next_maintenance_reminder_days?: number;
 }
 
@@ -955,6 +975,22 @@ class APIClient {
 		} else {
 			TokenManager.clearAdminToken();
 		}
+	}
+
+	async adminForgotPasswordSendCode(data: UserForgotPasswordRequest): Promise<void> {
+		await this.client.post('/api/v1/auth/forgot-password/send-code', data);
+	}
+
+	async adminForgotPasswordReset(data: UserForgotPasswordReset): Promise<void> {
+		await this.client.post('/api/v1/auth/forgot-password/reset', data);
+	}
+
+	async driverForgotPasswordSendCode(data: DriverForgotPasswordRequest): Promise<void> {
+		await this.client.post('/api/v1/driver/forgot-password/send-code', data);
+	}
+
+	async driverForgotPasswordReset(data: DriverForgotPasswordReset): Promise<void> {
+		await this.client.post('/api/v1/driver/forgot-password/reset', data);
 	}
 
 	// ============================================================================

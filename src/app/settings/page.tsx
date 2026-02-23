@@ -38,7 +38,7 @@ export default function SettingsPage() {
 		contact_ids: [],
 		driver_file_reminder_days: 15,
 		daily_sms_time: '08:00',
-		maintenance_booking_reminder_days: 15,
+		next_day_sms_time: '18:00',
 		next_maintenance_reminder_days: 15,
 	});
 
@@ -51,8 +51,7 @@ export default function SettingsPage() {
 				driver_file_reminder_days:
 					settings.driver_file_reminder_days || 15,
 				daily_sms_time: settings.daily_sms_time || '08:00',
-				maintenance_booking_reminder_days:
-					settings.maintenance_booking_reminder_days || 15,
+				next_day_sms_time: settings.next_day_sms_time || '18:00',
 				next_maintenance_reminder_days:
 					settings.next_maintenance_reminder_days || 15,
 			});
@@ -69,7 +68,7 @@ export default function SettingsPage() {
 				(settings.admin_phone ||
 					settings.driver_file_reminder_days ||
 					settings.daily_sms_time ||
-					settings.maintenance_booking_reminder_days ||
+					settings.next_day_sms_time ||
 					settings.next_maintenance_reminder_days);
 
 			if (settingsExist) {
@@ -201,7 +200,7 @@ export default function SettingsPage() {
 						</div>
 					</Card>
 
-					{/* Driver & Document Reminders */}
+					{/* System Reminders & Automation */}
 					<Card className='p-6 bg-white'>
 						<div className='flex items-center gap-3 mb-6'>
 							<div className='p-2 bg-orange-100 rounded-lg'>
@@ -209,59 +208,69 @@ export default function SettingsPage() {
 							</div>
 							<div>
 								<h2 className='text-xl font-bold text-gray-900'>
-									Driver & Document Reminders
+									System Reminders & Automation
 								</h2>
 
 							</div>
 						</div>
 
-						<div className='space-y-4'>
-							<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+						<div className='space-y-6'>
+							<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 								{/* Driver File Reminder */}
 								<div>
 									<Label htmlFor='driverFileReminderDays'>
-										Driver File Reminder{' '}
+										Driver File Reminder (Days)
 									</Label>
 									<Input
-										value={formData.driver_file_reminder_days?.toString()}
+										id='driverFileReminderDays'
+										value={formData.driver_file_reminder_days?.toString() || ''}
 										type='number'
 										onChange={(e) =>
 											setFormData({
 												...formData,
-												driver_file_reminder_days:
-													parseInt(e.target.value),
+												driver_file_reminder_days: parseInt(e.target.value) || 0,
 											})
-										} />
-										{/* <SelectTrigger className='mt-2'>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value='10'>
-												10 days before expiry
-											</SelectItem>
-											<SelectItem value='15'>
-												15 days before expiry
-											</SelectItem>
-											<SelectItem value='30'>
-												30 days before expiry
-											</SelectItem>
-										</SelectContent> */}
-									{/* </Select> */}
-									{/* <p className='text-xs text-gray-500 mt-1'>
-										Remind drivers before license/document
-										expiry
-									</p> */}
+										}
+										className='mt-2'
+									/>
+									<p className='text-xs text-gray-500 mt-1'>
+										Days before expiry to remind drivers about documents
+									</p>
 								</div>
 
+								{/* Next Maintenance Reminder */}
+								<div>
+									<Label htmlFor='nextMaintenanceReminderDays'>
+										Next Maintenance Reminder (Days)
+									</Label>
+									<Input
+										id='nextMaintenanceReminderDays'
+										value={formData.next_maintenance_reminder_days?.toString() || ''}
+										type='number'
+										onChange={(e) =>
+											setFormData({
+												...formData,
+												next_maintenance_reminder_days: parseInt(e.target.value) || 0,
+											})
+										}
+										className='mt-2'
+									/>
+									<p className='text-xs text-gray-500 mt-1'>
+										Days before scheduled next maintenance to alert admin
+									</p>
+								</div>
+							</div>
+
+							<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 								{/* Daily SMS Time */}
 								<div>
 									<Label htmlFor='dailySmsTime'>
-										Check-in SMS Time{' '}
+										Check-in SMS Time
 									</Label>
 									<Input
 										id='dailySmsTime'
 										type='time'
-										value={formData.daily_sms_time}
+										value={formData.daily_sms_time || ''}
 										onChange={(e) =>
 											setFormData({
 												...formData,
@@ -270,66 +279,31 @@ export default function SettingsPage() {
 										}
 										className='mt-2'
 									/>
-									{/* <p className='text-xs text-gray-500 mt-1'>
-										Time to send daily schedule confirmation
-										SMS (24-hour format)
-									</p> */}
+									<p className='text-xs text-gray-500 mt-1'>
+										Time to send daily schedule confirmation SMS (24-hour format)
+									</p>
 								</div>
-							</div>
-						</div>
-					</Card>
 
-					{/* Vehicle Maintenance Reminders */}
-					<Card className='p-6 bg-white'>
-						<div className='flex items-center gap-3 mb-6'>
-							<div className='p-2 bg-green-100 rounded-lg'>
-								<Wrench className='h-5 w-5 text-green-700' />
-							</div>
-							<div>
-								<h2 className='text-xl font-bold text-gray-900'>
-									Vehicle Maintenance Reminders
-								</h2>
-
-							</div>
-						</div>
-
-						<div className='space-y-4'>
-							<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-								{/* Maintenance Booking Reminder */}
+								{/* Next Day SMS Time */}
 								<div>
-									<Label htmlFor='maintenanceBookingReminderDays'>
-										Maintenance Booking Reminder{' '}
+									<Label htmlFor='nextDaySmsTime'>
+										Next Day SMS Time
 									</Label>
 									<Input
-										value={formData.maintenance_booking_reminder_days?.toString()}
+										id='nextDaySmsTime'
+										type='time'
+										value={formData.next_day_sms_time || ''}
 										onChange={(e) =>
 											setFormData({
 												...formData,
-												maintenance_booking_reminder_days:
-													parseInt(e.target.value),
+												next_day_sms_time: e.target.value,
 											})
-										} />
-
-
-
-								</div>
-
-								{/* Next Maintenance Reminder */}
-								<div>
-									<Label htmlFor='nextMaintenanceReminderDays'>
-										Next Maintenance Reminder{' '}
-									</Label>
-									<Input
-										value={formData.next_maintenance_reminder_days?.toString()}
-										onChange={(e) =>
-											setFormData({
-												...formData,
-												next_maintenance_reminder_days:
-													parseInt(e.target.value),
-											})
-										} />
-
-
+										}
+										className='mt-2'
+									/>
+									<p className='text-xs text-gray-500 mt-1'>
+										Time to send schedule notification SMS for the next day (24-hour format)
+									</p>
 								</div>
 							</div>
 						</div>

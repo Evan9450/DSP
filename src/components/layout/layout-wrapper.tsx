@@ -17,7 +17,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 	const { isLoading, user } = useAuth();
 
 	// Define public pages that don't require authentication
-	const publicPages = ['/login', '/driver-login', '/driver-inspection'];
+	const publicPages = ['/login', '/driver-login', '/driver-inspection', '/forgot-password', '/driver-forgot-password'];
 	const isPublicPage = publicPages.includes(pathname);
 
 	// Show loading state during initial auth check

@@ -2037,6 +2037,56 @@
         }
       }
     },
+    "/api/v1/vehicles/{vehicle_id}/maintenance-history/{record_id}": {
+      "delete": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Delete Vehicle Maintenance Record",
+        "description": "Delete vehicle maintenance record",
+        "operationId": "delete_vehicle_maintenance_record_api_v1_vehicles__vehicle_id__maintenance_history__record_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vehicle Id"
+            }
+          },
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/vehicles/{vehicle_id}/complete-maintenance": {
       "post": {
         "tags": [

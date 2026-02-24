@@ -7,9 +7,11 @@ import {
 	MoreVertical,
 	Plus,
 	Wrench,
+	Trash2,
 } from 'lucide-react';
 import { AddMaintenanceDialog } from './AddMaintenanceDialog';
 import { CompleteMaintenanceDialog } from './CompleteMaintenanceDialog';
+import DeleteMaintenanceDialog from './DeleteMaintenanceDialog';
 import { TablePagination } from '@/components/TablePagination';
 import { usePagination } from '@/hooks/use-pagination';
 
@@ -57,6 +59,8 @@ export function MaintenanceHistory({ vehicleId, defaultSupplier, onUpdate }: Mai
 	const [isLoading, setIsLoading] = useState(true);
 	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [recordToDelete, setRecordToDelete] = useState<MaintenanceRecord | null>(null);
 
 	const {
 		currentItems,
@@ -91,6 +95,29 @@ export function MaintenanceHistory({ vehicleId, defaultSupplier, onUpdate }: Mai
 		}
 	};
 
+	const handleDeleteRecord = async () => {
+		if (!recordToDelete) return;
+		try {
+			await apiClient.deleteVehicleMaintenanceRecord(vehicleId, recordToDelete.id);
+			toast({
+				title: 'Success',
+				description: 'Maintenance record deleted successfully.',
+			});
+			fetchHistory();
+			if (onUpdate) onUpdate();
+		} catch (error) {
+			console.error('Failed to delete maintenance record:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to delete maintenance record.',
+				variant: 'destructive',
+			});
+		} finally {
+			setShowDeleteDialog(false);
+			setRecordToDelete(null);
+		}
+	};
+
 	return (
 		<Card className='p-6 mt-6'>
 			<div className='flex items-center justify-between mb-4'>
@@ -122,6 +149,7 @@ export function MaintenanceHistory({ vehicleId, defaultSupplier, onUpdate }: Mai
 							<TableHead>Date</TableHead>
 							<TableHead>Description</TableHead>
 							<TableHead>Supplier</TableHead>
+							<TableHead className='w-[80px] text-right'>Action</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -162,7 +190,20 @@ export function MaintenanceHistory({ vehicleId, defaultSupplier, onUpdate }: Mai
 											<span className='text-gray-400'>-</span>
 										)}
 									</TableCell>
-
+									<TableCell className='text-right'>
+										<Button
+											variant='ghost'
+											size='icon'
+											className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 p-0'
+											onClick={() => {
+												setRecordToDelete(record);
+												setShowDeleteDialog(true);
+											}}
+											title='Delete Record'
+										>
+											<Trash2 className='h-4 w-4' />
+										</Button>
+									</TableCell>
 								</TableRow>
 							))
 						)}
@@ -194,6 +235,13 @@ export function MaintenanceHistory({ vehicleId, defaultSupplier, onUpdate }: Mai
 					if (onUpdate) onUpdate();
 				}}
 				defaultSupplier={defaultSupplier}
+			/>
+			<DeleteMaintenanceDialog
+				showDeleteDialog={showDeleteDialog}
+				setShowDeleteDialog={setShowDeleteDialog}
+				recordToDelete={recordToDelete}
+				setRecordToDelete={setRecordToDelete}
+				handleDeleteRecord={handleDeleteRecord}
 			/>
 		</Card>
 	);

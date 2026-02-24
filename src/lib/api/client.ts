@@ -1424,6 +1424,15 @@ class APIClient {
 		return response.data;
 	}
 
+	async deleteVehicleMaintenanceRecord(
+		vehicleId: number,
+		recordId: number,
+	): Promise<void> {
+		await this.client.delete(
+			`/api/v1/vehicles/${vehicleId}/maintenance-history/${recordId}`,
+		);
+	}
+
 	/**
 	 * Complete maintenance for a vehicle
 	 * @param vehicleId Vehicle ID

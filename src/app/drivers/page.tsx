@@ -220,7 +220,7 @@ export default function DriversPage() {
 							</h1>
 						</div>
 
-						<div>
+						<div className='flex gap gap-2'>
 							<Button
 								variant='outline'
 								className='border-emerald-500 text-emerald-500 hover:bg-emerald-50 rounded-md hover:text-emerald-500'
@@ -285,7 +285,7 @@ export default function DriversPage() {
 							className='pl-10 rounded-md '
 						/>
 					</div>
-					<div className='flex gap-2'>
+					{/* <div className='flex gap-2'>
 						<Button
 							className=' text-white rounded-md'
 							onClick={() => setShowAddDialog(true)}>
@@ -293,7 +293,7 @@ export default function DriversPage() {
 							<span className='hidden sm:inline'>Add Driver</span>
 							<span className='sm:hidden'>Add</span>
 						</Button>
-					</div>
+					</div> */}
 				</div>
 				<DriverTable
 					filteredDrivers={filteredDrivers}
@@ -313,11 +313,11 @@ export default function DriversPage() {
 			</div>
 
 			{/* Add Driver Dialog */}
-			<AddDriverDialog
+			{/* <AddDriverDialog
 				open={showAddDialog}
 				onOpenChange={setShowAddDialog}
 				onSuccess={refetch}
-			/>
+			/> */}
 
 			{/* Delete Confirmation Dialog */}
 			<DeleteConfirmationDialog

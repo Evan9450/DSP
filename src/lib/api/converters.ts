@@ -38,6 +38,7 @@ export function convertDriver(apiDriver: DriverResponse): Driver {
 		address: apiDriver.address,
 		amazonId: apiDriver.amazon_id,
 		amazonPassword: apiDriver.amazon_password,
+		driverId: apiDriver.driver_id,
 		deputyId: apiDriver.deputy_id,
 		isActive: apiDriver.is_active,
 		// License fields
@@ -81,6 +82,9 @@ export function convertVehicle(apiVehicle: VehicleResponse): Vehicle {
 		model: apiVehicle.model,
 		condition: apiVehicle.condition, // API strings: 'available', 'need-repair', 'unavailable'
 		status: apiVehicle.status, // API strings: 'in-use', 'not-in-use'
+		is_supplementary: apiVehicle.is_supplementary,
+		is_archived: apiVehicle.is_archived,
+		active_supp_target_str: apiVehicle.active_supp_target_str,
 		maintenanceCycle: apiVehicle.maintenance_cycle_days,
 		mileage: apiVehicle.mileage,
 		notes: apiVehicle.notes,

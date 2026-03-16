@@ -127,8 +127,23 @@ export function GenerateKpiDialog({
 			onSuccess();
 			onOpenChange(false);
 			resetForm();
-		} catch (error) {
+		} catch (error: any) {
 			console.error('Failed to generate report:', error);
+			
+			// Show specific 422 errors from the backend (e.g., missing Amazon ID for shadows)
+			if (error?.response?.status === 422 && error?.response?.data?.detail) {
+				const errorDetail = error.response.data.detail;
+				// If detail is an array, get the first message, otherwise use string directly
+				const errorMessage = Array.isArray(errorDetail) ? errorDetail[0]?.msg : typeof errorDetail === 'string' ? errorDetail : 'Validation error occurred';
+				
+				toast({
+					title: 'Error generating report',
+					description: errorMessage,
+					variant: 'destructive',
+				});
+				return;
+			}
+			
 			toast({
 				title: 'Error',
 				description: 'Failed to generate KPI report. Please check your inputs.',

@@ -34,7 +34,6 @@ export function InspectionHistory({ vehicle }: InspectionHistoryProps) {
 	return (
 		<Card className='p-6'>
 			<h2 className='text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2'>
-				<FileText className='h-5 w-5' />
 				Inspection History
 			</h2>
 

@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { apiClient, VehicleResponse, VehicleInspectionResponse } from '@/lib/api/client';
+import {
+	apiClient,
+	VehicleResponse,
+	VehicleInspectionResponse,
+} from '@/lib/api/client';
 
 export function useVehicles() {
 	const [vehicles, setVehicles] = useState<VehicleResponse[]>([]);
@@ -72,7 +76,9 @@ export function useVehicle(vehicleId: number | null) {
 }
 
 export function useVehicleInspections(vehicleId: number | null) {
-	const [inspections, setInspections] = useState<VehicleInspectionResponse[]>([]);
+	const [inspections, setInspections] = useState<VehicleInspectionResponse[]>(
+		[],
+	);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
 

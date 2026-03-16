@@ -16,7 +16,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           }
@@ -88,7 +90,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -128,7 +132,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -200,7 +206,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           }
@@ -327,7 +335,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -367,7 +377,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -783,7 +795,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           }
@@ -965,7 +979,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -1026,7 +1042,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -1081,7 +1099,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -1136,7 +1156,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -1183,7 +1205,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -1892,7 +1916,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -2126,7 +2152,287 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vehicles/{vehicle_id}/history": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Get Vehicle Unified History",
+        "description": "Get unified history log (Maintenance, Repair, Other, Supplementary)\nExclude \"Amazon\" from Total Cost calculation.",
+        "operationId": "get_vehicle_unified_history_api_v1_vehicles__vehicle_id__history_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vehicle Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleHistoryTotalResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vehicles/{vehicle_id}/repair": {
+      "post": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Create Vehicle Repair",
+        "operationId": "create_vehicle_repair_api_v1_vehicles__vehicle_id__repair_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vehicle Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VehicleRepairHistoryCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleRepairHistoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vehicles/{vehicle_id}/other-history": {
+      "post": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Create Vehicle Other",
+        "operationId": "create_vehicle_other_api_v1_vehicles__vehicle_id__other_history_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vehicle Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VehicleOtherHistoryCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleOtherHistoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vehicles/{vehicle_id}/supplementary": {
+      "post": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Create Vehicle Supplementary",
+        "description": "Lock a supplementary vehicle mapping to a target broken vehicle.",
+        "operationId": "create_vehicle_supplementary_api_v1_vehicles__vehicle_id__supplementary_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Vehicle Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplementaryHistoryCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplementaryHistoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vehicles/supplementary/{supp_history_id}/release": {
+      "patch": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Release Vehicle Supplementary",
+        "description": "Release a leased supplementary vehicle when target vehicle is repaired.\nRequires an explicit end_date in the request body.\nAutomatically writes a formatted description with target vehicle, start date and end date.",
+        "operationId": "release_vehicle_supplementary_api_v1_vehicles_supplementary__supp_history_id__release_patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "supp_history_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Supp History Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplementaryHistoryRelease"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplementaryHistoryResponse"
+                }
               }
             }
           },
@@ -2510,7 +2816,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -2540,7 +2848,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           }
@@ -3614,7 +3924,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           }
@@ -3639,7 +3951,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           }
@@ -4070,7 +4384,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -4169,7 +4485,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -4214,7 +4532,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -4265,7 +4585,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -4416,7 +4738,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -4446,7 +4770,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           }
@@ -4565,7 +4891,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           }
@@ -4590,7 +4918,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           }
@@ -4615,7 +4945,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           }
@@ -4768,7 +5100,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -5094,7 +5428,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -5281,7 +5617,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -6364,7 +6702,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           },
@@ -6391,7 +6731,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+
+                }
               }
             }
           }
@@ -6432,13 +6774,7 @@
             "minItems": 1,
             "title": "Schedule Ids",
             "description": "List of schedule IDs to confirm.",
-            "example": [
-              1,
-              2,
-              3,
-              4,
-              5
-            ]
+            "example": [1, 2, 3, 4, 5]
           }
         },
         "type": "object",
@@ -6747,6 +7083,17 @@
             ],
             "title": "Amazon Id"
           },
+          "netradyne_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Netradyne Id"
+          },
           "is_active": {
             "anyOf": [
               {
@@ -7029,6 +7376,19 @@
             ],
             "title": "Amazon Id",
             "description": "Amazon ID (optional)"
+          },
+          "netradyne_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Netradyne Id",
+            "description": "Netradyne ID (optional)"
           },
           "password": {
             "anyOf": [
@@ -7531,6 +7891,17 @@
               }
             ],
             "title": "Amazon Id"
+          },
+          "netradyne_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Netradyne Id"
           },
           "phone": {
             "anyOf": [
@@ -10193,6 +10564,185 @@
         "title": "SkippedRosterInfo",
         "description": "Information about a skipped roster."
       },
+      "SupplementaryHistoryCreate": {
+        "properties": {
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "cost_type": {
+            "type": "string",
+            "title": "Cost Type",
+            "description": "Cost Type",
+            "default": "Self"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "target_vehicle_id": {
+            "type": "integer",
+            "title": "Target Vehicle Id"
+          },
+          "supplementary_vehicle_id": {
+            "type": "integer",
+            "title": "Supplementary Vehicle Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start_date",
+          "target_vehicle_id",
+          "supplementary_vehicle_id"
+        ],
+        "title": "SupplementaryHistoryCreate"
+      },
+      "SupplementaryHistoryRelease": {
+        "properties": {
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date",
+            "description": "Actual end date of the supplementary assignment (e.g. 2026-03-12)"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost",
+            "description": "Total cost of the supplementary period (optional, can update at release time)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "end_date"
+        ],
+        "title": "SupplementaryHistoryRelease",
+        "description": "Schema for releasing a supplementary vehicle – requires an explicit end date."
+      },
+      "SupplementaryHistoryResponse": {
+        "properties": {
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "cost_type": {
+            "type": "string",
+            "title": "Cost Type",
+            "description": "Cost Type",
+            "default": "Self"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "target_vehicle_id": {
+            "type": "integer",
+            "title": "Target Vehicle Id"
+          },
+          "supplementary_vehicle_id": {
+            "type": "integer",
+            "title": "Supplementary Vehicle Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start_date",
+          "id",
+          "target_vehicle_id",
+          "supplementary_vehicle_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SupplementaryHistoryResponse"
+      },
       "SyncedDriver": {
         "properties": {
           "driver_id": {
@@ -10341,11 +10891,7 @@
             ],
             "title": "Contact Ids",
             "description": "List of system notification contact user IDs (selected from users table)",
-            "example": [
-              1,
-              2,
-              3
-            ]
+            "example": [1, 2, 3]
           },
           "driver_file_reminder_days": {
             "anyOf": [
@@ -10432,6 +10978,98 @@
         ],
         "title": "Token",
         "description": "JWT token response."
+      },
+      "UnifiedHistoryItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "history_type": {
+            "type": "string",
+            "title": "History Type"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "supplier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier"
+          },
+          "cost_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Type",
+            "default": "self"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "date",
+          "history_type"
+        ],
+        "title": "UnifiedHistoryItem",
+        "description": "Schema for individual mapped record within unified history response."
       },
       "UnmatchedRouteInfo": {
         "properties": {
@@ -10700,10 +11338,7 @@
       },
       "UserRole": {
         "type": "integer",
-        "enum": [
-          0,
-          1
-        ],
+        "enum": [0, 1],
         "title": "UserRole",
         "description": "User roles in the system.\n\n0: Admin (Superuser) - Only one allowed in the system\n1: Manager - Can have multiple"
       },
@@ -11208,6 +11843,25 @@
             "type": "string",
             "title": "Condition"
           },
+          "is_archived": {
+            "type": "boolean",
+            "title": "Is Archived"
+          },
+          "is_supplementary": {
+            "type": "boolean",
+            "title": "Is Supplementary"
+          },
+          "active_supp_target_str": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Supp Target Str"
+          },
           "mileage": {
             "anyOf": [
               {
@@ -11392,6 +12046,17 @@
             "type": "array",
             "title": "Recent Inspections",
             "default": []
+          },
+          "active_supp_history_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Supp History Id"
           }
         },
         "type": "object",
@@ -11400,6 +12065,8 @@
           "id",
           "status",
           "condition",
+          "is_archived",
+          "is_supplementary",
           "mileage",
           "scheduled_mileage",
           "notes",
@@ -11417,6 +12084,33 @@
         ],
         "title": "VehicleDetailResponse",
         "description": "Schema for vehicle detail response with additional info."
+      },
+      "VehicleHistoryTotalResponse": {
+        "properties": {
+          "vehicle_id": {
+            "type": "integer",
+            "title": "Vehicle Id"
+          },
+          "total_cost": {
+            "type": "string",
+            "title": "Total Cost"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/UnifiedHistoryItem"
+            },
+            "type": "array",
+            "title": "History",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "vehicle_id",
+          "total_cost"
+        ],
+        "title": "VehicleHistoryTotalResponse",
+        "description": "Schema for returning the full unified history array with the calculated total cost."
       },
       "VehicleInspectionDetailResponse": {
         "properties": {
@@ -11962,6 +12656,23 @@
             ],
             "title": "Cost"
           },
+          "cost_type": {
+            "type": "string",
+            "title": "Cost Type",
+            "description": "Cost Type: 'Self', 'Amazon', or 'Insurance'",
+            "default": "Self"
+          },
+          "report_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Url"
+          },
           "vehicle_id": {
             "type": "integer",
             "title": "Vehicle Id"
@@ -12025,6 +12736,23 @@
               }
             ],
             "title": "Cost"
+          },
+          "cost_type": {
+            "type": "string",
+            "title": "Cost Type",
+            "description": "Cost Type: 'Self', 'Amazon', or 'Insurance'",
+            "default": "Self"
+          },
+          "report_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Url"
           },
           "id": {
             "type": "integer",
@@ -12099,6 +12827,278 @@
         "title": "VehicleMaintenanceResponse",
         "description": "Schema for vehicle maintenance response."
       },
+      "VehicleOtherHistoryCreate": {
+        "properties": {
+          "other_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Other Date"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "cost_type": {
+            "type": "string",
+            "title": "Cost Type",
+            "description": "Cost Type",
+            "default": "Self"
+          },
+          "vehicle_id": {
+            "type": "integer",
+            "title": "Vehicle Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "other_date",
+          "vehicle_id"
+        ],
+        "title": "VehicleOtherHistoryCreate"
+      },
+      "VehicleOtherHistoryResponse": {
+        "properties": {
+          "other_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Other Date"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "cost_type": {
+            "type": "string",
+            "title": "Cost Type",
+            "description": "Cost Type",
+            "default": "Self"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "vehicle_id": {
+            "type": "integer",
+            "title": "Vehicle Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "other_date",
+          "id",
+          "vehicle_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "VehicleOtherHistoryResponse"
+      },
+      "VehicleRepairHistoryCreate": {
+        "properties": {
+          "repair_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Repair Date"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "cost_type": {
+            "type": "string",
+            "title": "Cost Type",
+            "description": "Cost Type: 'Self', 'Amazon', or 'Insurance'",
+            "default": "Self"
+          },
+          "report_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Url"
+          },
+          "vehicle_id": {
+            "type": "integer",
+            "title": "Vehicle Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "repair_date",
+          "vehicle_id"
+        ],
+        "title": "VehicleRepairHistoryCreate"
+      },
+      "VehicleRepairHistoryResponse": {
+        "properties": {
+          "repair_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Repair Date"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "cost_type": {
+            "type": "string",
+            "title": "Cost Type",
+            "description": "Cost Type: 'Self', 'Amazon', or 'Insurance'",
+            "default": "Self"
+          },
+          "report_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Url"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "vehicle_id": {
+            "type": "integer",
+            "title": "Vehicle Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "repair_date",
+          "id",
+          "vehicle_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "VehicleRepairHistoryResponse"
+      },
       "VehicleResponse": {
         "properties": {
           "rego": {
@@ -12171,6 +13171,25 @@
           "condition": {
             "type": "string",
             "title": "Condition"
+          },
+          "is_archived": {
+            "type": "boolean",
+            "title": "Is Archived"
+          },
+          "is_supplementary": {
+            "type": "boolean",
+            "title": "Is Supplementary"
+          },
+          "active_supp_target_str": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Supp Target Str"
           },
           "mileage": {
             "anyOf": [
@@ -12354,6 +13373,8 @@
           "id",
           "status",
           "condition",
+          "is_archived",
+          "is_supplementary",
           "mileage",
           "scheduled_mileage",
           "notes",

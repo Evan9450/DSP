@@ -1,9 +1,6 @@
 'use client';
 
-import {
-	Mail,
-	Wrench,
-} from 'lucide-react';
+import { Mail, Wrench } from 'lucide-react';
 import {
 	SendMaintenanceEmailResponse,
 	VehicleDetailResponse,
@@ -22,7 +19,7 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MaintenanceHistory } from './maintenance-history';
+import { CompleteMaintenanceDialog } from './CompleteMaintenanceDialog';
 import { RepairSupplierSelect } from './repair-supplier-select';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -33,6 +30,7 @@ interface MaintenanceCardProps {
 	setEditForm?: (form: Partial<VehicleDetailResponse>) => void;
 	onEmailSent?: () => void;
 	onUpdate?: () => void;
+	isArchived?: boolean;
 }
 
 export function MaintenanceCard({
@@ -42,9 +40,11 @@ export function MaintenanceCard({
 	setEditForm,
 	onEmailSent,
 	onUpdate,
+	isArchived = false,
 }: MaintenanceCardProps) {
 	const { toast } = useToast();
 	const [isSendingEmail, setIsSendingEmail] = useState(false);
+	const [showCompleteDialog, setShowCompleteDialog] = useState(false);
 
 	const isOverdue = vehicle.next_maintenance_date
 		? isMaintenanceOverdue(new Date(vehicle.next_maintenance_date))
@@ -57,7 +57,8 @@ export function MaintenanceCard({
 		if (!vehicle.repair_supplier?.email) {
 			toast({
 				title: 'Configuration Error',
-				description: 'No repair supplier email configured for this vehicle.',
+				description:
+					'No repair supplier email configured for this vehicle.',
 				variant: 'destructive',
 			});
 			return;
@@ -98,7 +99,6 @@ export function MaintenanceCard({
 			<Card className='p-6'>
 				<div className='flex items-center justify-between mb-4'>
 					<h2 className='text-xl font-semibold text-gray-900 flex items-center gap-2'>
-						<Wrench className='h-5 w-5' />
 						Maintenance Schedule
 					</h2>
 				</div>
@@ -112,32 +112,26 @@ export function MaintenanceCard({
 							onChange={(e) =>
 								setEditForm({
 									...editForm,
-									last_maintenance_date: e.target.value || undefined,
+									last_maintenance_date:
+										e.target.value || undefined,
 								})
 							}
 						/>
 					</div>
-					{/* <div className='space-y-2'>
-						<Label>Next Maintenance Date</Label>
-						<Input
-							type='date'
-							value={editForm.next_maintenance_date || ''}
-							onChange={(e) =>
-								setEditForm({
-									...editForm,
-									next_maintenance_date: e.target.value || undefined,
-								})
-							}
-						/>
-					</div> */}
+
 					<div className='space-y-2'>
 						<Label>Confirmed Maintenance</Label>
 						<Input
 							type='datetime-local'
 							value={
 								editForm.scheduled_maintenance_date
-									? editForm.scheduled_maintenance_date.includes('T')
-										? editForm.scheduled_maintenance_date.slice(0, 16)
+									? editForm.scheduled_maintenance_date.includes(
+											'T',
+										)
+										? editForm.scheduled_maintenance_date.slice(
+												0,
+												16,
+											)
 										: `${editForm.scheduled_maintenance_date}T00:00`
 									: ''
 							}
@@ -160,12 +154,16 @@ export function MaintenanceCard({
 							value={editForm.scheduled_mileage ?? ''}
 							onChange={(e) => {
 								const value = e.target.value.trim();
-								const parsedValue = value ? parseInt(value, 10) : undefined;
+								const parsedValue = value
+									? parseInt(value, 10)
+									: undefined;
 								setEditForm({
 									...editForm,
-									scheduled_mileage: parsedValue !== undefined && !isNaN(parsedValue)
-										? parsedValue
-										: undefined,
+									scheduled_mileage:
+										parsedValue !== undefined &&
+										!isNaN(parsedValue)
+											? parsedValue
+											: undefined,
 								});
 							}}
 						/>
@@ -226,75 +224,113 @@ export function MaintenanceCard({
 			<Card className='p-6'>
 				<div className='flex items-center justify-between mb-4'>
 					<h2 className='text-xl font-semibold text-gray-900 flex items-center gap-2'>
-						<Wrench className='h-5 w-5' />
 						Maintenance Schedule
 					</h2>
-					{!isEditing && (
-						<Button
-							variant='outline'
-							size='sm'
-							onClick={handleSendMaintenanceEmail}
-							disabled={
-								isSendingEmail ||
-								!vehicle.repair_supplier?.email ||
-								!vehicle.next_maintenance_date
-							}
-							title={
-								!vehicle.repair_supplier?.email
-									? 'Supplier email not configured'
-									: !vehicle.next_maintenance_date
-										? 'Next maintenance date not set'
-										: 'Send maintenance booking email to workshop'
-							}>
-							<Mail className='h-4 w-4 mr-2' />
-							{isSendingEmail ? 'Sending...' : 'Send Booking Email'}
-						</Button>
+					{!isEditing && !isArchived && (
+						<div className='flex items-center gap-2'>
+							<Button
+								variant='outline'
+								size='sm'
+								onClick={handleSendMaintenanceEmail}
+								disabled={
+									isSendingEmail ||
+									!vehicle.repair_supplier?.email ||
+									!vehicle.next_maintenance_date
+								}
+								title={
+									!vehicle.repair_supplier?.email
+										? 'Supplier email not configured'
+										: !vehicle.next_maintenance_date
+											? 'Next maintenance date not set'
+											: 'Send maintenance booking email to workshop'
+								}>
+								<Mail className='h-4 w-4 mr-2' />
+								{isSendingEmail
+									? 'Sending...'
+									: 'Send Booking Email'}
+							</Button>
+							<Button
+								size='sm'
+								onClick={() => setShowCompleteDialog(true)}
+								disabled={!vehicle.repair_supplier}
+								title={
+									!vehicle.repair_supplier
+										? 'Please set Maintenance Supplier first'
+										: 'Complete maintenance'
+								}>
+								Complete Maint.
+							</Button>
+						</div>
 					)}
 				</div>
 
 				<div className='grid grid-cols-2 gap-4'>
 					<div>
-						<p className='text-sm text-gray-600'>Last Maintenance</p>
+						<p className='text-sm text-gray-600'>
+							Last Maintenance
+						</p>
 						<p className='font-semibold'>
 							{vehicle.last_maintenance_date ? (
-								format(new Date(vehicle.last_maintenance_date), 'MMM dd, yyyy')
+								format(
+									new Date(vehicle.last_maintenance_date),
+									'MMM dd, yyyy',
+								)
 							) : (
-								<span className='text-gray-400'>Not recorded</span>
+								<span className='text-gray-400'>
+									Not recorded
+								</span>
 							)}
 						</p>
 					</div>
 					<div>
-						<p className='text-sm text-gray-600'>Next Maintenance</p>
+						<p className='text-sm text-gray-600'>
+							Next Maintenance
+						</p>
 						<p
 							className={`font-semibold ${isOverdue ? 'text-red-600' : isDueSoon ? 'text-orange-600' : ''}`}>
 							{vehicle.next_maintenance_date ? (
-								format(new Date(vehicle.next_maintenance_date), 'MMM dd, yyyy')
+								format(
+									new Date(vehicle.next_maintenance_date),
+									'MMM dd, yyyy',
+								)
 							) : (
-								<span className='text-gray-400'>Not scheduled</span>
+								<span className='text-gray-400'>
+									Not scheduled
+								</span>
 							)}
 						</p>
 					</div>
 					<div>
-						<p className='text-sm text-gray-600'>Confirmed Maintenance</p>
+						<p className='text-sm text-gray-600'>
+							Confirmed Maintenance
+						</p>
 						<p className='font-semibold'>
 							{vehicle.scheduled_maintenance_date ? (
 								format(
-									new Date(vehicle.scheduled_maintenance_date),
+									new Date(
+										vehicle.scheduled_maintenance_date,
+									),
 									'MMM dd, yyyy HH:mm',
 								)
 							) : (
-								<span className='text-gray-400'>Not scheduled</span>
+								<span className='text-gray-400'>
+									Not scheduled
+								</span>
 							)}
 						</p>
 					</div>
 
 					<div>
-						<p className='text-sm text-gray-600'>Scheduled Mileage</p>
+						<p className='text-sm text-gray-600'>
+							Scheduled Mileage
+						</p>
 						<p className='font-semibold'>
 							{vehicle.scheduled_mileage ? (
 								`${vehicle.scheduled_mileage.toLocaleString()} km`
 							) : (
-								<span className='text-gray-400'>Not scheduled</span>
+								<span className='text-gray-400'>
+									Not scheduled
+								</span>
 							)}
 						</p>
 					</div>
@@ -309,7 +345,9 @@ export function MaintenanceCard({
 						</p>
 					</div> */}
 					<div>
-						<p className='text-sm text-gray-600'>Maintenance Supplier</p>
+						<p className='text-sm text-gray-600'>
+							Maintenance Supplier
+						</p>
 						<p className='font-semibold'>
 							{vehicle.repair_supplier?.name || (
 								<span className='text-gray-400'>-</span>
@@ -349,13 +387,21 @@ export function MaintenanceCard({
 				)}
 			</Card>
 
-			<MaintenanceHistory
+			<CompleteMaintenanceDialog
 				vehicleId={vehicle.id}
-				defaultSupplier={vehicle.repair_supplier ? {
-					id: vehicle.repair_supplier.id,
-					name: vehicle.repair_supplier.name
-				} : undefined}
-				onUpdate={onUpdate}
+				open={showCompleteDialog}
+				onOpenChange={setShowCompleteDialog}
+				onSuccess={() => {
+					if (onUpdate) onUpdate();
+				}}
+				defaultSupplier={
+					vehicle.repair_supplier
+						? {
+								id: vehicle.repair_supplier.id,
+								name: vehicle.repair_supplier.name,
+							}
+						: undefined
+				}
 			/>
 		</div>
 	);

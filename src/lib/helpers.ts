@@ -6,7 +6,7 @@ import { differenceInDays, format } from 'date-fns';
  */
 export function calculateDocumentStatus(
 	expiryDate: Date,
-	reminderDays: number = 30
+	reminderDays: number = 30,
 ): DocumentStatus {
 	const today = new Date();
 	const daysUntilExpiry = differenceInDays(expiryDate, today);
@@ -126,7 +126,7 @@ export function isMaintenanceOverdue(nextMaintenanceDate?: Date): boolean {
  */
 export function isMaintenanceDueSoon(
 	nextMaintenanceDate?: Date,
-	reminderDays: number = 7
+	reminderDays: number = 7,
 ): boolean {
 	if (!nextMaintenanceDate) return false;
 	const days = getDaysUntilMaintenance(nextMaintenanceDate);
@@ -134,7 +134,7 @@ export function isMaintenanceDueSoon(
 }
 
 /**
- * Format currency (AUD)
+ * Format currency
  */
 export function formatCurrency(amount: number): string {
 	return new Intl.NumberFormat('en-AU', {
@@ -155,7 +155,7 @@ export function generateId(prefix: string): string {
  */
 export function isLowStock(
 	availableQuantity: number,
-	minThreshold: number
+	minThreshold: number,
 ): boolean {
 	return availableQuantity < minThreshold;
 }
@@ -177,14 +177,16 @@ export function formatScheduleDateTime(date: Date): string {
 
 /**
  * Convert API condition string to VehicleCondition for display
- * API: 'available'=green, 'need-repair'=yellow, 'unavailable'=red
+ * API: 'available'=green, 'need-repair'=yellow, 'unavailable'=red, 'supplementary'=supplementary
  */
 export function apiConditionToString(
-	condition: 'available' | 'need-repair' | 'unavailable'
+	condition: 'available' | 'need-repair' | 'unavailable' | 'supplementary',
 ): VehicleCondition {
 	if (condition === 'available') return 'green';
 	if (condition === 'need-repair') return 'yellow';
 	if (condition === 'unavailable') return 'red';
+	// Just passing it through for the ui mapper, although usually we want colors.
+	// For supplementary, we might want to extend VehicleCondition with an 'indigo' or 'supplementary' value
 	return 'green'; // default fallback
 }
 
@@ -192,7 +194,7 @@ export function apiConditionToString(
  * Convert VehicleCondition display string to API condition string
  */
 export function conditionToApiString(
-	condition: VehicleCondition
+	condition: VehicleCondition,
 ): 'available' | 'need-repair' | 'unavailable' {
 	if (condition === 'green') return 'available';
 	if (condition === 'yellow') return 'need-repair';
@@ -205,7 +207,7 @@ export function conditionToApiString(
  * API: 'pending', 'passed', 'failed'
  */
 export function apiInspectionStatusToString(
-	status: 'pending' | 'passed' | 'failed'
+	status: 'pending' | 'passed' | 'failed',
 ): string {
 	if (status === 'pending') return 'Pending Review';
 	if (status === 'passed') return 'Passed';
@@ -217,10 +219,12 @@ export function apiInspectionStatusToString(
  * Get badge color for inspection status
  */
 export function getInspectionStatusColor(
-	status: 'pending' | 'passed' | 'failed'
+	status: 'pending' | 'passed' | 'failed',
 ): string {
-	if (status === 'pending') return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-	if (status === 'passed') return 'bg-green-100 text-green-800 border-green-300';
+	if (status === 'pending')
+		return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+	if (status === 'passed')
+		return 'bg-green-100 text-green-800 border-green-300';
 	if (status === 'failed') return 'bg-red-100 text-red-800 border-red-300';
 	return 'bg-gray-100 text-gray-800 border-gray-300'; // default fallback
 }

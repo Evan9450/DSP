@@ -86,6 +86,9 @@ const DriverTable = ({
 							Driver Name
 						</TableHead>
 						<TableHead className='text-sm text-gray-500'>
+							Driver ID
+						</TableHead>
+						<TableHead className='text-sm text-gray-500'>
 							Amazon ID
 						</TableHead>
 						<TableHead className='text-sm text-gray-500'>
@@ -145,6 +148,13 @@ const DriverTable = ({
 											</div>
 										</div> */}
 									</div>
+								</TableCell>
+								<TableCell>
+									<Badge
+										variant='outline'
+										className='font-mono text-xs border-gray-300'>
+										{driver.driverId || '-'}
+									</Badge>
 								</TableCell>
 								<TableCell>
 									<Badge

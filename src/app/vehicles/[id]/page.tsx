@@ -7,6 +7,7 @@ import {
 	Check,
 	Edit,
 	Mail,
+	Package,
 	Trash2,
 	Wrench,
 	X,
@@ -16,7 +17,8 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from '@/components/ui/popover';
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SupplementaryAction } from './components/supplementary-action';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
@@ -25,8 +27,8 @@ import { Input } from '@/components/ui/input';
 import { InspectionHistory } from './components/inspection-history';
 import { Label } from '@/components/ui/label';
 import { MaintenanceCard } from './components/maintenance-card';
+import { VehicleHistoryCard } from './components/VehicleHistoryCard';
 import { PhotoLightboxDialog } from '../components/photo-lightbox-dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { VehicleDetailResponse } from '@/lib/api/client';
 import { VehicleInfoCard } from './components/vehicle-info-card';
 import { apiClient } from '@/lib/api/client';
@@ -328,6 +330,26 @@ export default function VehicleDetailPage({
 		}
 	};
 
+	const handleRestoreVehicle = async () => {
+		if (!vehicle) return;
+
+		try {
+			await apiClient.restoreVehicle(vehicle.id);
+			toast({
+				title: 'Success',
+				description: `Vehicle ${vehicle.rego} restored successfully.`,
+			});
+			fetchVehicleDetail();
+		} catch (error) {
+			console.error('Unavailable to restore vehicle:', error);
+			toast({
+				title: 'Error',
+				description: `Unavailable to restore vehicle ${vehicle.rego}.`,
+				variant: 'destructive',
+			});
+		}
+	};
+
 	if (isLoading) {
 		return (
 			<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center'>
@@ -440,7 +462,14 @@ export default function VehicleDetailPage({
 						Back
 					</Button>
 
-					<div className='flex items-start justify-between'>
+				{vehicle.is_archived && (
+					<div className='mb-4 flex items-center gap-2 bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 text-gray-700'>
+						<Package className='h-4 w-4 text-gray-500' />
+						<span className='text-sm font-medium'>This vehicle has been archived. It will no longer appear in the active vehicle list.</span>
+					</div>
+				)}
+
+				<div className='flex items-start justify-between'>
 						<div>
 							<h1 className='text-3xl font-bold text-gray-900'>
 								{vehicle.brand && vehicle.model
@@ -452,7 +481,16 @@ export default function VehicleDetailPage({
 							</p>
 						</div>
 						<div className='flex gap-2'>
-							{isEditing ? (
+							{vehicle.is_archived ? (
+								// archived 状态：只允许 Restore 操作
+								<Button
+									variant='outline'
+									className='text-green-600 hover:text-green-700 hover:bg-green-50 border-green-300'
+									onClick={handleRestoreVehicle}>
+									<Package className='h-4 w-4 mr-2' />
+									Restore
+								</Button>
+							) : isEditing ? (
 								<>
 									<Button
 										variant='outline'
@@ -483,7 +521,7 @@ export default function VehicleDetailPage({
 											setShowDeleteDialog(true)
 										}>
 										<Trash2 className='h-4 w-4 mr-2' />
-										Delete
+										Archive
 									</Button>
 								</>
 							)}
@@ -491,30 +529,55 @@ export default function VehicleDetailPage({
 					</div>
 				</div>
 
+				<Tabs defaultValue='info' className='w-full'>
+					<TabsList className='mb-6 grid w-full grid-cols-2  '>
+						<TabsTrigger value='info'>Details</TabsTrigger>
+						<TabsTrigger value='inspection'>
+							Inspection History
+						</TabsTrigger>
+					</TabsList>
 
-				<div className='grid grid-cols-1 gap-6'>
-					{/* Main Info */}
-					<div className='lg:col-span-2 space-y-6'>
-						{/* Basic Information */}
-						<VehicleInfoCard
-							vehicle={vehicle}
-							isEditing={isEditing}
-							editForm={editForm}
-							setEditForm={setEditForm}
-						/>
+					{/* Info Tab */}
+					<TabsContent value='info' className='space-y-6'>
+						<div className='grid grid-cols-1 gap-6'>
+							<div className='lg:col-span-2 space-y-6'>
+								{/* Basic Information */}
+								<VehicleInfoCard
+									vehicle={vehicle}
+									isEditing={isEditing}
+									editForm={editForm}
+									setEditForm={setEditForm}
+								/>
+								{/* Maintenance Information */}
+								<MaintenanceCard
+									vehicle={vehicle}
+									isEditing={isEditing}
+									editForm={editForm}
+									setEditForm={setEditForm}
+									onUpdate={fetchVehicleDetail}
+									isArchived={!!vehicle.is_archived}
+								/>
+								{/* Supplementary Assignment Card */}
+								<SupplementaryAction
+									vehicle={vehicle}
+									onUpdate={fetchVehicleDetail}
+									isArchived={!!vehicle.is_archived}
+								/>
+								{/* History Card */}
+								<VehicleHistoryCard
+									vehicleId={vehicle.id}
+									isArchived={!!vehicle.is_archived}
+								/>
+							</div>
+						</div>
+					</TabsContent>
 
-						{/* Maintenance Information */}
-						<MaintenanceCard
-							vehicle={vehicle}
-							isEditing={isEditing}
-							editForm={editForm}
-							setEditForm={setEditForm}
-							onUpdate={fetchVehicleDetail}
-						/>
+					{/* Inspection History Tab */}
+					<TabsContent value='inspection' className='space-y-6'>
 						{/* Inspection History */}
 						<InspectionHistory vehicle={vehicle} />
-					</div>
-				</div>
+					</TabsContent>
+				</Tabs>
 
 				{/* Photo Lightbox Dialog */}
 				<PhotoLightboxDialog

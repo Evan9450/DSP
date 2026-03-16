@@ -13,22 +13,7 @@ import {
 	Trash2,
 	Wrench,
 } from 'lucide-react';
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '@/components/ui/dialog';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+
 import {
 	Table,
 	TableBody,
@@ -68,7 +53,11 @@ import { useVehicles } from '@/hooks/use-vehicles';
    Domain Types
 ========================= */
 
-type VehicleCondition = 'available' | 'need-repair' | 'unavailable';
+type VehicleCondition =
+	| 'available'
+	| 'need-repair'
+	| 'unavailable'
+	| 'supplementary';
 type VehicleStatus = 'in-use' | 'not-in-use';
 
 /* =========================
@@ -94,6 +83,11 @@ const CONDITION_UI: Record<
 		dot: 'bg-red-500',
 		text: 'text-red-700',
 	},
+	supplementary: {
+		label: 'Supplementary',
+		dot: 'bg-indigo-500',
+		text: 'text-indigo-700',
+	},
 };
 
 const STATUS_UI: Record<VehicleStatus, { label: string; className: string }> = {
@@ -110,10 +104,11 @@ const STATUS_UI: Record<VehicleStatus, { label: string; className: string }> = {
 export default function VehiclesPage() {
 	const router = useRouter();
 	const { toast } = useToast();
+	const [showArchived, setShowArchived] = useState(false);
 	const { vehicles: apiVehicles, isLoading, refetch } = useVehicles();
 	const [searchTerm, setSearchTerm] = useState('');
 	const [conditionFilter, setConditionFilter] = useState<
-		'available' | 'need-repair' | 'unavailable' | 'all'
+		'available' | 'need-repair' | 'unavailable' | 'supplementary' | 'all'
 	>('all');
 	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -148,6 +143,13 @@ export default function VehiclesPage() {
 	// then vehicles without scheduledMaintenanceDate
 	const filteredVehicles = vehicles
 		.filter((v) => {
+			// 根据 is_archived 字段过滤归档/正常车辆
+			if (showArchived) {
+				if (!v.is_archived) return false;
+			} else {
+				if (v.is_archived) return false;
+			}
+
 			const matchesSearch =
 				v.alias?.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				v.rego.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -155,7 +157,11 @@ export default function VehiclesPage() {
 				v.model?.toLowerCase().includes(searchTerm.toLowerCase());
 
 			const matchesCondition =
-				conditionFilter === 'all' || v.condition === conditionFilter;
+				showArchived ||
+				conditionFilter === 'all' ||
+				(conditionFilter === 'supplementary'
+					? v.is_supplementary
+					: v.condition === conditionFilter && !v.is_supplementary);
 
 			return matchesSearch && matchesCondition;
 		})
@@ -180,14 +186,17 @@ export default function VehiclesPage() {
 	========================= */
 
 	const conditionStats = {
-		available: vehicles.filter((v) => v.condition === 'available').length,
-		'need-repair': vehicles.filter((v) => v.condition === 'need-repair')
-			.length,
-		unavailable: vehicles.filter((v) => v.condition === 'unavailable')
-			.length,
+		available: vehicles.filter(
+			(v) => v.condition === 'available' && !v.is_supplementary,
+		).length,
+		'need-repair': vehicles.filter(
+			(v) => v.condition === 'need-repair' && !v.is_supplementary,
+		).length,
+		unavailable: vehicles.filter(
+			(v) => v.condition === 'unavailable' && !v.is_supplementary,
+		).length,
+		supplementary: vehicles.filter((v) => v.is_supplementary).length,
 	};
-
-
 
 	const handleRowClick = (vehicleId: string) => {
 		console.log(
@@ -236,13 +245,31 @@ export default function VehiclesPage() {
 			setShowDeleteDialog(false);
 			setVehicleToDelete(null);
 			await refetch();
-			notify.success(successMessages.vehicle.deleted(vehicleRego));
+			notify.success(
+				`Vehicle ${vehicleRego} has been archived successfully`,
+			);
 		} catch (error) {
 			console.error('Failed to delete vehicle:', error);
 			handleApiError(
 				error,
-				errorMessages.vehicle.deleteFailed(vehicleToDelete?.rego),
+				`Failed to archive vehicle ${vehicleToDelete?.rego}`,
 			);
+		}
+	};
+
+	const handleRestoreClick = async (
+		vehicleId: string,
+		rego: string,
+		e: React.MouseEvent,
+	) => {
+		e.stopPropagation();
+		try {
+			await apiClient.restoreVehicle(parseInt(vehicleId));
+			await refetch();
+			notify.success(`Vehicle ${rego} has been restored successfully`);
+		} catch (error) {
+			console.error('Failed to restore vehicle:', error);
+			handleApiError(error, `Failed to restore vehicle ${rego}`);
 		}
 	};
 
@@ -270,12 +297,23 @@ export default function VehiclesPage() {
 	};
 
 	// Vehicles with maintenance alerts
-	const vehiclesNeedingMaintenance = vehicles.filter(
-		(v) =>
-			v.nextMaintenanceDate &&
-			(isMaintenanceOverdue(v.nextMaintenanceDate) ||
-				isMaintenanceDueSoon(v.nextMaintenanceDate)),
-	);
+	const handleFilter = (
+		condition:
+			| 'available'
+			| 'need-repair'
+			| 'unavailable'
+			| 'supplementary'
+			| 'all'
+			| 'archived',
+	) => {
+		if (condition === 'archived') {
+			setShowArchived(true);
+			setConditionFilter('all');
+		} else {
+			setShowArchived(false);
+			setConditionFilter(condition);
+		}
+	};
 
 	if (isLoading) {
 		return (
@@ -299,12 +337,12 @@ export default function VehiclesPage() {
 
 				{/* Stats Cards */}
 
-				<div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6'>
+				<div className='grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6'>
 					<Card className='p-4 bg-green-50 border-green-200'>
 						<div className='flex items-center justify-between'>
 							<div>
 								<p className='text-sm text-green-700 font-medium'>
-									Ready Vehicles
+									Available
 								</p>
 								<p className='text-2xl font-bold text-green-900 mt-1'>
 									{conditionStats.available}
@@ -339,6 +377,19 @@ export default function VehiclesPage() {
 							<div className='w-3 h-3 rounded-full bg-red-500'></div>
 						</div>
 					</Card>
+					<Card className='p-4 bg-indigo-50 border-indigo-200'>
+						<div className='flex items-center justify-between'>
+							<div>
+								<p className='text-sm text-indigo-700 font-medium'>
+									Supplementary
+								</p>
+								<p className='text-2xl font-bold text-indigo-900 mt-1'>
+									{conditionStats.supplementary}
+								</p>
+							</div>
+							<div className='w-3 h-3 rounded-full bg-indigo-500'></div>
+						</div>
+					</Card>
 				</div>
 
 				{/* Search and Filters */}
@@ -360,7 +411,7 @@ export default function VehiclesPage() {
 									? 'default'
 									: 'outline'
 							}
-							onClick={() => setConditionFilter('all')}
+							onClick={() => handleFilter('all')}
 							size='sm'>
 							All
 						</Button>
@@ -370,7 +421,7 @@ export default function VehiclesPage() {
 									? 'default'
 									: 'outline'
 							}
-							onClick={() => setConditionFilter('available')}
+							onClick={() => handleFilter('available')}
 							size='sm'
 							className={
 								conditionFilter === 'available'
@@ -385,7 +436,7 @@ export default function VehiclesPage() {
 									? 'default'
 									: 'outline'
 							}
-							onClick={() => setConditionFilter('need-repair')}
+							onClick={() => handleFilter('need-repair')}
 							size='sm'
 							className={
 								conditionFilter === 'need-repair'
@@ -400,7 +451,7 @@ export default function VehiclesPage() {
 									? 'default'
 									: 'outline'
 							}
-							onClick={() => setConditionFilter('unavailable')}
+							onClick={() => handleFilter('unavailable')}
 							size='sm'
 							className={
 								conditionFilter === 'unavailable'
@@ -408,6 +459,28 @@ export default function VehiclesPage() {
 									: ''
 							}>
 							Unavailable
+						</Button>
+						<Button
+							variant={
+								conditionFilter === 'supplementary'
+									? 'default'
+									: 'outline'
+							}
+							onClick={() => handleFilter('supplementary')}
+							size='sm'
+							className={
+								conditionFilter === 'supplementary'
+									? 'bg-indigo-600'
+									: ''
+							}>
+							Supplementary
+						</Button>
+						<Button
+							variant={showArchived ? 'default' : 'outline'}
+							onClick={() => handleFilter('archived')}
+							size='sm'
+							className={showArchived ? 'bg-gray-600' : ''}>
+							Archived
 						</Button>
 					</div>
 
@@ -417,7 +490,6 @@ export default function VehiclesPage() {
 							className='border-purple-600 text-purple-600 hover:bg-purple-50 hover:text-purple-600'
 							onClick={handleCheckMaintenance}
 							disabled={isCheckingMaintenance}>
-							<Settings className='h-4 w-4 mr-2' />
 							<span className='hidden sm:inline'>
 								{isCheckingMaintenance
 									? 'Checking...'
@@ -499,24 +571,22 @@ export default function VehiclesPage() {
 												{vehicle.rego}
 											</div>
 										</TableCell>
-										{/* <TableCell>
-											{vehicle.nickname ? (
-												<div>
-													<p className='font-medium text-gray-900'>
-														{vehicle.nickname}
-													</p>
-												</div>
-											) : (
-												<span className='text-gray-400'>
-													-
-												</span>
-											)}
-										</TableCell> */}
+
 										<TableCell>
-											{vehicle.alias ? (
+											{vehicle.alias ||
+											(vehicle.is_supplementary &&
+												vehicle.active_supp_target_str) ? (
 												<div>
-													<p className='font-medium text-gray-900'>
-														{vehicle.alias}
+													<p className='font-medium text-gray-900 flex items-center gap-1'>
+														{vehicle.alias || '-'}
+														{vehicle.is_supplementary &&
+															vehicle.active_supp_target_str && (
+																<span className='text-indigo-600 text-xs bg-indigo-50 px-2 py-0.5 rounded-full whitespace-nowrap'>
+																	{
+																		vehicle.active_supp_target_str
+																	}
+																</span>
+															)}
 													</p>
 												</div>
 											) : (
@@ -559,7 +629,10 @@ export default function VehiclesPage() {
 													STATUS_UI[vehicle.status]
 														.className
 												}>
-												{STATUS_UI[vehicle.status].label}
+												{
+													STATUS_UI[vehicle.status]
+														.label
+												}
 											</Badge>
 										</TableCell>
 										<TableCell>
@@ -603,10 +676,23 @@ export default function VehiclesPage() {
 											onClick={(e) =>
 												e.stopPropagation()
 											}>
-
 											<div className='flex items-center justify-end gap-2'>
-
-												<ChevronRight className='h-5 w-5 text-gray-400' />
+												{showArchived ? (
+													<Button
+														size='sm'
+														variant='outline'
+														onClick={(e) =>
+															handleRestoreClick(
+																vehicle.id,
+																vehicle.rego,
+																e,
+															)
+														}>
+														Restore
+													</Button>
+												) : (
+													<ChevronRight className='h-5 w-5 text-gray-400' />
+												)}
 											</div>
 										</TableCell>
 									</TableRow>
@@ -635,13 +721,13 @@ export default function VehiclesPage() {
 					onOpenChange={setShowDeleteDialog}>
 					<DialogContent>
 						<DialogHeader>
-							<DialogTitle>Delete Vehicle</DialogTitle>
+							<DialogTitle>Archive Vehicle</DialogTitle>
 							<DialogDescription>
-								Are you sure you want to delete vehicle{' '}
+								Are you sure you want to archive vehicle{' '}
 								<span className='font-semibold'>
 									{vehicleToDelete?.rego}
 								</span>
-								? This action cannot be undone.
+								? This will logically delete the vehicle.
 							</DialogDescription>
 						</DialogHeader>
 						<DialogFooter>
@@ -653,7 +739,7 @@ export default function VehiclesPage() {
 							<Button
 								variant='destructive'
 								onClick={handleDeleteVehicle}>
-								Delete Vehicle
+								Archive Vehicle
 							</Button>
 						</DialogFooter>
 					</DialogContent>

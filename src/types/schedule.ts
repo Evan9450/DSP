@@ -16,8 +16,11 @@ export interface Vehicle {
 	rego: string; // Registration number (primary identifier per PRD)
 	brand?: string;
 	model?: string;
-	condition: 'available' | 'need-repair' | 'unavailable'; // API strings: available, need-repair, unavailable
+	condition: 'available' | 'need-repair' | 'unavailable' | 'supplementary'; // API strings: available, need-repair, unavailable, supplementary
 	status: 'in-use' | 'not-in-use'; // API strings: in-use, not-in-use
+	is_supplementary?: boolean;
+	is_archived?: boolean;
+	active_supp_target_str?: string | null;
 	maintenanceCycle?: number; // in days or km
 	maintenanceLocation?: string;
 	garageEmail?: string;
@@ -89,6 +92,7 @@ export interface Driver {
 	id: string;
 	name: string;
 	amazonId: string;
+	driverId?: string;
 	amazonPassword?: string; // Encrypted storage in real implementation
 	phone?: string;
 	email?: string;

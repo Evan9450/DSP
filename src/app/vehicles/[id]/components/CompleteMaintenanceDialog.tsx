@@ -39,16 +39,31 @@ export function CompleteMaintenanceDialog({
 	const [formData, setFormData] = useState<VehicleMaintenanceComplete>({
 		maintenance_date: new Date().toISOString().split('T')[0],
 	});
+	const [documents, setDocuments] = useState<File[]>([]);
 
 	// Initialize supplier from default if available
 	useEffect(() => {
 		if (open && defaultSupplier) {
-			setFormData(prev => ({
+			setFormData((prev) => ({
 				...prev,
-				supplier_id: defaultSupplier.id
+				supplier_id: defaultSupplier.id,
 			}));
 		}
 	}, [open, defaultSupplier]);
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files) {
+			setDocuments(Array.from(e.target.files));
+		}
+	};
+
+	const resetForm = () => {
+		setFormData({
+			maintenance_date: new Date().toISOString().split('T')[0],
+			supplier_id: defaultSupplier?.id,
+		});
+		setDocuments([]);
+	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -72,7 +87,21 @@ export function CompleteMaintenanceDialog({
 
 		setIsSubmitting(true);
 		try {
-			await apiClient.completeMaintenance(vehicleId, formData);
+			let reportUrl = formData.report_url;
+			if (documents.length > 0) {
+				const uploadResult = await apiClient.batchUploadFiles(
+					documents,
+					'maintenance',
+				);
+				reportUrl = uploadResult.uploaded_files
+					.map((r) => r.file_url)
+					.join(',');
+			}
+
+			await apiClient.completeMaintenance(vehicleId, {
+				...formData,
+				report_url: reportUrl,
+			});
 			toast({
 				title: 'Success',
 				description: 'Maintenance completed successfully.',
@@ -80,10 +109,7 @@ export function CompleteMaintenanceDialog({
 			onSuccess();
 			onOpenChange(false);
 			// Reset form
-			setFormData({
-				maintenance_date: new Date().toISOString().split('T')[0],
-				supplier_id: defaultSupplier?.id
-			});
+			resetForm();
 		} catch (error) {
 			console.error('Failed to complete maintenance:', error);
 			toast({
@@ -97,21 +123,27 @@ export function CompleteMaintenanceDialog({
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[425px]">
+		<Dialog
+			open={open}
+			onOpenChange={(isOpen) => {
+				if (!isOpen) resetForm();
+				onOpenChange(isOpen);
+			}}>
+			<DialogContent className='sm:max-w-[425px]'>
 				<DialogHeader>
 					<DialogTitle>Complete Maintenance</DialogTitle>
 					<DialogDescription>
-						Confirm maintenance completion. This will update the vehicle schedule and create a history record.
+						Confirm maintenance completion. This will update the
+						vehicle schedule and create a history record.
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit}>
-					<div className="grid gap-4 py-4">
-						<div className="space-y-2">
-							<Label htmlFor="complete-date">Date</Label>
+					<div className='grid gap-4 py-4'>
+						<div className='space-y-2'>
+							<Label htmlFor='complete-date'>Date</Label>
 							<Input
-								id="complete-date"
-								type="date"
+								id='complete-date'
+								type='date'
 								value={formData.maintenance_date}
 								onChange={(e) =>
 									setFormData({
@@ -123,12 +155,14 @@ export function CompleteMaintenanceDialog({
 							/>
 						</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="complete-mileage">Scheduled Mileage</Label>
+						<div className='space-y-2'>
+							<Label htmlFor='complete-mileage'>
+								Scheduled Mileage
+							</Label>
 							<Input
-								id="complete-mileage"
-								type="number"
-								placeholder="Enter mileage"
+								id='complete-mileage'
+								type='number'
+								placeholder='Enter mileage'
 								value={formData.scheduled_mileage || ''}
 								onChange={(e) =>
 									setFormData({
@@ -142,11 +176,13 @@ export function CompleteMaintenanceDialog({
 							/>
 						</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="complete-description">Description</Label>
+						<div className='space-y-2'>
+							<Label htmlFor='complete-description'>
+								Description
+							</Label>
 							<Textarea
-                                id="complete-description"
-								placeholder="e.g. Regular Service, Brake Pad Replacement"
+								id='complete-description'
+								placeholder='e.g. Regular Service, Brake Pad Replacement'
 								value={formData.description || ''}
 								onChange={(e) =>
 									setFormData({
@@ -157,7 +193,26 @@ export function CompleteMaintenanceDialog({
 							/>
 						</div>
 
-						<div className="space-y-2">
+						<div className='space-y-2'>
+							<Label htmlFor='complete-cost'>Total Cost</Label>
+							<Input
+								id='complete-cost'
+								type='number'
+								step='0.01'
+								placeholder='0.00'
+								value={formData.cost || ''}
+								onChange={(e) =>
+									setFormData({
+										...formData,
+										cost: e.target.value
+											? parseFloat(e.target.value)
+											: undefined,
+									})
+								}
+							/>
+						</div>
+
+						<div className='space-y-2'>
 							<Label>Service Provider</Label>
 							<RepairSupplierSelect
 								value={formData.supplier_id}
@@ -168,6 +223,25 @@ export function CompleteMaintenanceDialog({
 									})
 								}
 							/>
+						</div>
+
+						<div className='space-y-2'>
+							<Label htmlFor='maintenance-docs'>Documents</Label>
+							<div className='flex items-center gap-2'>
+								<Input
+									id='maintenance-docs'
+									type='file'
+									multiple
+									onChange={handleFileChange}
+									className='cursor-pointer'
+									accept='.pdf,.png,.jpg,.jpeg,.doc,.docx'
+								/>
+							</div>
+							{documents.length > 0 && (
+								<p className='text-xs text-muted-foreground mt-1'>
+									{documents.length} file(s) selected
+								</p>
+							)}
 						</div>
 
 						{/* Only show location if no supplier is set (fallback) */}
@@ -190,13 +264,12 @@ export function CompleteMaintenanceDialog({
 					</div>
 					<DialogFooter>
 						<Button
-							type="button"
-							variant="outline"
-							onClick={() => onOpenChange(false)}
-						>
+							type='button'
+							variant='outline'
+							onClick={() => onOpenChange(false)}>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={isSubmitting}>
+						<Button type='submit' disabled={isSubmitting}>
 							{isSubmitting ? 'Saving...' : 'Confirm Completion'}
 						</Button>
 					</DialogFooter>

@@ -68,10 +68,6 @@ export function MessageTemplateDialog({
 			<DialogContent className='sm:max-w-[600px]'>
 				<DialogHeader>
 					<DialogTitle>Edit Template: {template.name}</DialogTitle>
-					<DialogDescription>
-						Make changes to the message template here. Click save
-						when you're done.
-					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className='space-y-4'>
 					{template.template_type === 'email' && (

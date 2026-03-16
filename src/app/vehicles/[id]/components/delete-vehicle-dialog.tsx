@@ -28,11 +28,11 @@ export function DeleteVehicleDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Delete Vehicle</DialogTitle>
+					<DialogTitle>Archive Vehicle</DialogTitle>
 					<DialogDescription>
-						Are you sure you want to delete vehicle{' '}
+						Are you sure you want to archive vehicle{' '}
 						<span className='font-semibold'>{vehicleRego}</span>?
-						This action cannot be undone.
+						This will logically delete the vehicle.
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>
@@ -42,7 +42,7 @@ export function DeleteVehicleDialog({
 						Cancel
 					</Button>
 					<Button variant='destructive' onClick={onConfirm}>
-						Delete Vehicle
+						Archive Vehicle
 					</Button>
 				</DialogFooter>
 			</DialogContent>

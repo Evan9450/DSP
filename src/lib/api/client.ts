@@ -100,6 +100,7 @@ export interface DriverResponse {
 	email?: string;
 	address?: string;
 	amazon_id: string;
+	driver_id?: string;
 	amazon_password?: string;
 	deputy_id?: string;
 	is_active: boolean;
@@ -126,6 +127,7 @@ export interface DriverCreate {
 	email?: string;
 	address?: string;
 	amazon_id: string;
+	driver_id?: string;
 	password: string; // Required field for driver login
 	deputy_id?: string;
 }
@@ -189,7 +191,7 @@ export type DriverDocumentCreate = DriverFileCreate;
 
 // Vehicle Types
 export type VehicleStatus = 'in-use' | 'not-in-use';
-export type VehicleCondition = 'available' | 'need-repair' | 'unavailable';
+export type VehicleCondition = 'available' | 'need-repair' | 'unavailable' | 'supplementary';
 
 // RepairSupplier Types
 export interface RepairSupplierSimple {
@@ -234,6 +236,9 @@ export interface VehicleResponse {
 	model?: string;
 	condition: VehicleCondition;
 	status: VehicleStatus;
+	is_supplementary: boolean;
+	is_archived: boolean;
+	active_supp_target_str?: string | null;
 	mileage?: number;
 	scheduled_mileage?: number;
 	notes?: string;
@@ -263,6 +268,7 @@ export interface VehicleDetailResponse extends VehicleResponse {
 	photos: string[];
 	photo_full_urls: string[];
 	recent_inspections: VehicleInspectionResponse[];
+	active_supp_history_id?: number;
 }
 
 export interface VehicleCreate {
@@ -572,12 +578,24 @@ export interface VehicleMaintenanceCreate {
 	supplier_id?: number;
 }
 
+export interface VehicleMaintenanceUpdate {
+	location?: string | null;
+	description?: string | null;
+	cost?: number | string | null;
+	cost_type?: string;
+	supplier_id?: number | null;
+	confirmation_received?: boolean;
+	report_url?: string | null;
+}
+
 export interface VehicleMaintenanceComplete {
 	maintenance_date: string;
 	description?: string;
 	location?: string;
 	supplier_id?: number;
 	scheduled_mileage?: number;
+	cost?: number;
+	report_url?: string;
 }
 
 export interface SendMaintenanceEmailResponse {
@@ -599,6 +617,121 @@ export interface SendMaintenanceEmailResponse {
 		email_sent: boolean;
 		email_sent_at?: string;
 	};
+}
+
+export interface SupplementaryHistoryCreate {
+	start_date: string;
+	end_date?: string | null;
+	cost?: string | number | null;
+	cost_type?: string;
+	target_vehicle_id: number;
+	supplementary_vehicle_id: number;
+}
+
+export interface SupplementaryHistoryResponse {
+	id: number;
+	start_date: string;
+	end_date?: string | null;
+	cost?: string | null;
+	cost_type?: string;
+	target_vehicle_id: number;
+	supplementary_vehicle_id: number;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface SupplementaryHistoryRelease {
+	end_date: string;
+	cost?: number | string | null;
+}
+
+export interface SupplementaryHistoryUpdate {
+	start_date?: string;
+	end_date?: string | null;
+	cost?: number | string | null;
+	cost_type?: string | null;
+	description?: string | null;
+}
+
+// Vehicle History Types (Other and Repair)
+export interface VehicleOtherHistoryResponse {
+	id: number;
+	vehicle_id: number;
+	other_date: string;
+	description?: string | null;
+	cost?: string | null;
+	cost_type: string;
+	created_at: string;
+	updated_at: string;
+}
+
+// Unified History API Types
+export interface UnifiedHistoryItem {
+	id: number;
+	date: string;
+	history_type: string;
+	description?: string | null;
+	supplier?: string | null;
+	cost_type: string;
+	cost?: string | null;
+	action?: string | null;
+	metadata?: Record<string, any> | null;
+}
+
+export interface VehicleHistoryTotalResponse {
+	vehicle_id: number;
+	total_cost: string;
+	history: UnifiedHistoryItem[];
+}
+
+export interface VehicleOtherHistoryCreate {
+	vehicle_id: number;
+	other_date: string;
+	description?: string | null;
+	cost?: number | string | null;
+	cost_type?: string;
+}
+
+export interface VehicleOtherHistoryUpdate {
+	other_date?: string;
+	description?: string | null;
+	cost?: number | string | null;
+	cost_type?: string;
+}
+
+export interface VehicleRepairHistoryResponse {
+	id: number;
+	vehicle_id: number;
+	repair_date: string;
+	location?: string | null;
+	description?: string | null;
+	cost?: string | null;
+	cost_type: string;
+	supplier_id?: number | null;
+	created_at: string;
+	updated_at: string;
+	supplier?: RepairSupplierSimple;
+}
+
+export interface VehicleRepairHistoryCreate {
+	vehicle_id: number;
+	repair_date: string;
+	location?: string | null;
+	description?: string | null;
+	cost?: number | string | null;
+	cost_type?: string;
+	supplier_id?: number | null;
+	report_url?: string | null;
+}
+
+export interface VehicleRepairHistoryUpdate {
+	repair_date?: string;
+	location?: string | null;
+	description?: string | null;
+	cost?: number | string | null;
+	cost_type?: string;
+	supplier_id?: number | null;
+	report_url?: string | null;
 }
 
 // Settings Types - System Configuration
@@ -1269,6 +1402,7 @@ class APIClient {
 	async getVehicles(params?: {
 		status_filter?: VehicleStatus;
 		condition_filter?: VehicleCondition;
+		is_archived?: boolean;
 	}): Promise<VehicleResponse[]> {
 		const response = await this.client.get<VehicleResponse[]>(
 			'/api/v1/vehicles/',
@@ -1326,6 +1460,13 @@ class APIClient {
 
 	async deleteVehicle(vehicleId: number): Promise<void> {
 		await this.client.delete(`/api/v1/vehicles/${vehicleId}`);
+	}
+
+	async restoreVehicle(vehicleId: number): Promise<VehicleResponse> {
+		const response = await this.client.post<VehicleResponse>(
+			`/api/v1/vehicles/${vehicleId}/restore`,
+		);
+		return response.data;
 	}
 
 	async uploadVehiclePhotos(vehicleId: number, files: File[]): Promise<void> {
@@ -1431,6 +1572,46 @@ class APIClient {
 		await this.client.delete(
 			`/api/v1/vehicles/${vehicleId}/maintenance-history/${recordId}`,
 		);
+	}
+
+	async getVehicleOtherHistory(
+		vehicleId: number,
+	): Promise<VehicleOtherHistoryResponse[]> {
+		const response = await this.client.get<VehicleOtherHistoryResponse[]>(
+			`/api/v1/vehicles/${vehicleId}/other-history`,
+		);
+		return response.data;
+	}
+
+	async createVehicleOtherHistory(
+		vehicleId: number,
+		data: VehicleOtherHistoryCreate,
+	): Promise<VehicleOtherHistoryResponse> {
+		const response = await this.client.post<VehicleOtherHistoryResponse>(
+			`/api/v1/vehicles/${vehicleId}/other-history`,
+			data,
+		);
+		return response.data;
+	}
+
+	async getVehicleRepairHistory(
+		vehicleId: number,
+	): Promise<VehicleRepairHistoryResponse[]> {
+		const response = await this.client.get<VehicleRepairHistoryResponse[]>(
+			`/api/v1/vehicles/${vehicleId}/repair-history`,
+		);
+		return response.data;
+	}
+
+	async createVehicleRepairHistory(
+		vehicleId: number,
+		data: VehicleRepairHistoryCreate,
+	): Promise<VehicleRepairHistoryResponse> {
+		const response = await this.client.post<VehicleRepairHistoryResponse>(
+			`/api/v1/vehicles/${vehicleId}/repair`,
+			data,
+		);
+		return response.data;
 	}
 
 	/**
@@ -2081,6 +2262,86 @@ class APIClient {
 		return this.updateSystemConfig(data);
 	}
 
+	// Unified History
+	async getVehicleHistoryTotal(
+		vehicleId: number,
+	): Promise<VehicleHistoryTotalResponse> {
+		const response = await this.client.get<VehicleHistoryTotalResponse>(
+			`/api/v1/vehicles/${vehicleId}/history`,
+		);
+		return response.data;
+	}
+
+	async updateVehicleRepairHistory(
+		vehicleId: number,
+		recordId: number,
+		data: VehicleRepairHistoryUpdate,
+	): Promise<VehicleRepairHistoryResponse> {
+		const response = await this.client.patch<VehicleRepairHistoryResponse>(
+			`/api/v1/vehicles/${vehicleId}/repair/${recordId}`,
+			data,
+		);
+		return response.data;
+	}
+
+	async updateVehicleOtherHistory(
+		vehicleId: number,
+		recordId: number,
+		data: VehicleOtherHistoryUpdate,
+	): Promise<VehicleOtherHistoryResponse> {
+		const response = await this.client.patch<VehicleOtherHistoryResponse>(
+			`/api/v1/vehicles/${vehicleId}/other-history/${recordId}`,
+			data,
+		);
+		return response.data;
+	}
+
+	async updateVehicleMaintenance(
+		vehicleId: number,
+		recordId: number,
+		data: VehicleMaintenanceUpdate,
+	): Promise<VehicleMaintenanceResponse> {
+		const response = await this.client.patch<VehicleMaintenanceResponse>(
+			`/api/v1/vehicles/${vehicleId}/maintenance-history/${recordId}`,
+			data,
+		);
+		return response.data;
+	}
+
+	// Supplementary Vehicle Assignment
+	async createVehicleSupplementary(
+		vehicleId: number,
+		data: SupplementaryHistoryCreate,
+	): Promise<SupplementaryHistoryResponse> {
+		const response = await this.client.post<SupplementaryHistoryResponse>(
+			`/api/v1/vehicles/${vehicleId}/supplementary`,
+			data,
+		);
+		return response.data;
+	}
+
+	async updateVehicleSupplementary(
+		suppHistoryId: number,
+		data: SupplementaryHistoryUpdate,
+	): Promise<SupplementaryHistoryResponse> {
+		const response = await this.client.patch<SupplementaryHistoryResponse>(
+			`/api/v1/vehicles/supplementary/${suppHistoryId}`,
+			data,
+		);
+		return response.data;
+	}
+
+	async releaseVehicleSupplementary(
+		suppHistoryId: number,
+		data: SupplementaryHistoryRelease,
+	): Promise<SupplementaryHistoryResponse> {
+		const response = await this.client.patch<SupplementaryHistoryResponse>(
+			`/api/v1/vehicles/supplementary/${suppHistoryId}/release`,
+			data,
+		);
+		return response.data;
+	}
+
 	// ============================================================================
 	// SMS History API
 	// ============================================================================
@@ -2187,14 +2448,26 @@ class APIClient {
 	async batchUploadFiles(
 		files: File[],
 		folder: string = 'uploads',
-	): Promise<FileRecordResponse[]> {
+	): Promise<{
+		message: string;
+		uploaded_files: FileRecordResponse[];
+		failed_files: any[];
+		total_uploaded: number;
+		total_failed: number;
+	}> {
 		const formData = new FormData();
 		files.forEach((file) => {
 			formData.append('files', file);
 		});
 		formData.append('folder', folder);
 
-		const response = await this.client.post<FileRecordResponse[]>(
+		const response = await this.client.post<{
+			message: string;
+			uploaded_files: FileRecordResponse[];
+			failed_files: any[];
+			total_uploaded: number;
+			total_failed: number;
+		}>(
 			'/api/v1/files/batch-upload',
 			formData,
 			{

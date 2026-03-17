@@ -156,6 +156,19 @@ export function CompleteMaintenanceDialog({
 						</div>
 
 						<div className='space-y-2'>
+							<Label>Service Provider</Label>
+							<RepairSupplierSelect
+								value={formData.supplier_id}
+								onValueChange={(val) =>
+									setFormData({
+										...formData,
+										supplier_id: val,
+									})
+								}
+							/>
+						</div>
+
+						<div className='space-y-2'>
 							<Label htmlFor='complete-mileage'>
 								Scheduled Mileage
 							</Label>
@@ -177,24 +190,7 @@ export function CompleteMaintenanceDialog({
 						</div>
 
 						<div className='space-y-2'>
-							<Label htmlFor='complete-description'>
-								Description
-							</Label>
-							<Textarea
-								id='complete-description'
-								placeholder='e.g. Regular Service, Brake Pad Replacement'
-								value={formData.description || ''}
-								onChange={(e) =>
-									setFormData({
-										...formData,
-										description: e.target.value,
-									})
-								}
-							/>
-						</div>
-
-						<div className='space-y-2'>
-							<Label htmlFor='complete-cost'>Total Cost</Label>
+							<Label htmlFor='complete-cost'>Cost</Label>
 							<Input
 								id='complete-cost'
 								type='number'
@@ -213,13 +209,17 @@ export function CompleteMaintenanceDialog({
 						</div>
 
 						<div className='space-y-2'>
-							<Label>Service Provider</Label>
-							<RepairSupplierSelect
-								value={formData.supplier_id}
-								onValueChange={(val) =>
+							<Label htmlFor='complete-description'>
+								Description
+							</Label>
+							<Textarea
+								id='complete-description'
+								placeholder='e.g. Regular Service, Brake Pad Replacement'
+								value={formData.description || ''}
+								onChange={(e) =>
 									setFormData({
 										...formData,
-										supplier_id: val,
+										description: e.target.value,
 									})
 								}
 							/>

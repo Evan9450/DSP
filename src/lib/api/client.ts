@@ -103,6 +103,7 @@ export interface DriverResponse {
 	driver_id?: string;
 	amazon_password?: string;
 	deputy_id?: string;
+	netradyne_id?: string;
 	is_active: boolean;
 	// License fields
 	license_number?: string;
@@ -191,7 +192,11 @@ export type DriverDocumentCreate = DriverFileCreate;
 
 // Vehicle Types
 export type VehicleStatus = 'in-use' | 'not-in-use';
-export type VehicleCondition = 'available' | 'need-repair' | 'unavailable' | 'supplementary';
+export type VehicleCondition =
+	| 'available'
+	| 'need-repair'
+	| 'unavailable'
+	| 'supplementary';
 
 // RepairSupplier Types
 export interface RepairSupplierSimple {
@@ -239,6 +244,7 @@ export interface VehicleResponse {
 	is_supplementary: boolean;
 	is_archived: boolean;
 	active_supp_target_str?: string | null;
+	has_active_supplementary: boolean;
 	mileage?: number;
 	scheduled_mileage?: number;
 	notes?: string;
@@ -1110,19 +1116,30 @@ class APIClient {
 		}
 	}
 
-	async adminForgotPasswordSendCode(data: UserForgotPasswordRequest): Promise<void> {
+	async adminForgotPasswordSendCode(
+		data: UserForgotPasswordRequest,
+	): Promise<void> {
 		await this.client.post('/api/v1/auth/forgot-password/send-code', data);
 	}
 
-	async adminForgotPasswordReset(data: UserForgotPasswordReset): Promise<void> {
+	async adminForgotPasswordReset(
+		data: UserForgotPasswordReset,
+	): Promise<void> {
 		await this.client.post('/api/v1/auth/forgot-password/reset', data);
 	}
 
-	async driverForgotPasswordSendCode(data: DriverForgotPasswordRequest): Promise<void> {
-		await this.client.post('/api/v1/driver/forgot-password/send-code', data);
+	async driverForgotPasswordSendCode(
+		data: DriverForgotPasswordRequest,
+	): Promise<void> {
+		await this.client.post(
+			'/api/v1/driver/forgot-password/send-code',
+			data,
+		);
 	}
 
-	async driverForgotPasswordReset(data: DriverForgotPasswordReset): Promise<void> {
+	async driverForgotPasswordReset(
+		data: DriverForgotPasswordReset,
+	): Promise<void> {
 		await this.client.post('/api/v1/driver/forgot-password/reset', data);
 	}
 
@@ -1171,7 +1188,9 @@ class APIClient {
 	}
 
 	async getRoutes(): Promise<RouteResponse> {
-		const response = await this.client.get<RouteResponse>('/api/v1/schedules/routes');
+		const response = await this.client.get<RouteResponse>(
+			'/api/v1/schedules/routes',
+		);
 		return response.data;
 	}
 
@@ -1221,6 +1240,7 @@ class APIClient {
 			email?: string;
 			address?: string;
 			amazon_id?: string;
+			netradyne_id?: string;
 			deputy_id?: string;
 			license_file?: File;
 			license_number?: string;
@@ -1242,6 +1262,8 @@ class APIClient {
 			formData.append('address', data.address);
 		if (data.amazon_id !== undefined)
 			formData.append('amazon_id', data.amazon_id);
+		if (data.netradyne_id !== undefined)
+			formData.append('netradyne_id', data.netradyne_id);
 		if (data.deputy_id !== undefined)
 			formData.append('deputy_id', data.deputy_id);
 
@@ -2467,15 +2489,11 @@ class APIClient {
 			failed_files: any[];
 			total_uploaded: number;
 			total_failed: number;
-		}>(
-			'/api/v1/files/batch-upload',
-			formData,
-			{
-				headers: {
-					'Content-Type': 'multipart/form-data',
-				},
+		}>('/api/v1/files/batch-upload', formData, {
+			headers: {
+				'Content-Type': 'multipart/form-data',
 			},
-		);
+		});
 		return response.data;
 	}
 
@@ -2519,20 +2537,32 @@ class APIClient {
 	// KPI Reports API
 	// ============================================================================
 
-	async generateKpiReport(data: GenerateKPIReportRequest): Promise<KPIReportDetailResponse> {
+	async generateKpiReport(
+		data: GenerateKPIReportRequest,
+	): Promise<KPIReportDetailResponse> {
 		const formData = new FormData();
 		formData.append('pdf_file', data.pdf_file);
 		formData.append('csv_file', data.csv_file);
 		formData.append('week', data.week);
 		formData.append('year', data.year.toString());
 
-		if (data.min_delivered !== undefined) formData.append('min_delivered', data.min_delivered.toString());
-		if (data.dnr_threshold !== undefined) formData.append('dnr_threshold', data.dnr_threshold.toString());
-		if (data.weight_dnr !== undefined) formData.append('weight_dnr', data.weight_dnr.toString());
-		if (data.weight_dcr !== undefined) formData.append('weight_dcr', data.weight_dcr.toString());
-		if (data.weight_pod !== undefined) formData.append('weight_pod', data.weight_pod.toString());
-		if (data.weight_cc !== undefined) formData.append('weight_cc', data.weight_cc.toString());
-		if (data.weight_netradyne !== undefined) formData.append('weight_netradyne', data.weight_netradyne.toString());
+		if (data.min_delivered !== undefined)
+			formData.append('min_delivered', data.min_delivered.toString());
+		if (data.dnr_threshold !== undefined)
+			formData.append('dnr_threshold', data.dnr_threshold.toString());
+		if (data.weight_dnr !== undefined)
+			formData.append('weight_dnr', data.weight_dnr.toString());
+		if (data.weight_dcr !== undefined)
+			formData.append('weight_dcr', data.weight_dcr.toString());
+		if (data.weight_pod !== undefined)
+			formData.append('weight_pod', data.weight_pod.toString());
+		if (data.weight_cc !== undefined)
+			formData.append('weight_cc', data.weight_cc.toString());
+		if (data.weight_netradyne !== undefined)
+			formData.append(
+				'weight_netradyne',
+				data.weight_netradyne.toString(),
+			);
 
 		const response = await this.client.post<KPIReportDetailResponse>(
 			'/api/v1/kpi/generate',
@@ -2541,7 +2571,7 @@ class APIClient {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 				},
-			}
+			},
 		);
 		return response.data;
 	}
@@ -2552,14 +2582,14 @@ class APIClient {
 	}): Promise<KPIReportResponse[]> {
 		const response = await this.client.get<KPIReportResponse[]>(
 			'/api/v1/kpi/reports',
-			{ params }
+			{ params },
 		);
 		return response.data;
 	}
 
 	async getKpiReport(reportId: number): Promise<KPIReportDetailResponse> {
 		const response = await this.client.get<KPIReportDetailResponse>(
-			`/api/v1/kpi/reports/${reportId}`
+			`/api/v1/kpi/reports/${reportId}`,
 		);
 		return response.data;
 	}

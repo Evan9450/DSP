@@ -177,17 +177,23 @@ export function AssignSupplementaryDialog({
 								/>
 							</SelectTrigger>
 							<SelectContent>
-								{unavailableVehicles.map((v) => (
-									<SelectItem
-										key={v.id}
-										value={v.id.toString()}>
-										{v.rego} {v.alias ? `(${v.alias})` : ''}{' '}
-										-{' '}
+								{unavailableVehicles.map(
+									(v) =>
+										v.alias &&
+										!v.is_supplementary &&
+										!v.is_archived &&
+										!v.has_active_supplementary && (
+											<SelectItem
+												key={v.id}
+												value={v.id.toString()}>
+												{v.alias}
+												{/* -{' '}
 										{v.condition === 'unavailable'
 											? 'Unavailable'
-											: 'Needs Repair'}
-									</SelectItem>
-								))}
+											: 'Needs Repair'} */}
+											</SelectItem>
+										),
+								)}
 								{unavailableVehicles.length === 0 &&
 									!isLoadingVehicles && (
 										<SelectItem value='none' disabled>

@@ -128,7 +128,7 @@ export function LogRepairDialog({
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className='space-y-4'>
-					<div className='grid grid-cols-2 gap-4'>
+					<div className='grid grid-cols-1 gap-4'>
 						<div className='space-y-2'>
 							<Label htmlFor='repair-date'>Date *</Label>
 							<Input
@@ -140,14 +140,14 @@ export function LogRepairDialog({
 							/>
 						</div>
 						<div className='space-y-2'>
-							<Label>Supplier (Location) *</Label>
+							<Label>Supplier *</Label>
 							<RepairSupplierSelect
 								value={supplierId}
 								onValueChange={setSupplierId}
 							/>
 						</div>
 						<div className='space-y-2'>
-							<Label htmlFor='repair-cost'>Total Cost *</Label>
+							<Label htmlFor='repair-cost'> Cost *</Label>
 							<Input
 								id='repair-cost'
 								type='number'

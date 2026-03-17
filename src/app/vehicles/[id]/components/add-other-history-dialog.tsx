@@ -109,9 +109,7 @@ export function AddOtherHistoryDialog({
 					</div>
 
 					<div className='space-y-2'>
-						<Label htmlFor='other-cost-type'>
-							Cost Attributed To *
-						</Label>
+						<Label htmlFor='other-cost-type'>Paid by *</Label>
 						<Select value={costType} onValueChange={setCostType}>
 							<SelectTrigger id='other-cost-type'>
 								<SelectValue placeholder='Select cost type' />

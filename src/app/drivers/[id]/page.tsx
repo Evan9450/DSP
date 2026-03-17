@@ -77,6 +77,7 @@ export default function DriverDetailPage() {
 			'email',
 			'address',
 			'amazon_id',
+			'netradyne_id',
 			'license_number',
 			'license_expiry_date',
 			'visa_number',
@@ -124,6 +125,7 @@ export default function DriverDetailPage() {
 				email: editedDriver.email,
 				address: editedDriver.address,
 				amazon_id: editedDriver.amazon_id,
+				netradyne_id: editedDriver.netradyne_id,
 				// deputy_id is auto-synced from Deputy, not editable
 			};
 
@@ -152,7 +154,7 @@ export default function DriverDetailPage() {
 
 			const result = await apiClient.updateDriverWithFiles(
 				driverId,
-				updateData
+				updateData,
 			);
 			console.log('✅ Update successful, result:', result);
 			console.log('🔍 Result document fields:', {
@@ -182,7 +184,7 @@ export default function DriverDetailPage() {
 			console.error('❌ Error details:', error.response?.data);
 			handleApiError(
 				error,
-				errorMessages.driver.updateFailed(driver?.name)
+				errorMessages.driver.updateFailed(driver?.name),
 			);
 		}
 	};
@@ -198,7 +200,7 @@ export default function DriverDetailPage() {
 			console.error('Failed to set password:', error);
 			handleApiError(
 				error,
-				errorMessages.driver.passwordFailed(driver?.name)
+				errorMessages.driver.passwordFailed(driver?.name),
 			);
 			throw error; // Re-throw to let dialog handle it
 		}
@@ -208,7 +210,7 @@ export default function DriverDetailPage() {
 		type: 'license' | 'visa',
 		file: File | null,
 		expiryDate: string,
-		documentNumber?: string
+		documentNumber?: string,
 	) => {
 		if (!driverId || !file) {
 			notify.error('Missing driver ID or file');
@@ -256,7 +258,7 @@ export default function DriverDetailPage() {
 			if (type === 'license') {
 				formData.append(
 					'license_file_url',
-					JSON.stringify(updatedFiles)
+					JSON.stringify(updatedFiles),
 				);
 				if (documentNumber !== undefined && documentNumber !== '') {
 					formData.append('license_number', documentNumber);
@@ -288,7 +290,7 @@ export default function DriverDetailPage() {
 
 			const updatedDriver = await apiClient.updateDriverWithFormData(
 				driverId,
-				formData
+				formData,
 			);
 
 			console.log('✅ Driver updated successfully!');
@@ -309,7 +311,7 @@ export default function DriverDetailPage() {
 			console.error('❌ Error details:', error.response?.data);
 			handleApiError(
 				error,
-				`Failed to upload ${type === 'license' ? 'license' : 'visa'} file`
+				`Failed to upload ${type === 'license' ? 'license' : 'visa'} file`,
 			);
 			throw error;
 		}
@@ -317,7 +319,7 @@ export default function DriverDetailPage() {
 
 	const handleDeleteFile = async (
 		type: 'license' | 'visa',
-		fileUrl: string
+		fileUrl: string,
 	) => {
 		if (!driverId) return;
 
@@ -342,7 +344,7 @@ export default function DriverDetailPage() {
 			if (type === 'license') {
 				formData.append(
 					'license_file_url',
-					JSON.stringify(updatedFiles)
+					JSON.stringify(updatedFiles),
 				);
 			} else {
 				formData.append('visa_file_url', JSON.stringify(updatedFiles));
@@ -361,8 +363,8 @@ export default function DriverDetailPage() {
 			notify.success(
 				successMessages.driver.fileDeleted(
 					driver?.name,
-					type === 'license' ? 'license' : 'visa'
-				)
+					type === 'license' ? 'license' : 'visa',
+				),
 			);
 		} catch (error) {
 			console.error('❌ Failed to delete file:', error);
@@ -370,8 +372,8 @@ export default function DriverDetailPage() {
 				error,
 				errorMessages.driver.fileDeleteFailed(
 					driver?.name,
-					type === 'license' ? 'license' : 'visa'
-				)
+					type === 'license' ? 'license' : 'visa',
+				),
 			);
 			throw error;
 		}
@@ -393,13 +395,13 @@ export default function DriverDetailPage() {
 			await refetchDriver();
 
 			notify.success(
-				`Driver ${driver?.name} has been ${checked ? 'activated' : 'deactivated'}`
+				`Driver ${driver?.name} has been ${checked ? 'activated' : 'deactivated'}`,
 			);
 		} catch (error) {
 			console.error('❌ Failed to update driver status:', error);
 			handleApiError(
 				error,
-				`Failed to ${checked ? 'activate' : 'deactivate'} driver ${driver?.name}`
+				`Failed to ${checked ? 'activate' : 'deactivate'} driver ${driver?.name}`,
 			);
 			throw error;
 		}
@@ -525,7 +527,7 @@ export default function DriverDetailPage() {
 									'✏️ Editing license field:',
 									field,
 									'=',
-									value
+									value,
 								);
 								setEditedDriver({
 									...editedDriver,
@@ -548,7 +550,7 @@ export default function DriverDetailPage() {
 									'✏️ Editing visa field:',
 									field,
 									'=',
-									value
+									value,
 								);
 								setEditedDriver({
 									...editedDriver,

@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Key, Mail, MapPin, Phone, User } from 'lucide-react';
+import { Key, Mail, MapPin, Phone, User, Video } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,7 @@ export function BasicInformationCard({
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+				<div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-2'>
 					<div>
 						<Label className='mb-2 block'>Name</Label>
 						{isEditing ? (
@@ -69,6 +69,7 @@ export function BasicInformationCard({
 							</p>
 						)}
 					</div>
+
 					<div>
 						<Label className='flex items-center gap-2 mb-2'>
 							<Phone className='h-4 w-4' />
@@ -170,24 +171,24 @@ export function BasicInformationCard({
 							</div>
 						</div>
 					</div>
-					{/* <div className='md:col-span-2'>
-						<Label className='flex items-center gap-2 mb-2'>
-							<MapPin className='h-4 w-4' />
-							Address
-						</Label>
-						{isEditing ? (
-							<Input
-								value={editedDriver?.address || ''}
-								onChange={(e) =>
-									onEdit('address', e.target.value)
-								}
-							/>
-						) : (
-							<p className='text-gray-900'>
-								{driver.address || '-'}
-							</p>
-						)}
-					</div> */}
+				</div>
+				<div>
+					<Label className='flex items-center gap-2 mb-2'>
+						Netradyne ID
+					</Label>
+					{isEditing ? (
+						<Input
+							value={editedDriver?.netradyne_id || ''}
+							onChange={(e) =>
+								onEdit('netradyne_id', e.target.value)
+							}
+							placeholder='Enter Netradyne ID'
+						/>
+					) : (
+						<p className='text-gray-900 font-mono'>
+							{driver.netradyne_id || '-'}
+						</p>
+					)}
 				</div>
 			</CardContent>
 		</Card>

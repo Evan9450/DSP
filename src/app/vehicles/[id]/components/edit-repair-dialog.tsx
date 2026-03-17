@@ -133,7 +133,7 @@ export function EditRepairDialog({
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className='space-y-4'>
-					<div className='grid grid-cols-2 gap-4'>
+					<div className='grid grid-cols-1 gap-4'>
 						<div className='space-y-2'>
 							<Label htmlFor='edit-repair-date'>Date *</Label>
 							<Input
@@ -145,14 +145,14 @@ export function EditRepairDialog({
 							/>
 						</div>
 						<div className='space-y-2'>
-							<Label>Supplier (Location)</Label>
+							<Label>Supplier</Label>
 							<RepairSupplierSelect
 								value={supplierId}
 								onValueChange={setSupplierId}
 							/>
 						</div>
 						<div className='space-y-2'>
-							<Label htmlFor='edit-repair-cost'>Total Cost</Label>
+							<Label htmlFor='edit-repair-cost'>Cost</Label>
 							<Input
 								id='edit-repair-cost'
 								type='number'
@@ -178,9 +178,6 @@ export function EditRepairDialog({
 						<Label htmlFor='edit-repair-docs'>Documents</Label>
 						{reportUrl && (
 							<div className='mb-2 text-sm'>
-								<p className='text-muted-foreground mb-1'>
-									Current Documents:
-								</p>
 								<div className='flex flex-wrap gap-2'>
 									{reportUrl
 										.split(',')

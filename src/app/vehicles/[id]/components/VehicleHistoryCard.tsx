@@ -35,7 +35,10 @@ interface VehicleHistoryCardProps {
 	isArchived?: boolean;
 }
 
-export function VehicleHistoryCard({ vehicleId, isArchived = false }: VehicleHistoryCardProps) {
+export function VehicleHistoryCard({
+	vehicleId,
+	isArchived = false,
+}: VehicleHistoryCardProps) {
 	const { toast } = useToast();
 	const [isLoading, setIsLoading] = useState(true);
 	const [historyData, setHistoryData] =
@@ -144,7 +147,7 @@ export function VehicleHistoryCard({ vehicleId, isArchived = false }: VehicleHis
 			<Card className='p-6'>
 				<div className='flex items-center justify-between mb-2'>
 					<h3 className='text-xl font-semibold text-zinc-900 pb-2 flex-grow'>
-						Vehicle History Logs
+						Vehicle History
 					</h3>
 					<div className='flex gap-2'>
 						{!isArchived && (
@@ -251,7 +254,7 @@ export function VehicleHistoryCard({ vehicleId, isArchived = false }: VehicleHis
 										<TableCell
 											className={`text-right font-medium ${
 												record.cost_type === 'Amazon'
-													? 'text-gray-500 line-through'
+													? 'text-gray-500'
 													: 'text-zinc-900'
 											}`}>
 											$

@@ -131,7 +131,7 @@ export function EditMaintenanceDialog({
 					</div>
 
 					<div className='space-y-2'>
-						<Label>Supplier (Location)</Label>
+						<Label>Supplier</Label>
 						<RepairSupplierSelect
 							value={supplierId}
 							onValueChange={setSupplierId}
@@ -139,7 +139,7 @@ export function EditMaintenanceDialog({
 					</div>
 
 					<div className='space-y-2'>
-						<Label htmlFor='edit-maint-cost'>Total Cost</Label>
+						<Label htmlFor='edit-maint-cost'>Cost</Label>
 						<Input
 							id='edit-maint-cost'
 							type='number'

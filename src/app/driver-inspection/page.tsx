@@ -127,13 +127,9 @@ export default function DriverInspectionPage() {
 					'🚀 => loadTodayData => inspection.mileage_at_inspection:',
 					inspection.mileage_at_inspection,
 				);
-				setMileage(
-					inspection.mileage_at_inspection.toString(),
-				);
+				setMileage(inspection.mileage_at_inspection?.toString() ?? '');
 				setNotes(inspection.notes || '');
-				setExistingPhotoUrls(
-					inspection.inspection_urls || [],
-				);
+				setExistingPhotoUrls(inspection.inspection_urls || []);
 			}
 		} catch (error) {
 			console.error('❌ Failed to load today data:', error);

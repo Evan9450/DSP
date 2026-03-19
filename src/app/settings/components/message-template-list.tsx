@@ -111,7 +111,6 @@ export function MessageTemplateList() {
 							<CardTitle className='text-xl font-bold text-gray-900'>
 								Message Templates
 							</CardTitle>
-
 						</div>
 					</div>
 					{/* <Button
@@ -169,13 +168,7 @@ export function MessageTemplateList() {
 										</TableCell>
 										<TableCell>
 											<div className='flex items-center gap-2'>
-												{template.template_type ===
-												'email' ? (
-													<Mail className='h-4 w-4 text-gray-500' />
-												) : (
-													<MessageSquare className='h-4 w-4 text-gray-500' />
-												)}
-												<span className='capitalize'>
+												<span className='uppercase'>
 													{template.template_type}
 												</span>
 											</div>
@@ -188,7 +181,7 @@ export function MessageTemplateList() {
 												{template.is_system && (
 													<Button
 														variant='outline'
-													size='sm'
+														size='sm'
 														onClick={() =>
 															handleReset(
 																template,

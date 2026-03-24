@@ -22,7 +22,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 
 interface EditOtherHistoryDialogProps {
 	vehicleId: number;
@@ -46,6 +46,8 @@ export function EditOtherHistoryDialog({
 	const [description, setDescription] = useState(record.description ?? '');
 	const [cost, setCost] = useState(record.cost ? String(record.cost) : '');
 	const [costType, setCostType] = useState(record.cost_type ?? 'Self');
+	const [documents, setDocuments] = useState<File[]>([]);
+	const [reportUrl, setReportUrl] = useState(record.action || '');
 
 	// 当 record 变化时（打开新记录），重置表单
 	useEffect(() => {
@@ -53,7 +55,23 @@ export function EditOtherHistoryDialog({
 		setDescription(record.description ?? '');
 		setCost(record.cost ? String(record.cost) : '');
 		setCostType(record.cost_type ?? 'Self');
+		setReportUrl(record.action || '');
+		setDocuments([]);
 	}, [record]);
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files) {
+			setDocuments(Array.from(e.target.files));
+		}
+	};
+
+	const handleRemoveUrl = (urlToRemove: string) => {
+		const newUrls = reportUrl
+			.split(',')
+			.filter((url) => url !== urlToRemove)
+			.join(',');
+		setReportUrl(newUrls);
+	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -68,11 +86,26 @@ export function EditOtherHistoryDialog({
 
 		setIsSubmitting(true);
 		try {
+			let finalReportUrl = reportUrl;
+			if (documents.length > 0) {
+				const uploadResult = await apiClient.batchUploadFiles(
+					documents,
+					'other',
+				);
+				const newUrls = uploadResult.uploaded_files
+					.map((r) => r.file_url)
+					.join(',');
+				finalReportUrl = finalReportUrl
+					? `${finalReportUrl},${newUrls}`
+					: newUrls;
+			}
+
 			await apiClient.updateVehicleOtherHistory(vehicleId, record.id, {
 				other_date: date,
 				description: description || null,
 				cost: cost ? parseFloat(cost) : null,
 				cost_type: costType,
+				report_url: finalReportUrl || null,
 			});
 
 			toast({
@@ -145,7 +178,7 @@ export function EditOtherHistoryDialog({
 
 					<div className='space-y-2'>
 						<Label htmlFor='edit-other-description'>
-							Description
+							Description *
 						</Label>
 						<Textarea
 							id='edit-other-description'
@@ -153,6 +186,53 @@ export function EditOtherHistoryDialog({
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
 							rows={3}
+							required
+						/>
+					</div>
+
+					<div className='space-y-2'>
+						<Label htmlFor='edit-other-docs'>Documents</Label>
+						{reportUrl && (
+							<div className='mb-2 text-sm'>
+								<div className='flex flex-wrap gap-2'>
+									{reportUrl
+										.split(',')
+										.filter(Boolean)
+										.map((url, i) => (
+											<div
+												key={i}
+												className='flex items-center gap-1 bg-muted px-2 py-1 rounded-md'>
+												<a
+													href={url}
+													target='_blank'
+													rel='noopener noreferrer'
+													className='text-blue-500 hover:underline inline-block truncate max-w-[150px] text-xs'
+													title={url
+														.split('/')
+														.pop()}>
+													{url.split('/').pop() ||
+														`Document ${i + 1}`}
+												</a>
+												<button
+													type='button'
+													className='text-red-500 hover:text-red-700 p-0.5 rounded focus:outline-none'
+													onClick={() =>
+														handleRemoveUrl(url)
+													}
+													title='Remove Document'>
+													<X className='h-3 w-3' />
+												</button>
+											</div>
+										))}
+								</div>
+							</div>
+						)}
+						<Input
+							id='edit-other-docs'
+							type='file'
+							multiple
+							onChange={handleFileChange}
+							accept='.pdf,.png,.jpg,.jpeg,.doc,.docx'
 						/>
 					</div>
 

@@ -693,9 +693,10 @@ export interface VehicleHistoryTotalResponse {
 export interface VehicleOtherHistoryCreate {
 	vehicle_id: number;
 	other_date: string;
-	description?: string | null;
+	description: string;
 	cost?: number | string | null;
 	cost_type?: string;
+	report_url?: string | null;
 }
 
 export interface VehicleOtherHistoryUpdate {
@@ -703,6 +704,7 @@ export interface VehicleOtherHistoryUpdate {
 	description?: string | null;
 	cost?: number | string | null;
 	cost_type?: string;
+	report_url?: string | null;
 }
 
 export interface VehicleRepairHistoryResponse {

@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { apiClient } from '@/lib/api/client';
+import { Loader2, X } from 'lucide-react';
 import {
 	Select,
 	SelectContent,
@@ -40,6 +41,22 @@ export function AddOtherHistoryDialog({
 	const [description, setDescription] = useState('');
 	const [cost, setCost] = useState('');
 	const [costType, setCostType] = useState('Self'); // Expected: 'Self', 'Amazon', 'Insurance'
+	const [documents, setDocuments] = useState<File[]>([]);
+	const [reportUrl, setReportUrl] = useState('');
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files) {
+			setDocuments(Array.from(e.target.files));
+		}
+	};
+
+	const handleRemoveUrl = (urlToRemove: string) => {
+		const newUrls = reportUrl
+			.split(',')
+			.filter((url) => url !== urlToRemove)
+			.join(',');
+		setReportUrl(newUrls);
+	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -54,12 +71,27 @@ export function AddOtherHistoryDialog({
 
 		setIsSubmitting(true);
 		try {
+			let finalReportUrl = reportUrl;
+			if (documents.length > 0) {
+				const uploadResult = await apiClient.batchUploadFiles(
+					documents,
+					'other',
+				);
+				const newUrls = uploadResult.uploaded_files
+					.map((r) => r.file_url)
+					.join(',');
+				finalReportUrl = finalReportUrl
+					? `${finalReportUrl},${newUrls}`
+					: newUrls;
+			}
+
 			await apiClient.createVehicleOtherHistory(vehicleId, {
 				vehicle_id: vehicleId,
 				other_date: date,
 				description,
 				cost: cost ? parseFloat(cost) : null,
 				cost_type: costType,
+				report_url: finalReportUrl || null,
 			});
 
 			toast({
@@ -71,6 +103,8 @@ export function AddOtherHistoryDialog({
 			setDescription('');
 			setCost('');
 			setCostType('Self');
+			setDocuments([]);
+			setReportUrl('');
 
 			onOpenChange(false);
 			if (onSuccess) onSuccess();
@@ -137,13 +171,60 @@ export function AddOtherHistoryDialog({
 					</div>
 
 					<div className='space-y-2'>
-						<Label htmlFor='other-description'>Description</Label>
+						<Label htmlFor='other-description'>Description *</Label>
 						<Textarea
 							id='other-description'
 							placeholder='Reason for cost...'
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
 							rows={3}
+							required
+						/>
+					</div>
+
+					<div className='space-y-2'>
+						<Label htmlFor='other-docs'>Documents</Label>
+						{reportUrl && (
+							<div className='mb-2 text-sm'>
+								<div className='flex flex-wrap gap-2'>
+									{reportUrl
+										.split(',')
+										.filter(Boolean)
+										.map((url, i) => (
+											<div
+												key={i}
+												className='flex items-center gap-1 bg-muted px-2 py-1 rounded-md'>
+												<a
+													href={url}
+													target='_blank'
+													rel='noopener noreferrer'
+													className='text-blue-500 hover:underline inline-block truncate max-w-[150px] text-xs'
+													title={url
+														.split('/')
+														.pop()}>
+													{url.split('/').pop() ||
+														`Document ${i + 1}`}
+												</a>
+												<button
+													type='button'
+													className='text-red-500 hover:text-red-700 p-0.5 rounded focus:outline-none'
+													onClick={() =>
+														handleRemoveUrl(url)
+													}
+													title='Remove Document'>
+													<X className='h-3 w-3' />
+												</button>
+											</div>
+										))}
+								</div>
+							</div>
+						)}
+						<Input
+							id='other-docs'
+							type='file'
+							multiple
+							onChange={handleFileChange}
+							accept='.pdf,.png,.jpg,.jpeg,.doc,.docx'
 						/>
 					</div>
 
@@ -156,7 +237,14 @@ export function AddOtherHistoryDialog({
 							Cancel
 						</Button>
 						<Button type='submit' disabled={isSubmitting}>
-							{isSubmitting ? 'Saving...' : 'Save Record'}
+							{isSubmitting ? (
+								<>
+									<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+									Saving...
+								</>
+							) : (
+								'Save Record'
+							)}
 						</Button>
 					</DialogFooter>
 				</form>

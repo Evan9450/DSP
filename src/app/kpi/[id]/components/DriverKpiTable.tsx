@@ -73,7 +73,7 @@ export function DriverKpiTable({ kpis }: DriverKpiTableProps) {
 						</TableRow>
 					) : (
 						sortedKpis.map((kpi) => (
-							<TableRow key={kpi.id} className={!kpi.is_matched ? 'bg-destructive/5' : ''}>
+							<TableRow key={kpi.id}>
 								<TableCell className='font-medium'>
 									{kpi.rank ? `${kpi.rank}` : '-'}
 								</TableCell>
@@ -120,7 +120,23 @@ export function DriverKpiTable({ kpis }: DriverKpiTableProps) {
 									{formatScore(kpi.overall_score)}
 								</TableCell>
 								<TableCell className='text-right'>{formatNumber(kpi.delivered)}</TableCell>
-								<TableCell className='text-right'>{formatScore(kpi.netradyne_score)}</TableCell>
+								<TableCell className='text-right'>
+									<div className='flex items-center justify-end gap-1.5'>
+										<span>{formatScore(kpi.netradyne_score)}</span>
+										{!kpi.csv_matched && (
+											<TooltipProvider>
+												<Tooltip>
+													<TooltipTrigger>
+														<AlertTriangle className='h-4 w-4 text-amber-500' />
+													</TooltipTrigger>
+													<TooltipContent>
+														<p>缺少实际 Netradyne 数据，此为系统计算的平均得分</p>
+													</TooltipContent>
+												</Tooltip>
+											</TooltipProvider>
+										)}
+									</div>
+								</TableCell>
 								<TableCell className='text-right'>
 									<div className='flex flex-col items-end'>
 										<span>{formatNumber(kpi.dnr_dpmo)}</span>

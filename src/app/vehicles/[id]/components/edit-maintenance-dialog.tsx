@@ -165,9 +165,6 @@ export function EditMaintenanceDialog({
 						<Label htmlFor='edit-maint-docs'>Documents</Label>
 						{reportUrl && (
 							<div className='mb-2 text-sm'>
-								<p className='text-muted-foreground mb-1'>
-									Current Documents:
-								</p>
 								<div className='flex flex-wrap gap-2'>
 									{reportUrl
 										.split(',')

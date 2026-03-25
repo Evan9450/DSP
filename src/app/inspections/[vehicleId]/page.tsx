@@ -19,7 +19,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
 	VehicleInspectionResponse,
 	apiClient,
-	TokenManager,
 } from '@/lib/api/client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -584,12 +583,12 @@ export default function InspectionDetailPage() {
 											key={index}
 											className='relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-colors cursor-pointer group'>
 											<img
-												src={`${photoUrl}?token=${TokenManager.getToken()}`}
+												src={photoUrl}
 												alt={`Current inspection photo ${index + 1}`}
 												className='w-full h-full object-cover group-hover:scale-105 transition-transform'
 												onClick={() =>
 													window.open(
-														`${photoUrl}?token=${TokenManager.getToken()}`,
+														photoUrl,
 														'_blank',
 													)
 												}
@@ -652,12 +651,12 @@ export default function InspectionDetailPage() {
 													key={index}
 													className='relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-gray-400 transition-colors cursor-pointer group'>
 													<img
-														src={`${photoUrl}?token=${TokenManager.getToken()}`}
+														src={photoUrl}
 														alt={`Previous inspection photo ${index + 1}`}
 														className='w-full h-full object-cover group-hover:scale-105 transition-transform'
 														onClick={() =>
 															window.open(
-																`${photoUrl}?token=${TokenManager.getToken()}`,
+																photoUrl,
 																'_blank',
 															)
 														}

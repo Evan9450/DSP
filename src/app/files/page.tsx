@@ -469,7 +469,7 @@ export default function FilesPage() {
 												<FileIcon className='h-4 w-4 text-gray-500' />
 												<div>
 													<p className='font-medium text-zinc-900'>
-														{file.original_filename}
+														{file.file_name}
 													</p>
 													<p className='text-xs text-gray-500'>
 														ID: {file.id}
@@ -501,7 +501,7 @@ export default function FilesPage() {
 													onClick={() =>
 														handleViewFile(
 															file.id,
-															file.original_filename,
+															file.file_name,
 														)
 													}
 													className='text-xs text-indigo-600 hover:text-indigo-700 underline truncate flex-1 text-left'>
@@ -513,7 +513,7 @@ export default function FilesPage() {
 													onClick={() =>
 														handleViewFile(
 															file.id,
-															file.original_filename,
+															file.file_name,
 														)
 													}
 													className='text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 h-6 w-6 p-0 shrink-0'>
@@ -523,9 +523,7 @@ export default function FilesPage() {
 										</TableCell>
 										<TableCell className='text-sm text-gray-600'>
 											{formatDate(
-												file.updated_at
-													? file.updated_at
-													: '',
+												file.updated_at || file.created_at
 											)}
 										</TableCell>
 										<TableCell>
@@ -536,7 +534,7 @@ export default function FilesPage() {
 													onClick={() =>
 														handleViewFile(
 															file.id,
-															file.original_filename,
+															file.file_name,
 														)
 													}
 													className='text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 h-8 w-8 p-0'>
@@ -548,7 +546,7 @@ export default function FilesPage() {
 													onClick={() =>
 														handleDeleteFile(
 															file.id,
-															file.original_filename,
+															file.file_name,
 														)
 													}
 													className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 p-0'>

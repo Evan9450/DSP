@@ -836,15 +836,15 @@ export interface MessageTemplateUpdate {
 // File Management Types
 export interface FileRecordResponse {
 	id: number;
-	filename: string;
-	original_filename: string;
+	object_key: string;
 	file_url: string;
+	file_name: string;
 	file_size: number;
 	content_type: string;
 	folder: string;
-	uploaded_at: string;
-	created_at?: string;
-	updated_at?: string;
+	uploaded_by?: number | null;
+	created_at: string;
+	updated_at: string;
 }
 
 export interface BatchDeleteFilesRequest {

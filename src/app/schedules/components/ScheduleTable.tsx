@@ -201,7 +201,9 @@ export function ScheduleTable({
 									}`}>
 									{/* Driver Name Column */}
 									{/* ===== Driver Column (FIXED) ===== */}
-									<TableCell>{ schedule.driver!.name}</TableCell>
+									<TableCell>
+										{schedule.driver!.name}
+									</TableCell>
 									{/* <TableCell>
 										{isEditable ? (
 											<Select
@@ -390,80 +392,127 @@ export function ScheduleTable({
 												</SelectTrigger>
 												<SelectContent>
 													<SelectItem value='unassigned'>
-										<div className='flex items-center gap-2 text-orange-600'>
-											<MapPin className='h-4 w-4' />
-											Unassign Route
-										</div>
-									</SelectItem>
-									{(() => {
-										// DEBUG: Log allRoutes prop
-										console.log('🔍 allRoutes prop:', allRoutes);
-										console.log('🔍 allRoutes length:', allRoutes.length);
+														<div className='flex items-center gap-2 text-orange-600'>
+															<MapPin className='h-4 w-4' />
+															Unassign Route
+														</div>
+													</SelectItem>
+													{(() => {
+														// DEBUG: Log allRoutes prop
+														console.log(
+															'🔍 allRoutes prop:',
+															allRoutes,
+														);
+														console.log(
+															'🔍 allRoutes length:',
+															allRoutes.length,
+														);
 
-										// 1. Get routes assigned to OTHER schedules (excluding current)
-										const assignedRoutes = new Set(
-											schedules
-												.filter(
-													(s) =>
-														s.id !== schedule.id &&
-														s.route,
-												)
-												.map((s) => s.route!),
-										);
+														// 1. Get routes assigned to OTHER schedules (excluding current)
+														const assignedRoutes =
+															new Set(
+																schedules
+																	.filter(
+																		(s) =>
+																			s.id !==
+																				schedule.id &&
+																			s.route,
+																	)
+																	.map(
+																		(s) =>
+																			s.route!,
+																	),
+															);
 
-										console.log('🔍 assignedRoutes:', Array.from(assignedRoutes));
+														console.log(
+															'🔍 assignedRoutes:',
+															Array.from(
+																assignedRoutes,
+															),
+														);
 
-										// 2. Get available routes (not assigned to other schedules)
-										const availableRoutes = allRoutes.filter(
-											(r) => !assignedRoutes.has(r),
-										);
+														// 2. Get available routes (not assigned to other schedules)
+														const availableRoutes =
+															allRoutes.filter(
+																(r) =>
+																	!assignedRoutes.has(
+																		r,
+																	),
+															);
 
-										console.log('🔍 availableRoutes:', availableRoutes);
+														console.log(
+															'🔍 availableRoutes:',
+															availableRoutes,
+														);
 
-										// 3. If current schedule has a route, ensure it's in the list
-										// (even if it's not in the master list, e.g., legacy/custom routes)
-										const routesToShow = schedule.route
-											? Array.from(
-													new Set([
-														...availableRoutes,
-														schedule.route,
-													]),
-												).sort((a, b) =>
-													a.localeCompare(
-														b,
-														undefined,
-														{
-															numeric: true,
-															sensitivity: 'base',
-														},
-													),
-												)
-											: availableRoutes.sort((a, b) =>
-													a.localeCompare(
-														b,
-														undefined,
-														{
-															numeric: true,
-															sensitivity: 'base',
-														},
-													),
-												);
+														// 3. If current schedule has a route, ensure it's in the list
+														// (even if it's not in the master list, e.g., legacy/custom routes)
+														const routesToShow =
+															schedule.route
+																? Array.from(
+																		new Set(
+																			[
+																				...availableRoutes,
+																				schedule.route,
+																			],
+																		),
+																	).sort(
+																		(
+																			a,
+																			b,
+																		) =>
+																			a.localeCompare(
+																				b,
+																				undefined,
+																				{
+																					numeric: true,
+																					sensitivity:
+																						'base',
+																				},
+																			),
+																	)
+																: availableRoutes.sort(
+																		(
+																			a,
+																			b,
+																		) =>
+																			a.localeCompare(
+																				b,
+																				undefined,
+																				{
+																					numeric: true,
+																					sensitivity:
+																						'base',
+																				},
+																			),
+																	);
 
-										console.log('🔍 routesToShow:', routesToShow);
+														console.log(
+															'🔍 routesToShow:',
+															routesToShow,
+														);
 
-										return routesToShow.map((routeCode) => (
-											<SelectItem
-												key={routeCode}
-												value={routeCode}>
-												<div className='flex items-center gap-2'>
-													<MapPin className='h-4 w-4 text-gray-500' />
-													<span className='font-mono'>
-														{routeCode}
-													</span>
-												</div>
-											</SelectItem>
-										));
-									})()}
+														return routesToShow.map(
+															(routeCode) => (
+																<SelectItem
+																	key={
+																		routeCode
+																	}
+																	value={
+																		routeCode
+																	}>
+																	<div className='flex items-center gap-2'>
+																		<MapPin className='h-4 w-4 text-gray-500' />
+																		<span className='font-mono'>
+																			{
+																				routeCode
+																			}
+																		</span>
+																	</div>
+																</SelectItem>
+															),
+														);
+													})()}
 												</SelectContent>
 											</Select>
 										) : schedule.route ? (
@@ -510,10 +559,10 @@ export function ScheduleTable({
 									<TableCell>
 										{isEditable ? (
 											<Select
-												disabled={
-													schedule.confirm_status ===
-													'confirmed'
-												}
+												// disabled={
+												// 	schedule.confirm_status ===
+												// 	'confirmed'
+												// }
 												value={
 													schedule.vehicle_alias ||
 													'unassigned'

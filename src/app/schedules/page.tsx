@@ -218,10 +218,10 @@ export default function ScheduleTablePage() {
 	) => {
 		// Check if schedule is confirmed
 		const targetSchedule = scheduleData.find((s) => s.id === scheduleId);
-		if (targetSchedule?.confirm_status === 'confirmed') {
-			notify.warning('Cannot change driver for a confirmed schedule');
-			return;
-		}
+		// if (targetSchedule?.confirm_status === 'confirmed') {
+		// 	notify.warning('Cannot change driver for a confirmed schedule');
+		// 	return;
+		// }
 
 		console.log(
 			'🔄 Changing driver for schedule',
@@ -451,10 +451,10 @@ export default function ScheduleTablePage() {
 	) => {
 		// Check if schedule is confirmed
 		const targetSchedule = scheduleData.find((s) => s.id === scheduleId);
-		if (targetSchedule?.confirm_status === 'confirmed') {
-			notify.warning('Cannot change vehicle for a confirmed schedule');
-			return;
-		}
+		// if (targetSchedule?.confirm_status === 'confirmed') {
+		// 	notify.warning('Cannot change vehicle for a confirmed schedule');
+		// 	return;
+		// }
 
 		// Handle unassign case
 		if (!vehicleAlias) {
@@ -591,10 +591,10 @@ export default function ScheduleTablePage() {
 	const handleRouteChange = async (scheduleId: number, routeCode: string) => {
 		// Check if schedule is confirmed
 		const targetSchedule = scheduleData.find((s) => s.id === scheduleId);
-		if (targetSchedule?.confirm_status === 'confirmed') {
-			notify.warning('Cannot change route for a confirmed schedule');
-			return;
-		}
+		// if (targetSchedule?.confirm_status === 'confirmed') {
+		// 	notify.warning('Cannot change route for a confirmed schedule');
+		// 	return;
+		// }
 
 		console.log(
 			'🔄 Changing route for schedule',
@@ -734,20 +734,26 @@ export default function ScheduleTablePage() {
 				(s) => s.confirm_status !== 'confirmed',
 			);
 
+			// [NEW] Check if all imported routes have been assigned to at least one schedule
+			if (allRoutes && allRoutes.length > 0) {
+				const assignedRoutes = new Set(
+					scheduleData
+						.map((s) => s.route)
+						.filter((r): r is string => !!r)
+				);
+				
+				const unassignedRoutes = allRoutes.filter(route => !assignedRoutes.has(route));
+				
+				if (unassignedRoutes.length > 0) {
+					notify.warning(`Cannot confirm: The following imported routes have not been assigned yet: ${unassignedRoutes.join(', ')}`);
+					return;
+				}
+			}
+
 			if (pendingSchedules.length === 0) {
 				notify.info('All schedules are already confirmed');
 				return;
 			}
-
-			/**
-			 * ⏭️ 1. 没有 route 的 schedules：直接跳过，不参与 confirm
-			 */
-			const skippedSchedules = pendingSchedules.filter((s) => !s.route);
-
-			/**
-			 * ✅ 2. 有 route 的 schedules：才有资格进入 confirm 校验
-			 */
-			const routeSchedules = pendingSchedules.filter((s) => s.route);
 
 			const checkUnassignedDriver = pendingSchedules.filter(
 				(s) => s.driver,
@@ -765,9 +771,16 @@ export default function ScheduleTablePage() {
 				return hasDriver && hasAmazonId && hasVehicle && hasPassword;
 			};
 
-			const validSchedules = routeSchedules.filter(canConfirm);
-			const invalidSchedules = routeSchedules.filter(
-				(s) => !canConfirm(s),
+			const validSchedules = pendingSchedules.filter(canConfirm);
+
+			// Automatically skip schedules that have no route AND no vehicle
+			const skippedSchedules = pendingSchedules.filter(
+				(s) => !s.route && !s.vehicle_alias && !s.vehicle_rego
+			);
+
+			// Invalid schedules are those that aren't valid, but also shouldn't be simply skipped
+			const invalidSchedules = pendingSchedules.filter(
+				(s) => !canConfirm(s) && !skippedSchedules.includes(s),
 			);
 
 			/**
@@ -789,15 +802,6 @@ export default function ScheduleTablePage() {
 			if (validSchedules.length === 0) {
 				notify.info('No schedules eligible for confirmation');
 				return;
-			}
-
-			/**
-			 * ⏭️（可选但推荐）提示被跳过的数量
-			 */
-			if (skippedSchedules.length > 0) {
-				notify.info(
-					`${skippedSchedules.length} schedules without route were skipped`,
-				);
 			}
 
 			/**
@@ -1031,8 +1035,8 @@ export default function ScheduleTablePage() {
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50'>
 			<div className='container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl'>
 				<div className='mb-6'>
-				<h1 className='text-3xl font-bold text-gray-900'>
-					Schedules
+					<h1 className='text-3xl font-bold text-gray-900'>
+						Schedules
 					</h1>
 				</div>
 				<div className='mb-4 sm:mb-6 flex items-center justify-between'>

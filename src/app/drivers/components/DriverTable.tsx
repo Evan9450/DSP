@@ -13,6 +13,8 @@ import {
 	Trash2,
 	Upload,
 	User,
+	Check,
+	X,
 } from 'lucide-react';
 import {
 	Table,
@@ -85,11 +87,11 @@ const DriverTable = ({
 						<TableHead className='text-sm text-gray-500'>
 							Driver Name
 						</TableHead>
-						{/* <TableHead className='text-sm text-gray-500'>
-							Driver ID
-						</TableHead> */}
 						<TableHead className='text-sm text-gray-500'>
 							Amazon ID
+						</TableHead>
+						<TableHead className='text-sm text-gray-500'>
+							Netradyne ID
 						</TableHead>
 						<TableHead className='text-sm text-gray-500'>
 							Contact
@@ -139,23 +141,9 @@ const DriverTable = ({
 										<p className='font-semibold text-zinc-900'>
 											{driver.name}
 										</p>
-										{/* <div className='flex items-center gap-1 mt-1'>
-											<div className='flex items-center gap-1'>
-												<div className='w-2 h-2 rounded-full bg-emerald-500'></div>
-												<span className='text-sm text-gray-500'>
-													{driver.deputyId}
-												</span>
-											</div>
-										</div> */}
 									</div>
 								</TableCell>
-								<TableCell>
-									<Badge
-										variant='outline'
-										className='font-mono text-xs border-gray-300'>
-										{driver.driverId || '-'}
-									</Badge>
-								</TableCell>
+
 								<TableCell>
 									<Badge
 										variant='outline'
@@ -170,6 +158,20 @@ const DriverTable = ({
 											</span>
 										</div>
 									)}
+								</TableCell>
+								<TableCell>
+									{/* {driver.netradyneId ? (
+										<Check className='w-4 h-4 text-green-500' />
+									) : (
+										<X className='w-4 h-4 text-gray-300' />
+									)} */}
+									<div
+										className={`w-2.5 h-2.5 rounded-full ${
+											driver.netradyneId
+												? 'bg-green-500'
+												: 'bg-red-500'
+										}`}
+									/>
 								</TableCell>
 								<TableCell className='text-gray-600 text-sm'>
 									{driver.phone && (

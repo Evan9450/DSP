@@ -99,6 +99,7 @@ export interface Driver {
 	address?: string;
 	deputyId?: string; // Synced from Deputy
 	isActive?: boolean;
+	netradyneId?: string;
 	// License fields
 	license_number?: string;
 	license_expiry_date?: string;

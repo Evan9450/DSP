@@ -40,6 +40,7 @@ export function convertDriver(apiDriver: DriverResponse): Driver {
 		amazonPassword: apiDriver.amazon_password,
 		driverId: apiDriver.driver_id,
 		deputyId: apiDriver.deputy_id,
+		netradyneId: apiDriver.netradyne_id,
 		isActive: apiDriver.is_active,
 		// License fields
 		license_number: apiDriver.license_number,
@@ -53,7 +54,7 @@ export function convertDriver(apiDriver: DriverResponse): Driver {
 }
 
 export function convertDriverDocument(
-	apiDoc: DriverDocumentResponse
+	apiDoc: DriverDocumentResponse,
 ): DriverDocument {
 	return {
 		id: apiDoc.id.toString(),
@@ -101,7 +102,7 @@ export function convertVehicle(apiVehicle: VehicleResponse): Vehicle {
 }
 
 export function convertVehicleInspection(
-	apiInspection: VehicleInspectionResponse
+	apiInspection: VehicleInspectionResponse,
 ): VehicleInspection {
 	// Convert photo URLs to VehiclePhoto objects
 	const photos: VehiclePhoto[] = (apiInspection.inspection_urls || []).map(
@@ -111,7 +112,7 @@ export function convertVehicleInspection(
 			url: url,
 			uploadedBy: apiInspection.driver_id.toString(),
 			uploadedAt: new Date(apiInspection.created_at),
-		})
+		}),
 	);
 
 	// Map inspection_status to VehicleInspectionStatus
@@ -199,7 +200,7 @@ export function convertAsset(apiAsset: AssetResponse): Asset {
 }
 
 export function convertBorrowRecord(
-	apiRecord: BorrowRecordResponse
+	apiRecord: BorrowRecordResponse,
 ): BorrowRecord {
 	return {
 		id: apiRecord.id.toString(),

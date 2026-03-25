@@ -1,7 +1,15 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Upload, Trash2, ExternalLink, RefreshCw, Folder, File as FileIcon, Eye } from 'lucide-react';
+import {
+	Upload,
+	Trash2,
+	ExternalLink,
+	RefreshCw,
+	Folder,
+	File as FileIcon,
+	Eye,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +33,7 @@ import {
 
 export default function FilesPage() {
 	const [files, setFiles] = useState<FileRecordResponse[]>([]);
+	console.log('files', files);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isUploading, setIsUploading] = useState(false);
 	const [isViewing, setIsViewing] = useState(false);
@@ -51,7 +60,9 @@ export default function FilesPage() {
 		fetchFiles();
 	}, [folderFilter]);
 
-	const handleSingleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+	const handleSingleUpload = async (
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => {
 		const file = event.target.files?.[0];
 		if (!file) return;
 
@@ -71,7 +82,9 @@ export default function FilesPage() {
 		}
 	};
 
-	const handleBatchUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+	const handleBatchUpload = async (
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => {
 		const fileList = event.target.files;
 		if (!fileList || fileList.length === 0) return;
 
@@ -117,7 +130,9 @@ export default function FilesPage() {
 
 		try {
 			await apiClient.batchDeleteFiles(selectedFiles);
-			notify.success(`${selectedFiles.length} file(s) deleted successfully`);
+			notify.success(
+				`${selectedFiles.length} file(s) deleted successfully`,
+			);
 			await fetchFiles();
 			setSelectedFiles([]);
 		} catch (error) {
@@ -156,7 +171,7 @@ export default function FilesPage() {
 		setSelectedFiles((prev) =>
 			prev.includes(fileId)
 				? prev.filter((id) => id !== fileId)
-				: [...prev, fileId]
+				: [...prev, fileId],
 		);
 	};
 
@@ -173,7 +188,9 @@ export default function FilesPage() {
 		const k = 1024;
 		const sizes = ['B', 'KB', 'MB', 'GB'];
 		const i = Math.floor(Math.log(bytes) / Math.log(k));
-		return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+		return (
+			Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+		);
 	};
 
 	const formatDate = (dateString: string): string => {
@@ -188,7 +205,9 @@ export default function FilesPage() {
 			<div className='min-h-screen bg-zinc-100 flex items-center justify-center'>
 				<div className='text-center'>
 					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-zinc-900 mx-auto'></div>
-					<p className='mt-4 text-sm text-gray-500'>Loading files...</p>
+					<p className='mt-4 text-sm text-gray-500'>
+						Loading files...
+					</p>
 				</div>
 			</div>
 		);
@@ -226,7 +245,9 @@ export default function FilesPage() {
 
 					<div className='grid gap-4 md:grid-cols-2'>
 						<div>
-							<Label className='text-sm text-gray-700'>Folder Path</Label>
+							<Label className='text-sm text-gray-700'>
+								Folder Path
+							</Label>
 							<Input
 								value={folder}
 								onChange={(e) => setFolder(e.target.value)}
@@ -236,7 +257,9 @@ export default function FilesPage() {
 						</div>
 
 						<div>
-							<Label className='text-sm text-gray-700'>Single File Upload</Label>
+							<Label className='text-sm text-gray-700'>
+								Single File Upload
+							</Label>
 							<div className='flex gap-2'>
 								<Input
 									type='file'
@@ -247,7 +270,9 @@ export default function FilesPage() {
 								/>
 								<Button
 									variant='outline'
-									onClick={() => fileInputRef.current?.click()}
+									onClick={() =>
+										fileInputRef.current?.click()
+									}
 									disabled={isUploading}
 									className='rounded-md'>
 									<Upload className='h-4 w-4' />
@@ -256,7 +281,9 @@ export default function FilesPage() {
 						</div>
 
 						<div className='md:col-span-2'>
-							<Label className='text-sm text-gray-700'>Batch Upload (Multiple Files)</Label>
+							<Label className='text-sm text-gray-700'>
+								Batch Upload (Multiple Files)
+							</Label>
 							<div className='flex gap-2'>
 								<Input
 									type='file'
@@ -268,7 +295,9 @@ export default function FilesPage() {
 								/>
 								<Button
 									variant='outline'
-									onClick={() => batchFileInputRef.current?.click()}
+									onClick={() =>
+										batchFileInputRef.current?.click()
+									}
 									disabled={isUploading}
 									className='rounded-md'>
 									<Upload className='h-4 w-4' />
@@ -292,7 +321,9 @@ export default function FilesPage() {
 					<div className='fixed top-4 right-4 bg-white shadow-lg rounded-lg p-4 border border-gray-200 z-50'>
 						<div className='flex items-center gap-3'>
 							<div className='animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600'></div>
-							<span className='text-sm text-gray-700'>Loading file...</span>
+							<span className='text-sm text-gray-700'>
+								Loading file...
+							</span>
 						</div>
 					</div>
 				)}
@@ -301,11 +332,15 @@ export default function FilesPage() {
 				<Card className='bg-white shadow-sm hover:shadow-md transition-shadow rounded-lg p-6 mb-6'>
 					<div className='flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center'>
 						<div className='flex-1 max-w-md'>
-							<Label className='text-sm text-gray-700'>Filter by Folder</Label>
+							<Label className='text-sm text-gray-700'>
+								Filter by Folder
+							</Label>
 							<div className='flex gap-2'>
 								<Input
 									value={folderFilter}
-									onChange={(e) => setFolderFilter(e.target.value)}
+									onChange={(e) =>
+										setFolderFilter(e.target.value)
+									}
 									placeholder='Enter folder name...'
 									className='rounded-md'
 								/>
@@ -363,8 +398,12 @@ export default function FilesPage() {
 					{files.length === 0 ? (
 						<div className='text-center py-12'>
 							<FileIcon className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-							<p className='text-base text-gray-700'>No files found</p>
-							<p className='text-sm text-gray-500'>Upload files to get started</p>
+							<p className='text-base text-gray-700'>
+								No files found
+							</p>
+							<p className='text-sm text-gray-500'>
+								Upload files to get started
+							</p>
 						</div>
 					) : (
 						<Table>
@@ -373,18 +412,35 @@ export default function FilesPage() {
 									<TableHead className='w-[50px]'>
 										<input
 											type='checkbox'
-											checked={selectedFiles.length === files.length}
+											checked={
+												selectedFiles.length ===
+												files.length
+											}
 											onChange={toggleSelectAll}
 											className='h-4 w-4 rounded border-gray-300'
 										/>
 									</TableHead>
-									<TableHead className='text-sm text-gray-500'>Filename</TableHead>
-									<TableHead className='text-sm text-gray-500'>Folder</TableHead>
-									<TableHead className='text-sm text-gray-500'>Size</TableHead>
-									<TableHead className='text-sm text-gray-500'>Type</TableHead>
-									<TableHead className='text-sm text-gray-500'>File URL</TableHead>
-									<TableHead className='text-sm text-gray-500'>Uploaded</TableHead>
-									<TableHead className='text-sm text-gray-500'>Actions</TableHead>
+									<TableHead className='text-sm text-gray-500'>
+										Filename
+									</TableHead>
+									<TableHead className='text-sm text-gray-500'>
+										Folder
+									</TableHead>
+									<TableHead className='text-sm text-gray-500'>
+										Size
+									</TableHead>
+									<TableHead className='text-sm text-gray-500'>
+										Type
+									</TableHead>
+									<TableHead className='text-sm text-gray-500'>
+										File URL
+									</TableHead>
+									<TableHead className='text-sm text-gray-500'>
+										Uploaded
+									</TableHead>
+									<TableHead className='text-sm text-gray-500'>
+										Actions
+									</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -399,8 +455,12 @@ export default function FilesPage() {
 										<TableCell>
 											<input
 												type='checkbox'
-												checked={selectedFiles.includes(file.id)}
-												onChange={() => toggleSelectFile(file.id)}
+												checked={selectedFiles.includes(
+													file.id,
+												)}
+												onChange={() =>
+													toggleSelectFile(file.id)
+												}
 												className='h-4 w-4 rounded border-gray-300'
 											/>
 										</TableCell>
@@ -418,7 +478,9 @@ export default function FilesPage() {
 											</div>
 										</TableCell>
 										<TableCell>
-											<Badge variant='outline' className='border-gray-300'>
+											<Badge
+												variant='outline'
+												className='border-gray-300'>
 												<Folder className='h-3 w-3 mr-1' />
 												{file.folder}
 											</Badge>
@@ -427,7 +489,9 @@ export default function FilesPage() {
 											{formatFileSize(file.file_size)}
 										</TableCell>
 										<TableCell>
-											<Badge variant='outline' className='text-xs border-gray-300'>
+											<Badge
+												variant='outline'
+												className='text-xs border-gray-300'>
 												{file.content_type}
 											</Badge>
 										</TableCell>
@@ -437,7 +501,7 @@ export default function FilesPage() {
 													onClick={() =>
 														handleViewFile(
 															file.id,
-															file.original_filename
+															file.original_filename,
 														)
 													}
 													className='text-xs text-indigo-600 hover:text-indigo-700 underline truncate flex-1 text-left'>
@@ -449,7 +513,7 @@ export default function FilesPage() {
 													onClick={() =>
 														handleViewFile(
 															file.id,
-															file.original_filename
+															file.original_filename,
 														)
 													}
 													className='text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 h-6 w-6 p-0 shrink-0'>
@@ -458,7 +522,11 @@ export default function FilesPage() {
 											</div>
 										</TableCell>
 										<TableCell className='text-sm text-gray-600'>
-											{formatDate(file.uploaded_at)}
+											{formatDate(
+												file.updated_at
+													? file.updated_at
+													: '',
+											)}
 										</TableCell>
 										<TableCell>
 											<div className='flex items-center gap-2'>
@@ -468,7 +536,7 @@ export default function FilesPage() {
 													onClick={() =>
 														handleViewFile(
 															file.id,
-															file.original_filename
+															file.original_filename,
 														)
 													}
 													className='text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 h-8 w-8 p-0'>
@@ -480,7 +548,7 @@ export default function FilesPage() {
 													onClick={() =>
 														handleDeleteFile(
 															file.id,
-															file.original_filename
+															file.original_filename,
 														)
 													}
 													className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 p-0'>

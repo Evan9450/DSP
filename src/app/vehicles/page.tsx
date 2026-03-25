@@ -338,7 +338,10 @@ export default function VehiclesPage() {
 				{/* Stats Cards */}
 
 				<div className='grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6'>
-					<Card className='p-4 bg-green-50 border-green-200'>
+					<Card 
+						className={`p-4 cursor-pointer transition-all border-green-200 ${conditionFilter === 'available' && !showArchived ? 'ring-2 ring-green-500 shadow-md bg-green-100' : 'bg-green-50 hover:bg-green-100'}`}
+						onClick={() => handleFilter('available')}
+					>
 						<div className='flex items-center justify-between'>
 							<div>
 								<p className='text-sm text-green-700 font-medium'>
@@ -351,7 +354,10 @@ export default function VehiclesPage() {
 							<div className='w-3 h-3 rounded-full bg-green-500'></div>
 						</div>
 					</Card>
-					<Card className='p-4 bg-yellow-50 border-yellow-200'>
+					<Card 
+						className={`p-4 cursor-pointer transition-all border-yellow-200 ${conditionFilter === 'need-repair' && !showArchived ? 'ring-2 ring-yellow-500 shadow-md bg-yellow-100' : 'bg-yellow-50 hover:bg-yellow-100'}`}
+						onClick={() => handleFilter('need-repair')}
+					>
 						<div className='flex items-center justify-between'>
 							<div>
 								<p className='text-sm text-yellow-700 font-medium'>
@@ -364,7 +370,10 @@ export default function VehiclesPage() {
 							<div className='w-3 h-3 rounded-full bg-yellow-500'></div>
 						</div>
 					</Card>
-					<Card className='p-4 bg-red-50 border-red-200'>
+					<Card 
+						className={`p-4 cursor-pointer transition-all border-red-200 ${conditionFilter === 'unavailable' && !showArchived ? 'ring-2 ring-red-500 shadow-md bg-red-100' : 'bg-red-50 hover:bg-red-100'}`}
+						onClick={() => handleFilter('unavailable')}
+					>
 						<div className='flex items-center justify-between'>
 							<div>
 								<p className='text-sm text-red-700 font-medium'>
@@ -377,7 +386,10 @@ export default function VehiclesPage() {
 							<div className='w-3 h-3 rounded-full bg-red-500'></div>
 						</div>
 					</Card>
-					<Card className='p-4 bg-indigo-50 border-indigo-200'>
+					<Card 
+						className={`p-4 cursor-pointer transition-all border-indigo-200 ${conditionFilter === 'supplementary' && !showArchived ? 'ring-2 ring-indigo-500 shadow-md bg-indigo-100' : 'bg-indigo-50 hover:bg-indigo-100'}`}
+						onClick={() => handleFilter('supplementary')}
+					>
 						<div className='flex items-center justify-between'>
 							<div>
 								<p className='text-sm text-indigo-700 font-medium'>
@@ -407,73 +419,13 @@ export default function VehiclesPage() {
 					<div className='flex gap-2'>
 						<Button
 							variant={
-								conditionFilter === 'all'
+								conditionFilter === 'all' && !showArchived
 									? 'default'
 									: 'outline'
 							}
 							onClick={() => handleFilter('all')}
 							size='sm'>
 							All
-						</Button>
-						<Button
-							variant={
-								conditionFilter === 'available'
-									? 'default'
-									: 'outline'
-							}
-							onClick={() => handleFilter('available')}
-							size='sm'
-							className={
-								conditionFilter === 'available'
-									? 'bg-green-600'
-									: ''
-							}>
-							Ready
-						</Button>
-						<Button
-							variant={
-								conditionFilter === 'need-repair'
-									? 'default'
-									: 'outline'
-							}
-							onClick={() => handleFilter('need-repair')}
-							size='sm'
-							className={
-								conditionFilter === 'need-repair'
-									? 'bg-yellow-600'
-									: ''
-							}>
-							Needs Repair
-						</Button>
-						<Button
-							variant={
-								conditionFilter === 'unavailable'
-									? 'default'
-									: 'outline'
-							}
-							onClick={() => handleFilter('unavailable')}
-							size='sm'
-							className={
-								conditionFilter === 'unavailable'
-									? 'bg-red-600'
-									: ''
-							}>
-							Unavailable
-						</Button>
-						<Button
-							variant={
-								conditionFilter === 'supplementary'
-									? 'default'
-									: 'outline'
-							}
-							onClick={() => handleFilter('supplementary')}
-							size='sm'
-							className={
-								conditionFilter === 'supplementary'
-									? 'bg-indigo-600'
-									: ''
-							}>
-							Supplementary
 						</Button>
 						<Button
 							variant={showArchived ? 'default' : 'outline'}

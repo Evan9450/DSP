@@ -43,6 +43,7 @@ export function VehicleHistoryCard({
 	const [isLoading, setIsLoading] = useState(true);
 	const [historyData, setHistoryData] =
 		useState<VehicleHistoryTotalResponse | null>(null);
+	console.log('historyData', historyData);
 	const [records, setRecords] = useState<UnifiedHistoryItem[]>([]);
 
 	const [showAddOtherDialog, setShowAddOtherDialog] = useState(false);

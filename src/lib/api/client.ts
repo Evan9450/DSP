@@ -682,6 +682,7 @@ export interface UnifiedHistoryItem {
 	cost?: string | null;
 	action?: string | null;
 	metadata?: Record<string, any> | null;
+	report_url?: string | null;
 }
 
 export interface VehicleHistoryTotalResponse {
@@ -842,6 +843,8 @@ export interface FileRecordResponse {
 	content_type: string;
 	folder: string;
 	uploaded_at: string;
+	created_at?: string;
+	updated_at?: string;
 }
 
 export interface BatchDeleteFilesRequest {

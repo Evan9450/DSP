@@ -55,7 +55,7 @@ export function EditOtherHistoryDialog({
 		setDescription(record.description ?? '');
 		setCost(record.cost ? String(record.cost) : '');
 		setCostType(record.cost_type ?? 'Self');
-		setReportUrl(record.action || '');
+		setReportUrl(record.report_url || record.action || '');
 		setDocuments([]);
 	}, [record]);
 

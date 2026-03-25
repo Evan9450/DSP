@@ -51,7 +51,7 @@ export function EditRepairDialog({
 		setDescription(record.description ?? '');
 		setCost(record.cost ? String(record.cost) : '');
 		setSupplierId(record.metadata?.supplier_id ?? undefined);
-		setReportUrl(record.action || '');
+		setReportUrl(record.report_url || record.action || '');
 		setDocuments([]);
 	}, [record]);
 

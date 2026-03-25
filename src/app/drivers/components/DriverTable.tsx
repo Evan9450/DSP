@@ -85,9 +85,9 @@ const DriverTable = ({
 						<TableHead className='text-sm text-gray-500'>
 							Driver Name
 						</TableHead>
-						<TableHead className='text-sm text-gray-500'>
+						{/* <TableHead className='text-sm text-gray-500'>
 							Driver ID
-						</TableHead>
+						</TableHead> */}
 						<TableHead className='text-sm text-gray-500'>
 							Amazon ID
 						</TableHead>

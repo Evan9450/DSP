@@ -16,7 +16,11 @@ import {
 	XCircle,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { VehicleInspectionResponse, apiClient } from '@/lib/api/client';
+import {
+	VehicleInspectionResponse,
+	apiClient,
+	TokenManager,
+} from '@/lib/api/client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
@@ -580,12 +584,12 @@ export default function InspectionDetailPage() {
 											key={index}
 											className='relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-colors cursor-pointer group'>
 											<img
-												src={photoUrl}
+												src={`${photoUrl}?token=${TokenManager.getToken()}`}
 												alt={`Current inspection photo ${index + 1}`}
 												className='w-full h-full object-cover group-hover:scale-105 transition-transform'
 												onClick={() =>
 													window.open(
-														photoUrl,
+														`${photoUrl}?token=${TokenManager.getToken()}`,
 														'_blank',
 													)
 												}
@@ -648,12 +652,12 @@ export default function InspectionDetailPage() {
 													key={index}
 													className='relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-gray-400 transition-colors cursor-pointer group'>
 													<img
-														src={photoUrl}
+														src={`${photoUrl}?token=${TokenManager.getToken()}`}
 														alt={`Previous inspection photo ${index + 1}`}
 														className='w-full h-full object-cover group-hover:scale-105 transition-transform'
 														onClick={() =>
 															window.open(
-																photoUrl,
+																`${photoUrl}?token=${TokenManager.getToken()}`,
 																'_blank',
 															)
 														}

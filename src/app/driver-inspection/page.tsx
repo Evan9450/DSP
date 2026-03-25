@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { driverApiClient } from '@/lib/api/driver-client';
+import { driverApiClient, DriverTokenManager } from '@/lib/api/driver-client';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
@@ -457,7 +457,7 @@ export default function DriverInspectionPage() {
 									key={`existing-${index}`}
 									className='relative aspect-square rounded-lg overflow-hidden border-2 border-green-300'>
 									<img
-										src={url}
+										src={`${url}?token=${DriverTokenManager.getToken()}`}
 										alt={`Saved photo ${index + 1}`}
 										className='w-full h-full object-cover'
 									/>

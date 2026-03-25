@@ -946,7 +946,7 @@ export function getTokenExpiration(token: string): Date | null {
 // Token Management
 // ============================================================================
 
-class TokenManager {
+export class TokenManager {
 	private static readonly ADMIN_TOKEN_KEY = 'admin_token';
 	private static readonly DRIVER_TOKEN_KEY = 'driver_token';
 

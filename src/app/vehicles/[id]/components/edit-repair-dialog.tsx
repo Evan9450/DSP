@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { RepairSupplierSelect } from './repair-supplier-select';
-import { apiClient, type UnifiedHistoryItem } from '@/lib/api/client';
+import { apiClient, type UnifiedHistoryItem, TokenManager } from '@/lib/api/client';
 import { Loader2, X } from 'lucide-react';
 
 interface EditRepairDialogProps {
@@ -187,14 +187,12 @@ export function EditRepairDialog({
 												key={i}
 												className='flex items-center gap-1 bg-muted px-2 py-1 rounded-md'>
 												<a
-													href={url}
+													href={`${url}?token=${TokenManager.getToken()}`}
 													target='_blank'
 													rel='noopener noreferrer'
 													className='text-blue-500 hover:underline inline-block truncate max-w-[150px] text-xs'
-													title={url
-														.split('/')
-														.pop()}>
-													{url.split('/').pop() ||
+													title={decodeURI(url.split('/').pop() || '')}>
+													{decodeURI(url.split('/').pop() || '') ||
 														`Document ${i + 1}`}
 												</a>
 												<button

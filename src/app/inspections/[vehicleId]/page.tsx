@@ -584,6 +584,7 @@ export default function InspectionDetailPage() {
 											key={index}
 											className='relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-colors cursor-pointer group'>
 											<img
+												loading='lazy'
 												src={`${photoUrl}?token=${TokenManager.getToken()}`}
 												alt={`Current inspection photo ${index + 1}`}
 												className='w-full h-full object-cover group-hover:scale-105 transition-transform'
@@ -652,6 +653,7 @@ export default function InspectionDetailPage() {
 													key={index}
 													className='relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-gray-400 transition-colors cursor-pointer group'>
 													<img
+														loading='lazy'
 														src={`${photoUrl}?token=${TokenManager.getToken()}`}
 														alt={`Previous inspection photo ${index + 1}`}
 														className='w-full h-full object-cover group-hover:scale-105 transition-transform'

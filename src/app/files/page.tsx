@@ -505,7 +505,7 @@ export default function FilesPage() {
 														)
 													}
 													className='text-xs text-indigo-600 hover:text-indigo-700 underline truncate flex-1 text-left'>
-													{file.file_url}
+													{decodeURI(file.file_url)}
 												</button>
 												<Button
 													variant='ghost'

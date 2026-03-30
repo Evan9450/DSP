@@ -2335,6 +2335,24 @@ class APIClient {
 		return response.data;
 	}
 
+	async deleteVehicleRepairHistory(
+		vehicleId: number,
+		recordId: number,
+	): Promise<void> {
+		await this.client.delete(
+			`/api/v1/vehicles/${vehicleId}/repair/${recordId}`,
+		);
+	}
+
+	async deleteVehicleOtherHistory(
+		vehicleId: number,
+		recordId: number,
+	): Promise<void> {
+		await this.client.delete(
+			`/api/v1/vehicles/${vehicleId}/other-history/${recordId}`,
+		);
+	}
+
 	// Supplementary Vehicle Assignment
 	async createVehicleSupplementary(
 		vehicleId: number,
@@ -2367,6 +2385,14 @@ class APIClient {
 			data,
 		);
 		return response.data;
+	}
+
+	async deleteVehicleSupplementaryHistory(
+		suppHistoryId: number,
+	): Promise<void> {
+		await this.client.delete(
+			`/api/v1/vehicles/supplementary/${suppHistoryId}`,
+		);
 	}
 
 	// ============================================================================

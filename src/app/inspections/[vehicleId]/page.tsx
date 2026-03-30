@@ -29,6 +29,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
+import FilePreviewDialog from '@/components/FilePreviewDialog';
+
 
 const getInspectionStatusBadge = (status: string) => {
 	switch (status) {
@@ -87,6 +89,19 @@ export default function InspectionDetailPage() {
 	const [error, setError] = useState<string | null>(null);
 	const [isReviewing, setIsReviewing] = useState(false);
 	const [adminNotes, setAdminNotes] = useState('');
+
+	// Photo preview state
+	const [previewOpen, setPreviewOpen] = useState(false);
+	const [previewLoading, setPreviewLoading] = useState(false);
+	const [previewError, setPreviewError] = useState(false);
+	const [previewUrl, setPreviewUrl] = useState('');
+
+	const openPhoto = (url: string) => {
+		setPreviewError(false);
+		setPreviewLoading(false);
+		setPreviewUrl(url);
+		setPreviewOpen(true);
+	};
 
 	useEffect(() => {
 		const fetchInspectionDetail = async () => {
@@ -287,7 +302,8 @@ export default function InspectionDetailPage() {
 	const previousPhotoUrls = getPreviousPhotoUrls();
 
 	return (
-		<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>
+		<>
+			<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50'>
 			<div className='container mx-auto p-6 max-w-4xl'>
 				{/* Header */}
 				<div className='mb-6'>
@@ -589,10 +605,7 @@ export default function InspectionDetailPage() {
 												alt={`Current inspection photo ${index + 1}`}
 												className='w-full h-full object-cover group-hover:scale-105 transition-transform'
 												onClick={() =>
-													window.open(
-														`${photoUrl}?token=${TokenManager.getToken()}`,
-														'_blank',
-													)
+													openPhoto(`${photoUrl}?token=${TokenManager.getToken()}`)
 												}
 											/>
 											<div className='absolute top-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded'>
@@ -658,10 +671,7 @@ export default function InspectionDetailPage() {
 														alt={`Previous inspection photo ${index + 1}`}
 														className='w-full h-full object-cover group-hover:scale-105 transition-transform'
 														onClick={() =>
-															window.open(
-																`${photoUrl}?token=${TokenManager.getToken()}`,
-																'_blank',
-															)
+															openPhoto(`${photoUrl}?token=${TokenManager.getToken()}`)
 														}
 													/>
 													<div className='absolute top-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded'>
@@ -692,5 +702,18 @@ export default function InspectionDetailPage() {
 				)}
 			</div>
 		</div>
+
+		<FilePreviewDialog
+			previewOpen={previewOpen}
+			setPreviewOpen={(open) => {
+				setPreviewOpen(open);
+				if (!open) setPreviewUrl('');
+			}}
+			previewLoading={previewLoading}
+			previewError={previewError}
+			previewUrl={previewUrl}
+			setPreviewError={setPreviewError}
+		/>
+		</>
 	);
 }

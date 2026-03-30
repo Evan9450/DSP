@@ -63,7 +63,7 @@ const FilePreviewDialog = ({
 						</Button> */}
 					</div>
 				</DialogHeader>
-				<div className='mt-4 flex items-center justify-center min-h-[400px]'>
+				<div className='mt-4 flex items-center justify-center h-[calc(90vh-8rem)] min-h-[300px]'>
 					{previewLoading ? (
 						<div className='text-center'>
 							<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto'></div>
@@ -82,11 +82,11 @@ const FilePreviewDialog = ({
 							</p>
 						</div>
 					) : (
-						<div className='w-full h-full overflow-auto'>
+						<div className='w-full h-full flex items-center justify-center overflow-hidden'>
 							<img
 								src={previewUrl}
 								alt='File preview'
-								className='max-w-full h-auto mx-auto rounded-lg'
+								className='max-w-full max-h-full object-contain mx-auto rounded-lg'
 								onError={() => setPreviewError(true)}
 							/>
 						</div>

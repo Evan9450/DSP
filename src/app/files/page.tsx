@@ -30,18 +30,26 @@ import {
 	errorMessages,
 	handleApiError,
 } from '@/lib/notifications';
+import FilePreviewDialog from '@/components/FilePreviewDialog';
+
 
 export default function FilesPage() {
 	const [files, setFiles] = useState<FileRecordResponse[]>([]);
 	console.log('files', files);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isUploading, setIsUploading] = useState(false);
-	const [isViewing, setIsViewing] = useState(false);
 	const [selectedFiles, setSelectedFiles] = useState<number[]>([]);
 	const [folderFilter, setFolderFilter] = useState<string>('');
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const batchFileInputRef = useRef<HTMLInputElement>(null);
 	const [folder, setFolder] = useState('uploads');
+
+	// Preview dialog state
+	const [previewOpen, setPreviewOpen] = useState(false);
+	const [previewLoading, setPreviewLoading] = useState(false);
+	const [previewError, setPreviewError] = useState(false);
+	const [previewUrl, setPreviewUrl] = useState('');
+
 
 	const fetchFiles = async () => {
 		try {
@@ -143,27 +151,36 @@ export default function FilesPage() {
 
 	const handleViewFile = async (fileId: number, filename: string) => {
 		try {
-			setIsViewing(true);
-			// Fetch file with authentication via apiClient
-			const blob = await apiClient.viewFile(fileId);
+			setPreviewLoading(true);
+			setPreviewError(false);
+			setPreviewUrl('');
 
-			// Create a temporary URL for the blob
+			const blob = await apiClient.viewFile(fileId);
+			const isImage = blob.type.startsWith('image/');
+
 			const url = window.URL.createObjectURL(blob);
 
-			// Open in new tab
-			const newWindow = window.open(url, '_blank');
-
-			// Clean up the URL after a delay (to ensure it loads)
-			setTimeout(() => {
-				window.URL.revokeObjectURL(url);
-			}, 1000);
-
-			notify.success(`Opening "${filename}"`);
+			if (isImage) {
+				// Show in preview dialog
+				setPreviewOpen(true);
+				setPreviewUrl(url);
+			} else {
+				// Trigger browser download for non-image files (PDF, DOCX, CSV, etc.)
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = filename;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+				notify.success(`Downloading "${filename}"`);
+			}
 		} catch (error) {
 			console.error('Failed to view file:', error);
+			setPreviewError(true);
 			handleApiError(error, `Failed to open file "${filename}"`);
 		} finally {
-			setIsViewing(false);
+			setPreviewLoading(false);
 		}
 	};
 
@@ -214,8 +231,9 @@ export default function FilesPage() {
 	}
 
 	return (
-		<div className='min-h-screen bg-zinc-100'>
-			<div className='container mx-auto py-12 px-4 max-w-7xl'>
+		<>
+			<div className='min-h-screen bg-zinc-100'>
+				<div className='container mx-auto py-12 px-4 max-w-7xl'>
 				<div className='mb-8'>
 					<div className='flex justify-between items-start'>
 						<div>
@@ -316,17 +334,8 @@ export default function FilesPage() {
 					)}
 				</Card>
 
-				{/* Viewing indicator */}
-				{isViewing && (
-					<div className='fixed top-4 right-4 bg-white shadow-lg rounded-lg p-4 border border-gray-200 z-50'>
-						<div className='flex items-center gap-3'>
-							<div className='animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600'></div>
-							<span className='text-sm text-gray-700'>
-								Loading file...
-							</span>
-						</div>
-					</div>
-				)}
+				{/* Viewing indicator removed — now using FilePreviewDialog */}
+
 
 				{/* Filter and Actions */}
 				<Card className='bg-white shadow-sm hover:shadow-md transition-shadow rounded-lg p-6 mb-6'>
@@ -562,5 +571,21 @@ export default function FilesPage() {
 				</Card>
 			</div>
 		</div>
+
+		<FilePreviewDialog
+			previewOpen={previewOpen}
+			setPreviewOpen={(open) => {
+				setPreviewOpen(open);
+				if (!open && previewUrl) {
+					window.URL.revokeObjectURL(previewUrl);
+					setPreviewUrl('');
+				}
+			}}
+			previewLoading={previewLoading}
+			previewError={previewError}
+			previewUrl={previewUrl}
+			setPreviewError={setPreviewError}
+		/>
+		</>
 	);
 }

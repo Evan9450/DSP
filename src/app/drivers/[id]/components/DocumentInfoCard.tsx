@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import FilePreviewDialog from './FilePreviewDialog';
+import FilePreviewDialog from '@/components/FilePreviewDialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiClient } from '@/lib/api/client';
@@ -102,16 +102,11 @@ export function DocumentInfoCard({
 
 	// Handle file preview
 	const handlePreview = async (fileUrl: string) => {
-		setPreviewOpen(true);
-		setPreviewLoading(true);
-		setPreviewError(false);
-
 		try {
 			// Extract file ID from URL (e.g., http://localhost:8000/api/v1/files/download/20 -> 20)
 			const fileIdMatch = fileUrl.match(/\/files\/download\/(\d+)/);
 			if (!fileIdMatch) {
 				setPreviewError(true);
-				setPreviewLoading(false);
 				return;
 			}
 
@@ -119,17 +114,35 @@ export function DocumentInfoCard({
 
 			// Fetch file as blob with authentication
 			const blob = await apiClient.viewFile(fileId);
-
-			// Create object URL for preview
+			const isImage = blob.type.startsWith('image/');
 			const objectUrl = URL.createObjectURL(blob);
-			setPreviewUrl(objectUrl);
-			setPreviewLoading(false);
+
+			if (isImage) {
+				// Show in preview dialog
+				setPreviewOpen(true);
+				setPreviewLoading(false);
+				setPreviewError(false);
+				setPreviewUrl(objectUrl);
+			} else {
+				// Trigger browser download for non-image files (PDF, DOCX, CSV, etc.)
+				// Extract a filename from the URL path
+				const urlParts = fileUrl.split('/');
+				const filename = decodeURIComponent(urlParts[urlParts.length - 1]) || `file-${fileId}`;
+				const a = document.createElement('a');
+				a.href = objectUrl;
+				a.download = filename;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+			}
 		} catch (error) {
 			console.error('Failed to load preview:', error);
 			setPreviewError(true);
 			setPreviewLoading(false);
 		}
 	};
+
 
 	// Clean up object URL when dialog closes
 	useEffect(() => {
@@ -350,7 +363,18 @@ export function DocumentInfoCard({
 															handlePreview(url)
 														}
 														className='text-indigo-600 hover:text-indigo-700 text-sm truncate flex-1 text-left'>
-														File {index + 1}
+														{(() => {
+															try {
+																const parts = url.split('/');
+																const lastPart = parts[parts.length - 1];
+																if (lastPart && isNaN(Number(lastPart))) {
+																	return decodeURIComponent(lastPart);
+																}
+																return `File ${index + 1}`;
+															} catch {
+																return `File ${index + 1}`;
+															}
+														})()}
 													</button>
 												</div>
 												<div className='flex items-center gap-1 shrink-0 ml-2'>

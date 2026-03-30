@@ -29,6 +29,16 @@ import { LogRepairDialog } from './repair-tab';
 import { EditRepairDialog } from './edit-repair-dialog';
 import { EditOtherHistoryDialog } from './edit-other-history-dialog';
 import { EditMaintenanceDialog } from './edit-maintenance-dialog';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface VehicleHistoryCardProps {
 	vehicleId: number;
@@ -51,6 +61,10 @@ export function VehicleHistoryCard({
 
 	// 编辑状态
 	const [editingRecord, setEditingRecord] =
+		useState<UnifiedHistoryItem | null>(null);
+
+	// 删除确认状态
+	const [pendingDeleteRecord, setPendingDeleteRecord] =
 		useState<UnifiedHistoryItem | null>(null);
 
 	const fetchAllHistory = async () => {
@@ -139,8 +153,50 @@ export function VehicleHistoryCard({
 	const isEditable = (type: string) =>
 		type === 'Repair' || type === 'Other' || type === 'Maintenance';
 
+	const isDeletable = (type: string) =>
+		type === 'Repair' || type === 'Other' || type === 'Maintenance' || type === 'Supplementary';
+
 	const closeEditDialog = (open: boolean) => {
 		if (!open) setEditingRecord(null);
+	};
+
+	const confirmDeleteRecord = async () => {
+		const record = pendingDeleteRecord;
+		if (!record) return;
+		setPendingDeleteRecord(null);
+
+		try {
+			if (record.history_type === 'Repair') {
+				await apiClient.deleteVehicleRepairHistory(vehicleId, record.id);
+			} else if (record.history_type === 'Other') {
+				await apiClient.deleteVehicleOtherHistory(vehicleId, record.id);
+			} else if (record.history_type === 'Supplementary') {
+				await apiClient.deleteVehicleSupplementaryHistory(record.id);
+			} else if (record.history_type === 'Maintenance') {
+				await apiClient.deleteVehicleMaintenanceRecord(vehicleId, record.id);
+			} else {
+				toast({
+					title: 'Error',
+					description: 'Unsupported history type for deletion.',
+					variant: 'destructive',
+				});
+				return;
+			}
+
+			toast({
+				title: 'Success',
+				description: 'Record deleted successfully.',
+			});
+			fetchAllHistory();
+		} catch (error: any) {
+			console.error('Failed to delete history record:', error);
+			const errorMsg = error.response?.data?.detail || error.message || 'Failed to delete record.';
+			toast({
+				title: 'Error',
+				description: typeof errorMsg === 'string' ? errorMsg : 'Failed to delete record.',
+				variant: 'destructive',
+			});
+		}
 	};
 
 	return (
@@ -292,20 +348,18 @@ export function VehicleHistoryCard({
 													) : (
 														<div className='h-8 w-8' />
 													)}
-													<Button
-														variant='ghost'
-														size='icon'
-														className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 p-0'
-														onClick={() => {
-															toast({
-																title: 'Not Implemented',
-																description:
-																	'Deletion of history arriving soon.',
-															});
-														}}
-														title='Delete Record'>
-														<Trash2 className='h-4 w-4' />
-													</Button>
+													{isDeletable(record.history_type) ? (
+														<Button
+															variant='ghost'
+															size='icon'
+															className='text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 p-0'
+															onClick={() => setPendingDeleteRecord(record)}
+															title='Delete Record'>
+															<Trash2 className='h-4 w-4' />
+														</Button>
+													) : (
+														<div className='h-8 w-8' />
+													)}
 												</div>
 											)}
 										</TableCell>
@@ -364,6 +418,34 @@ export function VehicleHistoryCard({
 					onSuccess={fetchAllHistory}
 				/>
 			)}
-		</div>
+
+		{/* Delete Confirmation Dialog */}
+		<AlertDialog
+			open={pendingDeleteRecord !== null}
+			onOpenChange={(open) => {
+				if (!open) setPendingDeleteRecord(null);
+			}}>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Delete Record</AlertDialogTitle>
+					<AlertDialogDescription>
+						Are you sure you want to delete this{' '}
+						<span className='font-medium text-zinc-900'>
+							{pendingDeleteRecord?.history_type}
+						</span>{' '}
+						record? This action cannot be undone.
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel>Cancel</AlertDialogCancel>
+					<AlertDialogAction
+						className='bg-rose-600 hover:bg-rose-700 text-white'
+						onClick={confirmDeleteRecord}>
+						Delete
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
+	</div>
 	);
 }

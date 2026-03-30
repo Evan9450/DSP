@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { apiClient, TokenManager } from '@/lib/api/client';
 import { Loader2, X } from 'lucide-react';
+import FilePreviewDialog from '@/components/FilePreviewDialog';
 import {
 	Select,
 	SelectContent,
@@ -43,6 +44,10 @@ export function AddOtherHistoryDialog({
 	const [costType, setCostType] = useState('Self'); // Expected: 'Self', 'Amazon', 'Insurance'
 	const [documents, setDocuments] = useState<File[]>([]);
 	const [reportUrl, setReportUrl] = useState('');
+	const [previewOpen, setPreviewOpen] = useState(false);
+	const [previewUrl, setPreviewUrl] = useState('');
+	const [previewLoading, setPreviewLoading] = useState(false);
+	const [previewError, setPreviewError] = useState(false);
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files) {
@@ -56,6 +61,13 @@ export function AddOtherHistoryDialog({
 			.filter((url) => url !== urlToRemove)
 			.join(',');
 		setReportUrl(newUrls);
+	};
+
+	const handlePreview = (url: string) => {
+		setPreviewUrl(`${url}?token=${TokenManager.getToken()}`);
+		setPreviewOpen(true);
+		setPreviewLoading(false);
+		setPreviewError(false);
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -194,15 +206,14 @@ export function AddOtherHistoryDialog({
 											<div
 												key={i}
 												className='flex items-center gap-1 bg-muted px-2 py-1 rounded-md'>
-												<a
-													href={`${url}?token=${TokenManager.getToken()}`}
-													target='_blank'
-													rel='noopener noreferrer'
+												<button
+													type='button'
+													onClick={() => handlePreview(url)}
 													className='text-blue-500 hover:underline inline-block truncate max-w-[150px] text-xs'
 													title={decodeURI(url.split('/').pop() || '')}>
 													{decodeURI(url.split('/').pop() || '') ||
 														`Document ${i + 1}`}
-												</a>
+												</button>
 												<button
 													type='button'
 													className='text-red-500 hover:text-red-700 p-0.5 rounded focus:outline-none'
@@ -246,6 +257,14 @@ export function AddOtherHistoryDialog({
 						</Button>
 					</DialogFooter>
 				</form>
+				<FilePreviewDialog
+					previewOpen={previewOpen}
+					setPreviewOpen={setPreviewOpen}
+					previewLoading={previewLoading}
+					previewError={previewError}
+					previewUrl={previewUrl}
+					setPreviewError={setPreviewError}
+				/>
 			</DialogContent>
 		</Dialog>
 	);

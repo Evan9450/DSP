@@ -22,7 +22,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, Eye } from 'lucide-react';
+import FilePreviewDialog from '@/components/FilePreviewDialog';
 
 interface EditOtherHistoryDialogProps {
 	vehicleId: number;
@@ -48,6 +49,10 @@ export function EditOtherHistoryDialog({
 	const [costType, setCostType] = useState(record.cost_type ?? 'Self');
 	const [documents, setDocuments] = useState<File[]>([]);
 	const [reportUrl, setReportUrl] = useState(record.action || '');
+	const [previewOpen, setPreviewOpen] = useState(false);
+	const [previewUrl, setPreviewUrl] = useState('');
+	const [previewLoading, setPreviewLoading] = useState(false);
+	const [previewError, setPreviewError] = useState(false);
 
 	// 当 record 变化时（打开新记录），重置表单
 	useEffect(() => {
@@ -71,6 +76,13 @@ export function EditOtherHistoryDialog({
 			.filter((url) => url !== urlToRemove)
 			.join(',');
 		setReportUrl(newUrls);
+	};
+
+	const handlePreview = (url: string) => {
+		setPreviewUrl(`${url}?token=${TokenManager.getToken()}`);
+		setPreviewOpen(true);
+		setPreviewLoading(false);
+		setPreviewError(false);
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -202,15 +214,14 @@ export function EditOtherHistoryDialog({
 											<div
 												key={i}
 												className='flex items-center gap-1 bg-muted px-2 py-1 rounded-md'>
-												<a
-													href={`${url}?token=${TokenManager.getToken()}`}
-													target='_blank'
-													rel='noopener noreferrer'
+												<button
+													type='button'
+													onClick={() => handlePreview(url)}
 													className='text-blue-500 hover:underline inline-block truncate max-w-[150px] text-xs'
 													title={decodeURI(url.split('/').pop() || '')}>
 													{decodeURI(url.split('/').pop() || '') ||
 														`Document ${i + 1}`}
-												</a>
+												</button>
 												<button
 													type='button'
 													className='text-red-500 hover:text-red-700 p-0.5 rounded focus:outline-none'
@@ -254,6 +265,14 @@ export function EditOtherHistoryDialog({
 						</Button>
 					</DialogFooter>
 				</form>
+				<FilePreviewDialog
+					previewOpen={previewOpen}
+					setPreviewOpen={setPreviewOpen}
+					previewLoading={previewLoading}
+					previewError={previewError}
+					previewUrl={previewUrl}
+					setPreviewError={setPreviewError}
+				/>
 			</DialogContent>
 		</Dialog>
 	);

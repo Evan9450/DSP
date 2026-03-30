@@ -4,23 +4,15 @@ import { useState, useEffect } from 'react';
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from '@/components/ui/popover';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { apiClient } from '@/lib/api/client';
 import type { VehicleResponse } from '@/lib/api/client';
@@ -53,7 +45,9 @@ export function AssignSupplementaryDialog({
 	>([]);
 
 	const [targetVehicleId, setTargetVehicleId] = useState<string>('');
-	const [startDate, setStartDate] = useState<Date>(new Date());
+	const [startDate, setStartDate] = useState<string>(
+		format(new Date(), 'yyyy-MM-dd'),
+	);
 	const [cost, setCost] = useState<string>('');
 	const [costType, setCostType] = useState<string>('Self');
 
@@ -64,7 +58,7 @@ export function AssignSupplementaryDialog({
 		} else {
 			// Reset form
 			setTargetVehicleId('');
-			setStartDate(new Date());
+			setStartDate(format(new Date(), 'yyyy-MM-dd'));
 			setCost('');
 			setCostType('Self');
 		}
@@ -126,7 +120,7 @@ export function AssignSupplementaryDialog({
 			await apiClient.createVehicleSupplementary(parsedTargetId, {
 				target_vehicle_id: parsedTargetId,
 				supplementary_vehicle_id: vehicleId,
-				start_date: format(startDate, 'yyyy-MM-dd'),
+				start_date: startDate,
 				cost: parsedCost,
 				cost_type: costType,
 			});
@@ -209,7 +203,7 @@ export function AssignSupplementaryDialog({
 							Assignment Start Date{' '}
 							<span className='text-red-500'>*</span>
 						</Label>
-						<Popover>
+						{/* <Popover>
 							<PopoverTrigger asChild>
 								<Button
 									variant={'outline'}
@@ -235,7 +229,14 @@ export function AssignSupplementaryDialog({
 									initialFocus
 								/>
 							</PopoverContent>
-						</Popover>
+						</Popover> */}
+						<Input
+							id='release-end-date'
+							type='date'
+							value={startDate}
+							onChange={(e) => setStartDate(e.target.value)}
+							disabled={isSubmitting}
+						/>
 					</div>
 
 					<div className='space-y-2'>

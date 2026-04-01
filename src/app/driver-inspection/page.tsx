@@ -29,6 +29,9 @@ import { driverApiClient, DriverTokenManager } from '@/lib/api/driver-client';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
+import { LazyImg } from '@/components/lazy-img';
+
+
 
 export default function DriverInspectionPage() {
 	const router = useRouter();
@@ -456,7 +459,7 @@ export default function DriverInspectionPage() {
 								<div
 									key={`existing-${index}`}
 									className='relative aspect-square rounded-lg overflow-hidden border-2 border-green-300'>
-									<img
+									<LazyImg
 										src={`${url}?token=${DriverTokenManager.getToken()}`}
 										alt={`Saved photo ${index + 1}`}
 										className='w-full h-full object-cover'
@@ -480,7 +483,7 @@ export default function DriverInspectionPage() {
 								<div
 									key={`new-${index}`}
 									className='relative aspect-square rounded-lg overflow-hidden border-2 border-blue-300'>
-									<img
+									<LazyImg
 										src={preview}
 										alt={`New photo ${index + 1}`}
 										className='w-full h-full object-cover'

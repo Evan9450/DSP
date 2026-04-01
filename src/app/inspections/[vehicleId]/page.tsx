@@ -30,6 +30,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import FilePreviewDialog from '@/components/FilePreviewDialog';
+import { LazyImg } from '@/components/lazy-img';
+
+
 
 
 const getInspectionStatusBadge = (status: string) => {
@@ -599,8 +602,7 @@ export default function InspectionDetailPage() {
 										<div
 											key={index}
 											className='relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-colors cursor-pointer group'>
-											<img
-												loading='lazy'
+											<LazyImg
 												src={`${photoUrl}?token=${TokenManager.getToken()}`}
 												alt={`Current inspection photo ${index + 1}`}
 												className='w-full h-full object-cover group-hover:scale-105 transition-transform'
@@ -665,8 +667,7 @@ export default function InspectionDetailPage() {
 												<div
 													key={index}
 													className='relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-gray-400 transition-colors cursor-pointer group'>
-													<img
-														loading='lazy'
+													<LazyImg
 														src={`${photoUrl}?token=${TokenManager.getToken()}`}
 														alt={`Previous inspection photo ${index + 1}`}
 														className='w-full h-full object-cover group-hover:scale-105 transition-transform'

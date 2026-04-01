@@ -7,6 +7,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 
@@ -29,6 +30,15 @@ export function PhotoLightboxDialog({
 	onNext,
 	onDelete,
 }: PhotoLightboxDialogProps) {
+	const [isImgLoading, setIsImgLoading] = useState(false);
+
+	// 每次切换图片时重置 loading 状态
+	useEffect(() => {
+		if (selectedPhotoIndex !== null) {
+			setIsImgLoading(true);
+		}
+	}, [selectedPhotoIndex]);
+
 	return (
 		<Dialog open={selectedPhotoIndex !== null} onOpenChange={onClose}>
 			<DialogContent className='max-w-5xl max-h-[95vh] p-0'>
@@ -80,12 +90,21 @@ export function PhotoLightboxDialog({
 						</Button>
 
 						{/* Photo */}
-						<div className='w-full flex items-center justify-center py-4'>
+						<div className='w-full flex items-center justify-center py-4 relative min-h-[200px]'>
+							{/* Loading spinner */}
+							{isImgLoading && (
+								<div className='absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg z-10'>
+									<div className='animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600' />
+								</div>
+							)}
 							<img
+								loading='lazy'
 								src={photoUrls[selectedPhotoIndex]}
 								alt={`Vehicle photo ${selectedPhotoIndex + 1}`}
-								className='max-w-full max-h-[75vh] object-contain rounded-lg'
+								className={`max-w-full max-h-[75vh] object-contain rounded-lg transition-opacity duration-300 ${isImgLoading ? 'opacity-0' : 'opacity-100'}`}
 								crossOrigin='anonymous'
+								onLoad={() => setIsImgLoading(false)}
+								onError={() => setIsImgLoading(false)}
 							/>
 						</div>
 

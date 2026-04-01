@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2, X, Eye } from 'lucide-react';
 import FilePreviewDialog from '@/components/FilePreviewDialog';
+import { handleFileAction } from '@/lib/file-utils';
 
 interface EditOtherHistoryDialogProps {
 	vehicleId: number;
@@ -79,10 +80,15 @@ export function EditOtherHistoryDialog({
 	};
 
 	const handlePreview = (url: string) => {
-		setPreviewUrl(`${url}?token=${TokenManager.getToken()}`);
-		setPreviewOpen(true);
-		setPreviewLoading(false);
-		setPreviewError(false);
+		const filename = url.split('/').pop() || 'document';
+		handleFileAction(
+			url,
+			filename,
+			setPreviewUrl,
+			setPreviewOpen,
+			setPreviewLoading,
+			setPreviewError,
+		);
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {

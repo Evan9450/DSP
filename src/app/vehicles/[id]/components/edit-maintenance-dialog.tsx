@@ -18,6 +18,7 @@ import { RepairSupplierSelect } from './repair-supplier-select';
 import { apiClient, type UnifiedHistoryItem, TokenManager } from '@/lib/api/client';
 import { Loader2, X } from 'lucide-react';
 import FilePreviewDialog from '@/components/FilePreviewDialog';
+import { handleFileAction } from '@/lib/file-utils';
 
 interface EditMaintenanceDialogProps {
 	vehicleId: number;
@@ -74,10 +75,15 @@ export function EditMaintenanceDialog({
 	};
 
 	const handlePreview = (url: string) => {
-		setPreviewUrl(`${url}?token=${TokenManager.getToken()}`);
-		setPreviewOpen(true);
-		setPreviewLoading(false);
-		setPreviewError(false);
+		const filename = url.split('/').pop() || 'document';
+		handleFileAction(
+			url,
+			filename,
+			setPreviewUrl,
+			setPreviewOpen,
+			setPreviewLoading,
+			setPreviewError,
+		);
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {

@@ -13,7 +13,7 @@ export const isImageFile = (url: string): boolean => {
 /**
  * Handles the file action: previews images and downloads other formats.
  */
-export const handleFileAction = async (
+export const handleFileAction = (
 	url: string,
 	filename: string,
 	setPreviewUrl: (url: string) => void,
@@ -30,31 +30,9 @@ export const handleFileAction = async (
 		setPreviewLoading(false);
 		setPreviewError(false);
 	} else {
-		try {
-			// Fetch the file as a blob to force download instead of opening in browser
-			const response = await fetch(fullUrl, {
-				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			});
-			
-			if (!response.ok) throw new Error('Network response was not ok');
-			
-			const blob = await response.blob();
-			const objectUrl = window.URL.createObjectURL(blob);
-			
-			const a = document.createElement('a');
-			a.href = objectUrl;
-			a.download = filename;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
-		} catch (error) {
-			console.error('Download failed:', error);
-			// Fallback: open in new tab if fetch fails due to CORS or other issues
-			window.open(fullUrl, '_blank');
-		}
+		// Use window.open synchronously to bypass popup blockers.
+		// For unsupported formats like DOCX, the browser will download it automatically and close the tab.
+		// For supported formats like PDF, it opens safely in a new tab without disrupting the current page state.
+		window.open(fullUrl, '_blank', 'noopener,noreferrer');
 	}
 };

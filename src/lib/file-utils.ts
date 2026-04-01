@@ -22,7 +22,13 @@ export const handleFileAction = (
 	setPreviewError: (error: boolean) => void,
 ) => {
 	const token = TokenManager.getToken();
-	const fullUrl = url.includes('?') ? `${url}&token=${token}` : `${url}?token=${token}`;
+	
+	// Only append the token if it's an internal API URL. 
+	// Appending arbitrary query parameters to presigned S3/Wasabi URLs breaks their signature and causes XML error pages.
+	const isExternalStorage = url.includes('wasabisys.com') || url.includes('amazonaws.com');
+	const fullUrl = isExternalStorage 
+		? url 
+		: (url.includes('?') ? `${url}&token=${token}` : `${url}?token=${token}`);
 
 	if (isImageFile(url)) {
 		setPreviewUrl(fullUrl);

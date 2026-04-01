@@ -26,9 +26,16 @@ export const handleFileAction = (
 	// Only append the token if it's an internal API URL. 
 	// Appending arbitrary query parameters to presigned S3/Wasabi URLs breaks their signature and causes XML error pages.
 	const isExternalStorage = url.includes('wasabisys.com') || url.includes('amazonaws.com');
+	
+	// Force HTTPS for external storage to prevent Mixed Content blocked downloads in production (HTTPS)
+	let secureUrl = url;
+	if (isExternalStorage && url.startsWith('http://')) {
+		secureUrl = url.replace('http://', 'https://');
+	}
+
 	const fullUrl = isExternalStorage 
-		? url 
-		: (url.includes('?') ? `${url}&token=${token}` : `${url}?token=${token}`);
+		? secureUrl 
+		: (secureUrl.includes('?') ? `${secureUrl}&token=${token}` : `${secureUrl}?token=${token}`);
 
 	if (isImageFile(url)) {
 		setPreviewUrl(fullUrl);

@@ -31,8 +31,6 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { LazyImg } from '@/components/lazy-img';
 
-
-
 export default function DriverInspectionPage() {
 	const router = useRouter();
 	const { toast } = useToast();
@@ -572,7 +570,6 @@ export default function DriverInspectionPage() {
 							Additional Notes (Optional)
 						</h3>
 						<Textarea
-							placeholder='Add any issues, observations, or comments about the vehicle...'
 							value={notes}
 							onChange={(e) => setNotes(e.target.value)}
 							rows={4}

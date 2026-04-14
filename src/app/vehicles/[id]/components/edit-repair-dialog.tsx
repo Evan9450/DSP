@@ -19,6 +19,13 @@ import { apiClient, type UnifiedHistoryItem, TokenManager } from '@/lib/api/clie
 import { Loader2, X } from 'lucide-react';
 import FilePreviewDialog from '@/components/FilePreviewDialog';
 import { handleFileAction } from '@/lib/file-utils';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
 
 interface EditRepairDialogProps {
 	vehicleId: number;
@@ -41,6 +48,7 @@ export function EditRepairDialog({
 	const [date, setDate] = useState(record.date);
 	const [description, setDescription] = useState(record.description ?? '');
 	const [cost, setCost] = useState(record.cost ? String(record.cost) : '');
+	const [costType, setCostType] = useState(record.cost_type || 'Self');
 	const [supplierId, setSupplierId] = useState<number | undefined>(
 		record.metadata?.supplier_id ?? undefined,
 	);
@@ -56,6 +64,7 @@ export function EditRepairDialog({
 		setDate(record.date);
 		setDescription(record.description ?? '');
 		setCost(record.cost ? String(record.cost) : '');
+		setCostType(record.cost_type || 'Self');
 		setSupplierId(record.metadata?.supplier_id ?? undefined);
 		setReportUrl(record.report_url || record.action || '');
 		setDocuments([]);
@@ -119,6 +128,7 @@ export function EditRepairDialog({
 				supplier_id: supplierId ?? null,
 				description: description || null,
 				cost: cost ? parseFloat(cost) : null,
+				cost_type: costType,
 				report_url: finalReportUrl || null,
 			});
 
@@ -168,6 +178,21 @@ export function EditRepairDialog({
 								value={supplierId}
 								onValueChange={setSupplierId}
 							/>
+						</div>
+						<div className='space-y-2'>
+							<Label htmlFor='edit-repair-cost-type'>Paid by *</Label>
+							<Select value={costType} onValueChange={setCostType}>
+								<SelectTrigger id='edit-repair-cost-type'>
+									<SelectValue placeholder='Select cost type' />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='Self'>Self</SelectItem>
+									<SelectItem value='Amazon'>Amazon</SelectItem>
+									<SelectItem value='Insurance'>
+										Insurance
+									</SelectItem>
+								</SelectContent>
+							</Select>
 						</div>
 						<div className='space-y-2'>
 							<Label htmlFor='edit-repair-cost'>Cost</Label>

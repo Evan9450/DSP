@@ -17,6 +17,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { RepairSupplierSelect } from './repair-supplier-select';
 import { apiClient } from '@/lib/api/client';
 import { FileUp, Loader2 } from 'lucide-react';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
 
 interface LogRepairDialogProps {
 	vehicleId: number;
@@ -42,6 +49,7 @@ export function LogRepairDialog({
 	);
 	const [description, setDescription] = useState('');
 	const [cost, setCost] = useState('');
+	const [costType, setCostType] = useState('Self');
 	const [documents, setDocuments] = useState<File[]>([]);
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,6 +63,7 @@ export function LogRepairDialog({
 		setSupplierId(defaultSupplierId);
 		setDescription('');
 		setCost('');
+		setCostType('Self');
 		setDocuments([]);
 	};
 
@@ -88,7 +97,7 @@ export function LogRepairDialog({
 				supplier_id: supplierId,
 				description: description,
 				cost: parseFloat(cost),
-				cost_type: 'Self',
+				cost_type: costType,
 				report_url: reportUrl || undefined,
 			});
 
@@ -145,6 +154,21 @@ export function LogRepairDialog({
 								value={supplierId}
 								onValueChange={setSupplierId}
 							/>
+						</div>
+						<div className='space-y-2'>
+							<Label htmlFor='repair-cost-type'>Paid by *</Label>
+							<Select value={costType} onValueChange={setCostType}>
+								<SelectTrigger id='repair-cost-type'>
+									<SelectValue placeholder='Select cost type' />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='Self'>Self</SelectItem>
+									<SelectItem value='Amazon'>Amazon</SelectItem>
+									<SelectItem value='Insurance'>
+										Insurance
+									</SelectItem>
+								</SelectContent>
+							</Select>
 						</div>
 						<div className='space-y-2'>
 							<Label htmlFor='repair-cost'> Cost *</Label>

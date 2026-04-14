@@ -355,10 +355,10 @@ export function ScheduleTable({
 									<TableCell>
 										{isEditable ? (
 											<Select
-												disabled={
-													schedule.confirm_status ===
-													'confirmed'
-												}
+												// disabled={
+												// 	schedule.confirm_status ===
+												// 	'confirmed'
+												// }
 												value={
 													schedule.route ||
 													'unassigned'

@@ -55,7 +55,9 @@ export function DriverKpiTable({ kpis }: DriverKpiTableProps) {
 						<TableHead>Driver</TableHead>
 						<TableHead className='text-center'>Amazon ID</TableHead>
 						{/* <TableHead className='text-center'>Status</TableHead> */}
-						<TableHead className='text-right'>Overall Score</TableHead>
+						<TableHead className='text-right'>
+							Overall Score
+						</TableHead>
 						<TableHead className='text-right'>Delivered</TableHead>
 						<TableHead className='text-right'>Netradyne</TableHead>
 						<TableHead className='text-right'>DNR (DPMO)</TableHead>
@@ -67,7 +69,9 @@ export function DriverKpiTable({ kpis }: DriverKpiTableProps) {
 				<TableBody>
 					{sortedKpis.length === 0 ? (
 						<TableRow>
-							<TableCell colSpan={11} className='h-24 text-center'>
+							<TableCell
+								colSpan={11}
+								className='h-24 text-center'>
 								No driver data found in this report.
 							</TableCell>
 						</TableRow>
@@ -79,7 +83,9 @@ export function DriverKpiTable({ kpis }: DriverKpiTableProps) {
 								</TableCell>
 								<TableCell>
 									<div className='flex flex-col'>
-										<span className='font-medium'>{kpi.driver_name}</span>
+										<span className={cn('font-medium', (!kpi.is_matched || kpi.driver_name.startsWith('Unknown')) && 'text-red-500')}>
+											{kpi.driver_name}
+										</span>
 									</div>
 								</TableCell>
 								<TableCell className='text-center font-mono text-xs'>
@@ -116,13 +122,21 @@ export function DriverKpiTable({ kpis }: DriverKpiTableProps) {
 										)}
 									</div>
 								</TableCell> */}
-								<TableCell className={cn('text-right text-lg', getScoreColor(kpi.overall_score))}>
+								<TableCell
+									className={cn(
+										'text-right text-lg',
+										getScoreColor(kpi.overall_score),
+									)}>
 									{formatScore(kpi.overall_score)}
 								</TableCell>
-								<TableCell className='text-right'>{formatNumber(kpi.delivered)}</TableCell>
+								<TableCell className='text-right'>
+									{formatNumber(kpi.delivered)}
+								</TableCell>
 								<TableCell className='text-right'>
 									<div className='flex items-center justify-end gap-1.5'>
-										<span>{formatScore(kpi.netradyne_score)}</span>
+										<span>
+											{formatScore(kpi.netradyne_score)}
+										</span>
 										{!kpi.csv_matched && (
 											<TooltipProvider>
 												<Tooltip>
@@ -130,7 +144,12 @@ export function DriverKpiTable({ kpis }: DriverKpiTableProps) {
 														<AlertTriangle className='h-4 w-4 text-amber-500' />
 													</TooltipTrigger>
 													<TooltipContent>
-														<p>缺少实际 Netradyne 数据，此为系统计算的平均得分</p>
+														<p>
+															Lack of Netradyne
+															data, this is system
+															calculated average
+															score
+														</p>
 													</TooltipContent>
 												</Tooltip>
 											</TooltipProvider>
@@ -139,13 +158,21 @@ export function DriverKpiTable({ kpis }: DriverKpiTableProps) {
 								</TableCell>
 								<TableCell className='text-right'>
 									<div className='flex flex-col items-end'>
-										<span>{formatNumber(kpi.dnr_dpmo)}</span>
+										<span>
+											{formatNumber(kpi.dnr_dpmo)}
+										</span>
 										{/* <span className='text-xs text-muted-foreground'>({formatScore(kpi.dnr_score)})</span> */}
 									</div>
 								</TableCell>
-								<TableCell className='text-right'>{formatScore(kpi.dcr)}%</TableCell>
-								<TableCell className='text-right'>{formatScore(kpi.pod)}%</TableCell>
-								<TableCell className='text-right'>{formatScore(kpi.cc)}%</TableCell>
+								<TableCell className='text-right'>
+									{formatScore(kpi.dcr)}%
+								</TableCell>
+								<TableCell className='text-right'>
+									{formatScore(kpi.pod)}%
+								</TableCell>
+								<TableCell className='text-right'>
+									{formatScore(kpi.cc)}%
+								</TableCell>
 							</TableRow>
 						))
 					)}
